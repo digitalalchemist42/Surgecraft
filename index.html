@@ -381,6 +381,28 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .kr-item.flash summary{box-shadow:inset 4px 0 0 var(--accent)}
 .kr-item .kw-body{padding:8px 12px 12px;font-size:13.5px}
 .kr-empty{padding:14px;color:var(--ink-2)}
+/* roster view */
+.vsum{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 16px}
+.vsum>div{display:flex;flex-direction:column;gap:1px}
+.vsum b{font-size:15px}
+.vtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;font-size:12.5px}
+.vlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.vitem{border-top:1px solid var(--line-2);background:var(--panel);scroll-margin-top:160px}
+.vitem:first-child{border-top:0}
+.vrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:8px 12px;color:inherit}
+.vrow:hover{background:var(--panel-2)}
+.vitem.open>.vrow{background:var(--accent-soft)}
+.vrow .thumb{width:50px;height:44px}
+.v-tag{width:50px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:var(--r);background:var(--hdr);color:var(--hdr-ink);font-family:var(--display);font-weight:700;font-size:18px}
+.v-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.v-name{font-family:var(--display);font-stretch:87.5%;font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.02em;line-height:1.15}
+.v-meta{display:flex;gap:4px;flex-wrap:wrap;align-items:center;font-size:12px}
+.v-r{font-size:14px;white-space:nowrap}
+.v-chev{width:9px;height:9px;flex:none;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);margin:0 4px 4px 2px;transition:transform .15s}
+.vitem.open .v-chev{transform:rotate(-135deg);margin-bottom:-4px}
+.v-body{padding:10px 12px 14px;background:var(--panel-2);border-top:1px solid var(--line-2)}
+.v-body .sc-deploy{max-width:720px}
+@media (max-width:680px){.v-body{padding:8px 6px 10px}.vrow{padding:8px}}
 /* battle tracker */
 .grow{flex:1}
 .bphases{display:flex;gap:4px;flex-wrap:wrap}
@@ -1014,6 +1036,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
   function richText(t) {
     var s = esc(t);
     s = s.replace(/\b([A-Z][A-Z\-']{1,}\b(?:\s+(?:[A-Z][A-Z\-']*\b(?![a-z])|\([^)]*\)|\d+\+?"?))*(?:\s+[A-Z][a-z]+(?=\s*\())?(?:\s*\([^)]*\))?)/g, "<b>$1</b>");
+    s = s.replace(/<b>([A-Z])-<\/b>(\d)/g, "$1-$2"); // weapon names such as C-14 are not keywords
     s = s.replace(/\b(Friendly|Enemy|Once per Game|Once per Round|Once Per Game)\b/g, "<b>$1</b>");
     return s;
   }
@@ -1053,8 +1076,11 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
   }
 
   /* ---------- UNIT CARD ---------- */
-  function unitCardHTML(C, u, entry, src) {
-    src = src || identity;
+  /* opts.fielded: show the Unit as it is on this roster — base profile with the purchased upgrades merged in
+     (replacement weapons swapped, SPECIALIST weapons listed with their model) and unpurchased upgrades left out. */
+  function unitCardHTML(C, u, entry, src, opts) {
+    src = src || identity; opts = opts || {};
+    var fielded = !!(opts.fielded && entry);
     var st = u.stats, lo = entry ? C.loadout(entry) : null, comp = entry ? C.composition(entry) : null;
     var takenNames = {}; if (entry) entry.upgrades.forEach(function (n) { takenNames[n] = true; });
     var artSrc = src(ART.unit(u.id)), emb = src(ART.race(u.race));
@@ -1079,9 +1105,30 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
       h += '<div class="sc-fielded">FIELDED: <b>' + entry.models + " MODELS</b> · SUPPLY <b>" + c.supply + '</b> · <span class="sc-min">' + c.total + " MINERALS</span>" + (c.upgrades ? " (" + c.base + " + " + c.upgrades + " upgrades)" : "") + "</div>";
     }
     // phases
+    var ups = fielded ? entry.upgrades.map(function (n) { return C.upgradeDef(entry, n); }).filter(Boolean) : [];
     PHASES.forEach(function (p) {
       var ws = u.weapons.filter(function (w) { return w.phase === p; });
       var ab = u.abilities.filter(function (a) { return a.phase === p; });
+      if (fielded) {
+        var upAb = ups.filter(function (x) { return x.kind !== "weapon" && x.phase === p; });
+        var swap = {}, taken = {}, spec = {}, extra = [];
+        ups.filter(function (x) { return x.kind === "weapon"; }).forEach(function (x) {
+          if (x.replaces && !x.specialist) swap[x.replaces] = x;
+          else if (x.phase === p) extra.push(x);
+          taken[x.name] = true;
+          if (x.specialist) spec[x.name] = (entry.specialists && entry.specialists[x.name]) || "?";
+        });
+        ws = ws.map(function (w) { return swap[w.name] || w; }).filter(function (w) { return w.phase === p; });
+        Object.keys(swap).forEach(function (k) { var x = swap[k]; if (x.phase === p && ws.indexOf(x) === -1 && !u.weapons.some(function (w) { return w.name === k && w.phase === p; })) ws.push(x); });
+        ws = ws.concat(extra);
+        if (!ws.length && !ab.length && !upAb.length) return;
+        h += '<section class="sc-sec">' + phaseHead(p);
+        h += ab.map(function (a) { return abilityBox(a); }).join("");
+        h += upAb.map(function (a) { return abilityBox(a, { upgrade: true, taken: true }); }).join("");
+        h += weaponTable(ws, { taken: taken, specialist: spec });
+        h += "</section>";
+        return;
+      }
       if (!ws.length && !ab.length) return;
       h += '<section class="sc-sec">' + phaseHead(p);
       h += ab.map(function (a) { return abilityBox(a); }).join("");
@@ -1089,7 +1136,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
       h += "</section>";
     });
     // upgrades
-    if (u.upgrades.length) {
+    if (u.upgrades.length && !fielded) {
       h += '<div class="sc-upband">&#9650; UPGRADES</div>';
       PHASES.forEach(function (p) {
         var ups = u.upgrades.filter(function (x) { return x.phase === p; });
@@ -2738,7 +2785,7 @@ function commit(opts){
   Store.queue(r);
   if(!opts || !opts.quiet) render(); else { renderMeters(); renderRail(); renderCrumb(); }
 }
-function resetView(){ BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
+function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
 function openRoster(id){ var r = S.rosters.filter(function(x){return x.id===id;})[0]; if(!r) return; S.cur = clone(r); resetView(); render(); window.scrollTo(0,0); }
 function newRoster(){ var r = C.newRoster(); S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
 function setRace(race){
@@ -2839,7 +2886,7 @@ function renderList(){
 /* ------------ build view ------------ */
 function renderBuild(){
   var h = '<div class="strip" id="strip"><div class="wrap" id="meters"></div></div>';
-  h += '<div class="tabbar"><div class="tabs" role="tablist">'+[["build","Build"],["battle","Battle"],["sheet","Roster sheet"],["export","Export"]].map(function(t){
+  h += '<div class="tabbar"><div class="tabs" role="tablist">'+[["build","Build"],["view","View"],["battle","Battle"],["sheet","Roster sheet"],["export","Export"]].map(function(t){
     return '<button class="tab" role="tab" aria-selected="'+(S.tab===t[0])+'" data-a="tab" data-v="'+t[0]+'">'+t[1]+'</button>'; }).join("")+'</div>';
   if(S.tab==="build") h += '<div class="viewsw"><span>Layout</span><div class="seg" role="group" aria-label="Layout">'+
     '<button data-a="layout" data-v="list" aria-pressed="'+(P.layout==="list")+'"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12M2 8h12M2 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>List</button>'+
@@ -2847,6 +2894,7 @@ function renderBuild(){
   h += '</div>';
   h += noticeHTML();
   if(S.tab==="sheet"){ h += '<div class="sheetwrap">'+Render.sheetHTML(C, S.cur, null, {art:true, checks:true})+'</div>'; $("app").innerHTML = h; renderMeters(); return; }
+  if(S.tab==="view"){ h += '<div id="view"></div>'; $("app").innerHTML = h; renderMeters(); renderView(); return; }
   if(S.tab==="battle"){ h += '<div id="battle"></div>'; $("app").innerHTML = h; renderBattle(); return; }
   if(S.tab==="export"){ h += '<div id="export"></div>'; $("app").innerHTML = h; renderMeters(); renderExport(); return; }
   h += '<div class="layout"><div class="main"><section class="section" id="sec-setup"></section><section class="section" id="sec-cards"></section><section class="section" id="sec-units"></section><section class="section" id="sec-scenario"></section></div><aside class="rail" id="rail"></aside></div>';
@@ -3311,6 +3359,81 @@ function importText(txt){
   Store.queue(r); render();
 }
 
+/* ------------ roster view (View tab) ------------
+   Read-only view of the finished roster. One line per card or unit; tap to unfold the card in place.
+   Unit cards are shown as fielded: purchased upgrades merged in, the rest left out. Keywords stay tappable. */
+var VS = { open:{} };
+function vItem(key, thumb, title, meta, right, body){
+  var open = !!VS.open[key];
+  return '<div class="vitem'+(open?' open':'')+'" id="v-'+esc(key.replace(/[^a-z0-9_-]/gi,"_"))+'"><button class="vrow" data-a="v-open" data-v="'+esc(key)+'" aria-expanded="'+open+'">'+thumb+
+    '<span class="v-t"><span class="v-name">'+title+'</span><span class="v-meta">'+meta+'</span></span><span class="v-r">'+(right||'')+'</span><span class="v-chev" aria-hidden="true"></span></button>'+
+    (open ? '<div class="v-body">'+body()+'</div>' : '')+'</div>';
+}
+function vKeys(r){
+  var keys = [], f = C.faction(r), side = C.limits(r).scale.side;
+  if(f) keys.push("c:"+f.id);
+  if(r.creepId && C.cards[r.creepId]) keys.push("c:"+r.creepId);
+  Object.keys(r.tactical||{}).forEach(function(id){ if(C.cards[id]) keys.push("c:"+id); });
+  r.units.forEach(function(e){ keys.push("u:"+e.uid); });
+  r.missions.forEach(function(id){ keys.push("m:"+id); });
+  r.deployments.forEach(function(id){ keys.push("d:"+id); });
+  return keys;
+}
+function renderView(){
+  var el = $("view"); if(!el) return;
+  var r = S.cur, f = C.faction(r), t = C.totals(r), lim = C.limits(r), side = lim.scale.side;
+  var errs = C.validate(r).filter(function(x){return x.level==="error";}), keys = vKeys(r), allOpen = keys.length && keys.every(function(k){ return VS.open[k]; });
+  var h = '<section class="section"><header><span class="step">ROSTER</span><h2>'+esc(r.name||"Untitled roster")+'</h2><span class="aside">'+(errs.length?'<b style="color:#F2A39B">'+errs.length+' rules issue'+(errs.length>1?'s':'')+'</b>':'<b>Legal</b>')+'</span></header><div class="sbody">';
+  h += '<div class="vsum"><div><span class="lbl-s">Faction</span><b>'+(f?esc(f.name):"None chosen")+'</b></div><div><span class="lbl-s">Scale</span><b>'+esc(lim.scale.name)+'</b></div><div><span class="lbl-s">Minerals</span><b class="num">'+fmt(t.minerals)+' / '+fmt(lim.minerals)+'</b></div><div><span class="lbl-s">Vespene Gas</span><b class="num">'+fmt(t.gas)+' / '+fmt(lim.gas)+'</b></div><div><span class="lbl-s">Total Supply</span><b class="num">'+t.supply+'</b></div>'+(r.player?'<div><span class="lbl-s">Player</span><b>'+esc(r.player)+'</b></div>':'')+'</div>';
+  h += '<div class="vtools"><span class="faint">Tap a line to open its card. Tap an underlined keyword for its definition.</span><span class="grow"></span><button class="btn sm" data-a="v-all" data-v="'+(allOpen?"close":"open")+'"'+(keys.length?'':' disabled')+'>'+(allOpen?"Close all":"Open all")+'</button></div>';
+  if(!f && !r.units.length) return el.innerHTML = h+'<div class="empty">Nothing on this roster yet. Choose a faction and add units on the Build tab.</div></div></section>';
+  // cards
+  var cards = [];
+  if(f) cards.push([f, 1]);
+  if(r.creepId && C.cards[r.creepId]) cards.push([C.cards[r.creepId], 1]);
+  Object.keys(r.tactical||{}).forEach(function(id){ if(C.cards[id]) cards.push([C.cards[id], r.tactical[id]]); });
+  if(cards.length){
+    h += '<div class="subhead">Faction and Tactical Cards <span class="aside">'+cards.length+'</span></div><div class="vlist" data-race="'+esc(r.race||"")+'">';
+    cards.forEach(function(x){
+      var c = x[0], n = x[1];
+      h += vItem("c:"+c.id, '<span class="thumb art-bg"><img src="'+ART.card(c.id)+'" alt="" loading="lazy"></span>', esc(c.name)+(n>1?' <span class="faint">×'+n+'</span>':''),
+        '<span class="chip">'+esc(c.kind)+'</span>'+slotChips(c.slots)+(c.resource && c.resource.value!=null?'<span class="chip">'+c.resource.value+' '+esc(c.resource.type)+'</span>':'')+'<span class="faint">'+c.abilities.map(function(a){return esc(a.name);}).join(" · ")+'</span>',
+        c.kind==="Faction"?'':'<span class="gascost">'+(c.gas_cost||0)*n+'</span>', function(){ return Render.tacCardHTML(C, c, null, n); });
+    });
+    h += '</div>';
+  }
+  // units
+  h += '<div class="subhead">Units <span class="aside">'+r.units.length+'</span></div>';
+  if(!r.units.length) h += '<div class="empty">No units yet.</div>';
+  else {
+    h += '<div class="vlist">';
+    r.units.forEach(function(e){
+      var u = C.units[e.unitId]; if(!u) return;
+      var cost = C.entryCost(e), lo = C.loadout(e), ups = [];
+      e.upgrades.forEach(function(n){ var up = C.upgradeDef(e, n); if(!up) return; ups.push('<span class="chip slot">'+(up.specialist?'Model '+esc(e.specialists[n]||"?")+': ':'')+esc(n)+'</span>'); });
+      h += vItem("u:"+e.uid, '<span class="thumb mini">'+miniImg(u.id)+'</span>', esc(u.name)+' <span class="faint">×'+e.models+'</span>',
+        '<span class="chip">'+esc(u.army_slot||"")+'</span><span class="chip">Supply '+cost.supply+'</span>'+(ups.length?ups.join(""):'<span class="faint">No upgrades</span>'),
+        '<span class="mincost">'+cost.total+'</span>', function(){ return Render.unitCardHTML(C, u, e, null, {fielded:true}); });
+    });
+    h += '</div>';
+  }
+  // scenario
+  if(r.missions.length || r.deployments.length){
+    h += '<div class="subhead">Mission and Deployment Cards</div><div class="vlist">';
+    r.missions.forEach(function(id){ var m = C.missions[id]; if(!m) return; var s = m[side];
+      h += vItem("m:"+id, '<span class="v-tag">M</span>', esc(m.name), '<span class="chip">Mission</span><span class="faint">'+s.deploy_supply+' Supply, +'+s.supply_per_round+' per Round, '+s.game_length+' Rounds</span>', '', function(){ return Render.missionCardHTML(m, side); }); });
+    r.deployments.forEach(function(id){ var d = C.deployments[id]; if(!d) return;
+      h += vItem("d:"+id, '<span class="v-tag">D</span>', esc(d[side]), '<span class="chip">Deployment</span><span class="faint">'+esc(lim.scale.battlefield)+'</span>', '', function(){ return Render.deploymentCardHTML(d, side); }); });
+    h += '</div>';
+  }
+  if(errs.length) h += '<div class="checks" style="margin-top:14px">'+errs.map(function(x){ return '<div class="check error"><span class="mk"></span><span>'+esc(x.msg)+' <span class="ref">'+esc(x.ref)+'</span></span></div>'; }).join("")+'</div>';
+  el.innerHTML = h+'</div></section>';
+}
+function vClick(a, v){
+  if(a==="v-open"){ VS.open[v] = !VS.open[v]; renderView(); if(VS.open[v]){ var n = $("v-"+v.replace(/[^a-z0-9_-]/gi,"_")); if(n) n.scrollIntoView({block:"start"}); } return; }
+  if(a==="v-all"){ var keys = vKeys(S.cur); VS.open = {}; if(v==="open") keys.forEach(function(k){ VS.open[k] = true; }); renderView(); }
+}
+
 /* ------------ battle tracker (Battle tab) ------------
    Rules logic lives in battle-core.js (window.Battle). State is kept on the roster as r.battle and saved with it.
    The tracker guides and warns; it never blocks a step. */
@@ -3583,6 +3706,7 @@ document.addEventListener("click", function(ev){
   if(a==="kw-all"){ var fromPop = !!(pop && pop.contains(t)); if(fromPop){ var pp=$("kw-pop"); if(pp) pp.remove(); kwAnchor=null; } openKwRef(v); return; }
   if(a==="close-modal"){ if(ev.target===t || t.classList.contains("mclose")) closeModal(); return; }
   if(t.hasAttribute("disabled") || t.getAttribute("aria-disabled")==="true") return;
+  if(a.indexOf("v-")===0){ vClick(a, v); return; }
   if(a.indexOf("b-")===0){ if(t.tagName==="INPUT") return; bClick(a, v, eu, t); return; }
   switch(a){
     case "home": S.view="list"; S.cur=null; S.notice=null; S.confirmDel=null; render(); window.scrollTo(0,0); break;
