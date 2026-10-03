@@ -3085,7 +3085,7 @@ function renderUnits(){
     });
     h += '</div>';
   }
-  el.innerHTML = h + '</div></div>';
+  el.innerHTML = h + summonedHTML(r) + '</div></div>';
   if(tiles) placeEditor();
 }
 /* Move the open tile's editor to just after the last tile in the same visual row. */
@@ -3359,6 +3359,27 @@ function importText(txt){
   Store.queue(r); render();
 }
 
+/* Summoned Units this roster can bring (Part 9.1.9): named by an ability on its faction card, tactical cards or units.
+   They cost nothing and take no Army Slots, so they are shown for reference only. */
+function summonSources(r, u){
+  var short = u.name.replace(/\s*\(.*\)$/, ""), out = [];
+  function scan(owner, list){ list.forEach(function(a){ if(a.text && a.text.indexOf(short)!==-1) out.push(a.name+" ("+owner+")"); }); }
+  var f = C.faction(r); if(f) scan(f.name, f.abilities);
+  Object.keys(r.tactical||{}).forEach(function(id){ var c = C.cards[id]; if(c) scan(c.name, c.abilities); });
+  var seen = {};
+  r.units.forEach(function(e){ var x = C.units[e.unitId]; if(x && !seen[x.id]){ seen[x.id] = true; scan(x.name, x.abilities.concat(x.upgrades)); } });
+  return out;
+}
+function summonedHTML(r){
+  var list = Render.summonedFor(C, r); if(!list.length) return "";
+  var h = '<div class="subhead">Summoned Units <span class="aside">No Mineral cost, no Army Slots · Part 9.1.9</span></div><div class="rows">';
+  list.forEach(function(u){
+    h += '<div class="row"><button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'" aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button><div><div class="r-name">'+esc(u.name)+'</div><div class="r-meta"><span>Brought on by '+esc(summonSources(r, u).join("; ")||"a card ability")+'</span></div></div>'+
+      '<div class="r-ctl"><button class="btn ghost sm" data-a="card" data-v="'+esc(u.id)+'">Card</button></div></div>';
+  });
+  return h+'</div>';
+}
+
 /* ------------ roster view (View tab) ------------
    Read-only view of the finished roster. One line per card or unit; tap to unfold the card in place.
    Unit cards are shown as fielded: purchased upgrades merged in, the rest left out. Keywords stay tappable. */
@@ -3375,6 +3396,7 @@ function vKeys(r){
   if(r.creepId && C.cards[r.creepId]) keys.push("c:"+r.creepId);
   Object.keys(r.tactical||{}).forEach(function(id){ if(C.cards[id]) keys.push("c:"+id); });
   r.units.forEach(function(e){ keys.push("u:"+e.uid); });
+  Render.summonedFor(C, r).forEach(function(u){ keys.push("s:"+u.id); });
   r.missions.forEach(function(id){ keys.push("m:"+id); });
   r.deployments.forEach(function(id){ keys.push("d:"+id); });
   return keys;
@@ -3414,6 +3436,15 @@ function renderView(){
       h += vItem("u:"+e.uid, '<span class="thumb mini">'+miniImg(u.id)+'</span>', esc(u.name)+' <span class="faint">×'+e.models+'</span>',
         '<span class="chip">'+esc(u.army_slot||"")+'</span><span class="chip">Supply '+cost.supply+'</span>'+(ups.length?ups.join(""):'<span class="faint">No upgrades</span>'),
         '<span class="mincost">'+cost.total+'</span>', function(){ return Render.unitCardHTML(C, u, e, null, {fielded:true}); });
+    });
+    h += '</div>';
+  }
+  // summoned units (9.1.9)
+  var sums = Render.summonedFor(C, r);
+  if(sums.length){
+    h += '<div class="subhead">Summoned Units <span class="aside">No Mineral cost, no Army Slots · Part 9.1.9</span></div><div class="vlist">';
+    sums.forEach(function(u){
+      h += vItem("s:"+u.id, '<span class="thumb mini">'+miniImg(u.id)+'</span>', esc(u.name), '<span class="chip">Summoned</span><span class="faint">Brought on by '+esc(summonSources(r, u).join("; ")||"a card ability")+'</span>', '', function(){ return Render.unitCardHTML(C, u, null); });
     });
     h += '</div>';
   }
@@ -3645,7 +3676,7 @@ function renderBattle(){
     h += '<div class="subhead"'+(g[0]==="fld"?' style="margin-top:0"':'')+'>'+g[1]+' <span class="aside">'+groups[g[0]].length+'</span></div>';
     h += groups[g[0]].length ? '<div class="bunits">'+groups[g[0]].map(function(i){ return bUnitHTML(i, b, r); }).join("")+'</div>' : '<div class="empty">No Units on the battlefield yet. Deploy from Reserves in the Movement Phase.</div>';
   });
-  var sm = BT.summonable(C, r);
+  var sm = Render.summonedFor(C, r);
   if(sm.length && !b.over) h += '<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+(BS.sumPick ? '<span class="muted">Summon:</span>'+sm.map(function(u){ return '<button class="btn sm" data-a="b-summon" data-v="'+esc(u.id)+'">'+esc(u.name)+'</button>'; }).join("")+'<button class="btn ghost sm" data-a="b-sumpick">Cancel</button>' : '<button class="btn sm" data-a="b-sumpick">Add a Summoned Unit</button>')+'</div>';
   h += '</div></section></div><aside class="rail" id="b-rail">'+bRailHTML(b, r)+'</aside></div>';
   el.innerHTML = h;
