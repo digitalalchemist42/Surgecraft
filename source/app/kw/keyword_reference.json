@@ -1,0 +1,612 @@
+{
+ "meta": {
+  "source": "Full Rules, Part 11: Keyword Glossary and Definitions (pp. 82–91)",
+  "scope": "Keywords that appear on unit, tactical, faction and creep cards",
+  "corrections": [
+   "STATUS: added the missing full stop after \"removed by other means\" and started the next sentence as its own paragraph, as laid out in the rulebook."
+  ]
+ },
+ "list": [
+  {
+   "id": "access-point",
+   "term": "ACCESS POINT",
+   "head": "ACCESS POINT",
+   "body": [
+    [
+     "p",
+     "Part of a Terrain that connects different elevation levels. Models moving through an ACCESS POINT can change their elevation."
+    ]
+   ]
+  },
+  {
+   "id": "anti-evade",
+   "term": "ANTI-EVADE",
+   "head": "ANTI-EVADE (X)",
+   "body": [
+    [
+     "p",
+     "When resolving an attack with this weapon against Enemy Units, the target Unit suffers a -X Modifier to its Evade Roll for this attack (Part 8.7.4, Step 4)."
+    ]
+   ]
+  },
+  {
+   "id": "buff",
+   "term": "BUFF",
+   "head": "BUFF [Characteristic] (X)",
+   "body": [
+    [
+     "p",
+     "The Unit gains a bonus of X to the specified characteristic until the End of the Round."
+    ],
+    [
+     "li",
+     "Target Number characteristic (e.g. Armour, Hit): reduce the value by X (easier to roll)."
+    ],
+    [
+     "li",
+     "Value characteristic (e.g. Speed, RoA): increase the value by X."
+    ]
+   ]
+  },
+  {
+   "id": "bulky",
+   "term": "BULKY",
+   "head": "BULKY",
+   "body": [
+    [
+     "p",
+     "This weapon cannot be used to make a Ranged Attack while the Unit is currently Engaged (Part 8.7.3)."
+    ]
+   ]
+  },
+  {
+   "id": "burrowed",
+   "term": "BURROWED",
+   "head": "BURROWED",
+   "body": [
+    [
+     "li",
+     "BURROWED is classified as a Status."
+    ],
+    [
+     "li",
+     "When a Unit gains BURROWED Status it also gains the HIDDEN STATUS."
+    ],
+    [
+     "li",
+     "At the Start of the Round BURROWED Units gain HIDDEN Status."
+    ],
+    [
+     "li",
+     "When BURROWED Status is removed, a Unit also loses HIDDEN Status."
+    ],
+    [
+     "li",
+     "Its Size is treated as 0 for all purposes."
+    ],
+    [
+     "li",
+     "Its Current Supply Value is treated as 0 for Disengage checks."
+    ],
+    [
+     "li",
+     "A BURROWED Unit cannot Control or Contest Mission Markers (overrides Parts 6.2 and 8.9.1)."
+    ],
+    [
+     "li",
+     "While BURROWED, the Unit may only perform Deploy, Move, Disengage, Run, Hold and Close Ranks actions. Performing any of these (except Hold) immediately removes the BURROWED status."
+    ],
+    [
+     "li",
+     "BURROWED Units may use Special Abilities unless stated otherwise."
+    ],
+    [
+     "li",
+     "BURROWED Units may make an Evade Roll against every attack targeting them."
+    ],
+    [
+     "li",
+     "Other models may move through a BURROWED Unit’s models, provided they do not end Within the Engagement Range of the BURROWED Unit (overrides Part 8.5.3)."
+    ],
+    [
+     "li",
+     "If a BURROWED Unit is Engaged at the start of the Combat Phase, it must be Activated but cannot perform a Close Combat Attack in its BURROWED state. The Unit may perform Close Ranks as its first step, which immediately removes the BURROWED status. Once the status is removed, the Unit completes the remaining steps of the Close Combat Attack normally. If the Unit does not or cannot perform Close Ranks, it does not attack. Enemy Units Engaged with a BURROWED Unit may attack it as normal regardless of its status."
+    ]
+   ]
+  },
+  {
+   "id": "burst-fire",
+   "term": "BURST FIRE",
+   "head": "BURST FIRE Y” (X)",
+   "body": [
+    [
+     "p",
+     "When making a Ranged Attack against a target Within Y” of the attacking model, increase this weapon’s RoA by X for that attack."
+    ]
+   ]
+  },
+  {
+   "id": "concentrated-fire",
+   "term": "CONCENTRATED FIRE",
+   "head": "CONCENTRATED FIRE (X)",
+   "body": [
+    [
+     "p",
+     "Attacks with this weapon may remove no more than X models as casualties. Once X models have been removed, discard any remaining Total Damage. It is not recorded as a Damage Marker and does not carry over."
+    ]
+   ]
+  },
+  {
+   "id": "critical-hit",
+   "term": "CRITICAL HIT",
+   "head": "CRITICAL HIT (X)",
+   "body": [
+    [
+     "p",
+     "Move X dice from the Armour Pool directly to the Damage Pool, bypassing Armour. CRITICAL HIT can never move more dice than are in the Armour Pool."
+    ]
+   ]
+  },
+  {
+   "id": "debuff",
+   "term": "DEBUFF",
+   "head": "DEBUFF [Characteristic] (X)",
+   "body": [
+    [
+     "p",
+     "The Unit suffers a penalty of X to the specified characteristic until the End of the Round."
+    ],
+    [
+     "li",
+     "Target Number characteristic: increase the value by X (harder to roll)."
+    ],
+    [
+     "li",
+     "Value characteristic: decrease the value by X (minimum 0)."
+    ]
+   ]
+  },
+  {
+   "id": "displacement",
+   "term": "DISPLACEMENT",
+   "head": "DISPLACEMENT",
+   "body": [
+    [
+     "p",
+     "The Leading Model may end a move overlapping this Token or Unit (overrides Part 7.3.1)."
+    ],
+    [
+     "p",
+     "If the Leading Model ends any Move, Deploy, Run, Charge, Disengage, Close Ranks or Special Ability move Overlapping this Token or model, the controlling player of the Leading Model immediately sets it in Base-to-Base contact with the Leading Model. If Base-to-Base is not possible, sets it as close as possible."
+    ]
+   ]
+  },
+  {
+   "id": "dodge",
+   "term": "DODGE",
+   "head": "DODGE (X)",
+   "body": [
+    [
+     "p",
+     "When this Unit is targeted by an attack, reduce the number of dice moved from the Armour Pool to the Damage Pool by Surge or CRITICAL HIT by X (minimum 0). Apply during the Resolve Surge step."
+    ]
+   ]
+  },
+  {
+   "id": "ground-level",
+   "term": "GROUND LEVEL",
+   "head": "GROUND LEVEL",
+   "body": [
+    [
+     "p",
+     "One of the elevation levels. Model is on the GROUND LEVEL when it is standing directly on the playmat."
+    ],
+    [
+     "p",
+     "Models on GROUND LEVEL cannot Engage models on HIGH GROUND, and vice versa."
+    ],
+    [
+     "p",
+     "Models on GROUND LEVEL can Engage models on MID GROUND only if both models are adjacent to the same ACCESS POINT connecting their respective elevations."
+    ],
+    [
+     "p",
+     "A model at GROUND LEVEL has an Effective Size equal to its own Size characteristic only."
+    ]
+   ]
+  },
+  {
+   "id": "heal",
+   "term": "HEAL",
+   "head": "HEAL (X)",
+   "body": [
+    [
+     "p",
+     "Remove X points of accumulated Damage from the Unit (reduce its Damage Marker accordingly). HEAL cannot return Destroyed models – it only reduces existing Damage. See also: RESPAWN."
+    ]
+   ]
+  },
+  {
+   "id": "hidden",
+   "term": "HIDDEN",
+   "head": "HIDDEN",
+   "body": [
+    [
+     "p",
+     "This Unit cannot be selected as the target of a Ranged Attack or any LoS-requiring Special Ability unless the acting model is Within 4” of it. A HIDDEN Unit is immune to the IMPACT keyword. A HIDDEN Unit may make an Evade Roll against every attack targeting it."
+    ],
+    [
+     "p",
+     "HIDDEN is classified as a Status."
+    ]
+   ]
+  },
+  {
+   "id": "hits",
+   "term": "HITS",
+   "head": "HITS X (Y)",
+   "body": [
+    [
+     "p",
+     "The affected Unit suffers X automatic hits. Set X dice directly into the Armour Pool and proceed immediately to Armour Rolls (Part 8.7.4, Steps 3–4). Treat the Damage characteristic as Y. These hits do not generate Surge."
+    ]
+   ]
+  },
+  {
+   "id": "impact",
+   "term": "IMPACT",
+   "head": "IMPACT (X) Y",
+   "body": [
+    [
+     "p",
+     "Immediately after this Unit completes a successful Charge, check every model in the Fighting Rank or Supporting Rank. For each eligible model, generate X Impact Dice:"
+    ],
+    [
+     "li",
+     "If the model is in the Fighting Rank or Supporting Rank against only one Enemy Unit, all X dice go to that Unit."
+    ],
+    [
+     "li",
+     "If the model is in the Fighting Rank or Supporting Rank against multiple Enemy Units, the controlling player may split the dice between those Units."
+    ],
+    [
+     "p",
+     "Roll the allocated dice for each target Unit separately (this is the Impact Hit Roll). For each result of Y or higher, set 1 die into the target’s Armour Pool. Proceed immediately to Armour Rolls. These hits do not generate Surge and treat Damage as 1."
+    ]
+   ]
+  },
+  {
+   "id": "impassable-terrain",
+   "term": "IMPASSABLE TERRAIN",
+   "head": "IMPASSABLE TERRAIN",
+   "body": [
+    [
+     "p",
+     "A terrain piece is Impassable if it has no Access Point connecting it to an adjacent elevation level. Models cannot move through, onto, or across IMPASSABLE TERRAIN, and no model may end its movement overlapping it. Models can move through Terrain of Sizes 0 and 1."
+    ]
+   ]
+  },
+  {
+   "id": "indirect-fire",
+   "term": "INDIRECT FIRE",
+   "head": "INDIRECT FIRE",
+   "body": [
+    [
+     "p",
+     "Ranged Attacks with this weapon may ignore Line of Sight when selecting a target and resolving Damage. The target must still be Within Range. If the target is not within Line of Sight, it may make an Evade Roll against this attack."
+    ]
+   ]
+  },
+  {
+   "id": "instant",
+   "term": "INSTANT",
+   "head": "INSTANT",
+   "body": [
+    [
+     "p",
+     "Enemy Units cannot declare or resolve Reaction abilities in response to attacks made with this weapon."
+    ]
+   ]
+  },
+  {
+   "id": "locked-in",
+   "term": "LOCKED IN",
+   "head": "LOCKED IN (X)",
+   "body": [
+    [
+     "p",
+     "When making a Ranged Attack with this weapon, add X to its RoA if the target Unit has Stationary Status."
+    ]
+   ]
+  },
+  {
+   "id": "long-range",
+   "term": "LONG RANGE",
+   "head": "LONG RANGE (X)",
+   "body": [
+    [
+     "p",
+     "The maximum Range of this weapon increases to X”."
+    ],
+    [
+     "p",
+     "Measure each attacking model’s distance to the target individually:"
+    ],
+    [
+     "li",
+     "Within normal profile Range: attack resolves normally."
+    ],
+    [
+     "li",
+     "Beyond profile Range but Within X”: the model suffers a -1 Modifier to its Hit roll."
+    ],
+    [
+     "p",
+     "If a Batch contains models at both Standard and Long Range, generate the total dice but roll the two groups separately to account for different Hit Target Numbers."
+    ]
+   ]
+  },
+  {
+   "id": "morph",
+   "term": "MORPH",
+   "head": "MORPH (Unit Name) X",
+   "body": [
+    [
+     "p",
+     "To perform this ability, the controlling player must have sufficient Available Supply. Set one (Name) model in Base-to-Base contact with a model from the active Unit, then remove X models from that Unit from the battlefield. The (Name) model forms a new Unit and cannot be set Within 1” of any Enemy Unit. Place an Activation Marker next to the new Unit; it cannot be Activated for the remainder of the Round."
+    ]
+   ]
+  },
+  {
+   "id": "non-lethal-damage",
+   "term": "NON-LETHAL DAMAGE",
+   "head": "NON-LETHAL DAMAGE (X)",
+   "body": [
+    [
+     "p",
+     "The Unit suffers X points of Damage. Add this amount effectively to the Unit’s Damage Marker. Do not remove any models, even if Total Damage exceeds a model’s HP. If the Unit subsequently suffers standard Damage, the combined Total Damage triggers casualty removal normally."
+    ]
+   ]
+  },
+  {
+   "id": "on-creep",
+   "term": "ON CREEP",
+   "head": "ON CREEP",
+   "body": [
+    [
+     "p",
+     "A Friendly or Enemy Ground Zerg Unit is considered to be ON CREEP while it is Within 6” of any Creep Tumor Token or any model designated as a Source of Creep. While satisfying this condition, the Unit gains the ON CREEP keyword. This allows the Unit to trigger specific Special Abilities or Upgrades that require this state."
+    ]
+   ]
+  },
+  {
+   "id": "pierce",
+   "term": "PIERCE",
+   "head": "PIERCE [TAG] X",
+   "body": [
+    [
+     "p",
+     "When attacking a Unit with the specified Combat Tag, treat this weapon’s Damage characteristic as X."
+    ]
+   ]
+  },
+  {
+   "id": "pinpoint",
+   "term": "PINPOINT",
+   "head": "PINPOINT",
+   "body": [
+    [
+     "p",
+     "Ranged Attacks with this weapon may target Engaged Enemy Units, ignoring the standard Engagement Status restriction (overrides Part 8.7.3, Step 1)."
+    ]
+   ]
+  },
+  {
+   "id": "place",
+   "term": "PLACE",
+   "head": "PLACE (X)",
+   "body": [
+    [
+     "p",
+     "Choose a Leading Model. Remove it and set it Wholly Within X” of its starting position. Then remove and replace all other models in the Unit, maintaining Coherency (Part 4.4). PLACE ignores Gap Clearance, and elevation requirements. The Leading Model is removed and set directly, not moved along a path. However, they must end in a legal position and not Within the Engagement Range of any enemy model. Models using the PLACE effect during the Assault Phase may be set Within the Engagement Range of Enemy models (the Unit becomes Engaged)."
+    ]
+   ]
+  },
+  {
+   "id": "precision",
+   "term": "PRECISION",
+   "head": "PRECISION (X)",
+   "body": [
+    [
+     "p",
+     "After rolling to Hit, move up to X failed Attack Dice directly into the Armour Pool. Treat them as successful Hits for all purposes, including Surge."
+    ]
+   ]
+  },
+  {
+   "id": "repeatable",
+   "term": "REPEATABLE",
+   "head": "REPEATABLE",
+   "body": [
+    [
+     "p",
+     "This ability is exempt from the Once Per Round limit (Part 2.7.1). It may be used multiple times per Round and per Activation, provided all Costs and trigger conditions are met each time."
+    ]
+   ]
+  },
+  {
+   "id": "respawn",
+   "term": "RESPAWN",
+   "head": "RESPAWN (X)",
+   "body": [
+    [
+     "p",
+     "Return up to X Destroyed models to this Unit."
+    ],
+    [
+     "li",
+     "The return cannot increase the Unit’s Current Supply Value. Do not return a model if doing so would push the Unit into a higher Supply bracket."
+    ],
+    [
+     "li",
+     "Set each returned model in Base-to-Base contact with an existing model in the Unit. Returned models cannot be set Within the Engagement Range of any Enemy Unit."
+    ],
+    [
+     "li",
+     "If a model cannot be set legally, it cannot be returned."
+    ]
+   ]
+  },
+  {
+   "id": "shielded",
+   "term": "SHIELDED",
+   "head": "SHIELDED",
+   "body": [
+    [
+     "p",
+     "If a Shield value is present on a Unit Card, add it to the Hit Points (HP) of the first model. The Unit is Shielded. The Unit loses its Shielded Status when the Total Damage assigned to it exceeds its Shield value or when the first model in the Unit is removed."
+    ],
+    [
+     "p",
+     "The Shielded Status is referenced by other abilities. Losing Shielded Status does not remove any remaining Hit Points, it only ends effects that require the Unit to be Shielded. Shielded Status cannot be restored by HEAL."
+    ]
+   ]
+  },
+  {
+   "id": "sidearm",
+   "term": "SIDEARM",
+   "head": "SIDEARM",
+   "body": [
+    [
+     "p",
+     "When this Unit performs a Ranged Attack or Close Combat Attack, models equipped with this weapon may use it, ignoring the normal restriction of one weapon per model (Part 8.7.3). If a model is equipped with multiple SIDEARM weapons, it may use all of them in the same activation."
+    ],
+    [
+     "p",
+     "Attacks made with each SIDEARM must be resolved in separate Batches. Because they are separate Batches, SIDEARM attacks may target a different Enemy Unit than the Unit’s other weapons, subject to all standard target eligibility requirements."
+    ]
+   ]
+  },
+  {
+   "id": "siege-mode",
+   "term": "SIEGE MODE",
+   "head": "SIEGE MODE",
+   "body": [
+    [
+     "p",
+     "While a Unit has the SIEGE MODE Status, apply the following rules:"
+    ],
+    [
+     "li",
+     "This Unit cannot perform the Move, Disengage, Run, Charge or Close Ranks actions."
+    ],
+    [
+     "li",
+     "Weapons profile with Siege Mode Status can only be used while this unit has SIEGE MODE Status."
+    ],
+    [
+     "li",
+     "While this unit has Siege Mode Status any other weapons can’t be used."
+    ],
+    [
+     "li",
+     "When this Unit is returned to Reserves, it loses the SIEGE MODE Status."
+    ]
+   ]
+  },
+  {
+   "id": "specialist",
+   "term": "SPECIALIST",
+   "head": "SPECIALIST",
+   "body": [
+    [
+     "p",
+     "A Unit may include only one model equipped with this weapon. Multiple upgrades configuring more than one instance of this weapon are not permitted (Part 9.1.7)."
+    ]
+   ]
+  },
+  {
+   "id": "stationary",
+   "term": "STATIONARY",
+   "head": "STATIONARY",
+   "body": [
+    [
+     "p",
+     "At the Start of the Round, all Units gain this Status. A Unit immediately loses this Status if any model in this Unit moves, is moved, or is PLACED for any reason."
+    ]
+   ]
+  },
+  {
+   "id": "status",
+   "term": "STATUS",
+   "head": "STATUS",
+   "body": [
+    [
+     "p",
+     "A category of keyword representing a temporary or persistent operational mode, condition, or statistic modifier affecting a Unit (e.g. BURROWED, SIEGE MODE). Unless stated otherwise, Statuses aren’t removed during the Scoring and Cleanup Phase. They stay on the Unit until they are removed by other means."
+    ],
+    [
+     "p",
+     "A Unit’s active Status is visually tracked using Status Markers set next to the Unit:"
+    ],
+    [
+     "li",
+     "Modes: Use Plastic Markers to track operational shifts (e.g. SIEGE MODE, BURROWED). Those Status Markers have STAY IN PLAY."
+    ],
+    [
+     "li",
+     "Other Statuses: Use Markers to track other effects affecting the Unit. Positive effects are tracked with Buff Markers (Blue), and negative effects are tracked with Debuff Markers (Red). Those Status Markers have STAY IN PLAY."
+    ]
+   ]
+  },
+  {
+   "id": "stay-in-play",
+   "term": "STAY IN PLAY",
+   "head": "STAY IN PLAY",
+   "body": [
+    [
+     "p",
+     "This Token, Marker or Ability Effect persists through Cleanup & Refresh (overrides Part 8.9.5). It remains until a specific condition removes it (e.g. destroyed or duration expires)."
+    ]
+   ]
+  },
+  {
+   "id": "summon",
+   "term": "SUMMON",
+   "head": "SUMMON (Unit Name)",
+   "body": [
+    [
+     "p",
+     "Set the Leading Model of the named Unit in Base-to-Base contact with the Parent Unit. Set remaining models In Coherency. Models cannot be set Within the Engagement Range of any Enemy Unit."
+    ],
+    [
+     "p",
+     "Set an Activation Marker next to the summoned Unit – it cannot be Activated during the Phase in which it was summoned. In subsequent Phases, this Unit must be Activated immediately after its Parent Unit’s activation ends, before the opponent’s next activation."
+    ],
+    [
+     "p",
+     "The Summoned Unit cannot be set Within the opponent’s Zone of Influence."
+    ],
+    [
+     "p",
+     "The player must have sufficient Available Supply. If the Unit’s Current Supply Value would cause Total Current Supply to exceed the Supply Pool, it cannot be Summoned."
+    ],
+    [
+     "p",
+     "If the Parent is not present on the battlefield, this Unit can be Activated normally."
+    ]
+   ]
+  },
+  {
+   "id": "tough",
+   "term": "TOUGH",
+   "head": "TOUGH (X)",
+   "body": [
+    [
+     "p",
+     "When this Unit resolves an Armour Roll, change up to X failed results into successes. Treat them as meeting or exceeding the Armour characteristic – discard them without moving to the Damage Pool."
+    ]
+   ]
+  }
+ ]
+}

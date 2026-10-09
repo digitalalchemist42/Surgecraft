@@ -1,0 +1,560 @@
+{
+ "units": {
+  "marine": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "marauder": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "medic": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "jim-raynor": {
+   "size": [
+    306,
+    647
+   ],
+   "copies": 2
+  },
+  "point-defense-drone": {
+   "size": [
+    306,
+    641
+   ],
+   "copies": 2
+  },
+  "raynors-raider": {
+   "size": [
+    306,
+    647
+   ],
+   "copies": 2
+  },
+  "goliath": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "siege-tank": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "adept": {
+   "size": [
+    305,
+    646
+   ],
+   "copies": 2
+  },
+  "artanis": {
+   "size": [
+    305,
+    643
+   ],
+   "copies": 2
+  },
+  "praetor-guard": {
+   "size": [
+    303,
+    643
+   ],
+   "copies": 2
+  },
+  "pylon": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "sentry": {
+   "size": [
+    302,
+    646
+   ],
+   "copies": 2
+  },
+  "stalker": {
+   "size": [
+    305,
+    640
+   ],
+   "copies": 2
+  },
+  "zealot": {
+   "size": [
+    305,
+    645
+   ],
+   "copies": 2
+  },
+  "immortal": {
+   "size": [
+    306,
+    642
+   ],
+   "copies": 2
+  },
+  "zeratul": {
+   "size": [
+    306,
+    642
+   ],
+   "copies": 2
+  },
+  "nerazim-watchers": {
+   "size": [
+    306,
+    642
+   ],
+   "copies": 2
+  },
+  "hydralisk": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "kerrigan": {
+   "size": [
+    306,
+    647
+   ],
+   "copies": 2
+  },
+  "omega-worm": {
+   "size": [
+    305,
+    643
+   ],
+   "copies": 2
+  },
+  "kerrigan-swarm-raptor": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "queen": {
+   "size": [
+    306,
+    647
+   ],
+   "copies": 2
+  },
+  "roach": {
+   "size": [
+    306,
+    645
+   ],
+   "copies": 2
+  },
+  "corpser": {
+   "size": [
+    306,
+    647
+   ],
+   "copies": 2
+  },
+  "roachling": {
+   "size": [
+    306,
+    647
+   ],
+   "copies": 2
+  },
+  "vile": {
+   "size": [
+    305,
+    646
+   ],
+   "copies": 2
+  },
+  "zergling": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "raptor": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "swarmling": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  },
+  "ravager": {
+   "size": [
+    306,
+    646
+   ],
+   "copies": 2
+  }
+ },
+ "cards": {
+  "barracks": {
+   "size": [
+    396,
+    335
+   ],
+   "page": "Terran_Units_1.pdf p8",
+   "src": "396x343"
+  },
+  "academy": {
+   "size": [
+    334,
+    378
+   ],
+   "page": "Terran_Units_1.pdf p8",
+   "src": "396x393"
+  },
+  "engineering-bay": {
+   "size": [
+    396,
+    296
+   ],
+   "page": "Terran_Units_1.pdf p8",
+   "src": "396x342"
+  },
+  "terran-armed-forces": {
+   "size": [
+    230,
+    243
+   ],
+   "page": "Terran_Units_1.pdf p8",
+   "src": "245x245"
+  },
+  "supply-depot": {
+   "size": [
+    396,
+    320
+   ],
+   "page": "Terran_Units_1.pdf p9",
+   "src": "396x342"
+  },
+  "dropship": {
+   "size": [
+    396,
+    352
+   ],
+   "page": "Terran_Units_1.pdf p9",
+   "src": "396x370"
+  },
+  "orbital-command": {
+   "size": [
+    396,
+    285
+   ],
+   "page": "Terran_Units_1.pdf p9",
+   "src": "396x330"
+  },
+  "raynors-raiders": {
+   "size": [
+    187,
+    251
+   ],
+   "page": "Terran_Units_1.pdf p9",
+   "src": "245x259"
+  },
+  "factory": {
+   "size": [
+    382,
+    353
+   ],
+   "page": "Terran_Units_1.pdf p10",
+   "src": "396x375"
+  },
+  "barracks-tech-lab": {
+   "size": [
+    384,
+    273
+   ],
+   "page": "Terran_Units_1.pdf p10",
+   "src": "474x380"
+  },
+  "armory": {
+   "size": [
+    357,
+    324
+   ],
+   "page": "Terran_Units_1.pdf p10",
+   "src": "371x365"
+  },
+  "barracks-proxy": {
+   "size": [
+    308,
+    272
+   ],
+   "page": "Terran_Units_1.pdf p10",
+   "src": "474x366"
+  },
+  "factory-tech-lab": {
+   "size": [
+    412,
+    362
+   ],
+   "page": "Terran_Units_2.pdf p2",
+   "src": "412x380"
+  },
+  "gate-chronoboosted": {
+   "size": [
+    395,
+    386
+   ],
+   "page": "Protoss_Units_1.pdf p8",
+   "src": "396x400"
+  },
+  "khalai": {
+   "size": [
+    244,
+    258
+   ],
+   "page": "Protoss_Units_1.pdf p8",
+   "src": "272x272"
+  },
+  "gateway": {
+   "size": [
+    396,
+    359
+   ],
+   "page": "Protoss_Units_1.pdf p8",
+   "src": "396x417"
+  },
+  "warp-prism": {
+   "size": [
+    352,
+    333
+   ],
+   "page": "Protoss_Units_1.pdf p8",
+   "src": "385x429"
+  },
+  "overcharged-nexus": {
+   "size": [
+    396,
+    374
+   ],
+   "page": "Protoss_Units_1.pdf p9",
+   "src": "396x388"
+  },
+  "warp-gate": {
+   "size": [
+    396,
+    332
+   ],
+   "page": "Protoss_Units_1.pdf p9",
+   "src": "396x394"
+  },
+  "twilight-council": {
+   "size": [
+    396,
+    380
+   ],
+   "page": "Protoss_Units_1.pdf p9",
+   "src": "396x411"
+  },
+  "daelaam": {
+   "size": [
+    231,
+    235
+   ],
+   "page": "Protoss_Units_1.pdf p9",
+   "src": "245x245"
+  },
+  "nexus": {
+   "size": [
+    396,
+    389
+   ],
+   "page": "Protoss_Units_1.pdf p10",
+   "src": "396x409"
+  },
+  "forge": {
+   "size": [
+    366,
+    333
+   ],
+   "page": "Protoss_Units_1.pdf p10",
+   "src": "391x429"
+  },
+  "observer": {
+   "size": [
+    382,
+    347
+   ],
+   "page": "Protoss_Units_1.pdf p10",
+   "src": "394x409"
+  },
+  "power-field": {
+   "size": [
+    222,
+    379
+   ],
+   "page": "Protoss_Units_1.pdf p10",
+   "src": "302x405"
+  },
+  "nerazim": {
+   "size": [
+    299,
+    408
+   ],
+   "page": "Protoss_Units_2.pdf p4",
+   "src": "412x424"
+  },
+  "void-seeker": {
+   "size": [
+    412,
+    284
+   ],
+   "page": "Protoss_Units_2.pdf p4",
+   "src": "412x384"
+  },
+  "robotics-facility": {
+   "size": [
+    412,
+    377
+   ],
+   "page": "Protoss_Units_2.pdf p4",
+   "src": "412x447"
+  },
+  "overseer": {
+   "size": [
+    371,
+    380
+   ],
+   "page": "Zerg_Units_1.pdf p13",
+   "src": "374x381"
+  },
+  "evolution-chamber": {
+   "size": [
+    396,
+    343
+   ],
+   "page": "Zerg_Units_1.pdf p13",
+   "src": "396x352"
+  },
+  "hatchery": {
+   "size": [
+    396,
+    364
+   ],
+   "page": "Zerg_Units_1.pdf p13",
+   "src": "396x376"
+  },
+  "zerg-swarm": {
+   "size": [
+    235,
+    269
+   ],
+   "page": "Zerg_Units_1.pdf p13",
+   "src": "264x290"
+  },
+  "hydralisk-den": {
+   "size": [
+    396,
+    352
+   ],
+   "page": "Zerg_Units_1.pdf p14",
+   "src": "396x379"
+  },
+  "malignant-creep": {
+   "size": [
+    294,
+    223
+   ],
+   "page": "Zerg_Units_1.pdf p14",
+   "src": "300x268"
+  },
+  "overlord": {
+   "size": [
+    208,
+    375
+   ],
+   "page": "Zerg_Units_1.pdf p14",
+   "src": "330x405"
+  },
+  "kerrigans-swarm": {
+   "size": [
+    294,
+    223
+   ],
+   "page": "Zerg_Units_1.pdf p14",
+   "src": "300x268"
+  },
+  "lair": {
+   "size": [
+    396,
+    372
+   ],
+   "page": "Zerg_Units_1.pdf p15",
+   "src": "396x384"
+  },
+  "roach-warren": {
+   "size": [
+    387,
+    343
+   ],
+   "page": "Zerg_Units_1.pdf p15",
+   "src": "396x356"
+  },
+  "accelerating-creep": {
+   "size": [
+    235,
+    269
+   ],
+   "page": "Zerg_Units_1.pdf p15",
+   "src": "264x290"
+  },
+  "spawning-pool-six-pool": {
+   "size": [
+    396,
+    292
+   ],
+   "page": "Zerg_Units_1.pdf p15",
+   "src": "396x381"
+  },
+  "spawning-pool": {
+   "size": [
+    396,
+    331
+   ],
+   "page": "Zerg_Units_1.pdf p16",
+   "src": "396x350"
+  },
+  "cocoon": {
+   "size": [
+    412,
+    356
+   ],
+   "page": "Zerg_Units_2.pdf p2",
+   "src": "412x395"
+  }
+ },
+ "missing": []
+}

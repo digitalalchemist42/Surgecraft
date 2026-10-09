@@ -1,0 +1,55 @@
+from playwright.sync_api import sync_playwright
+out = {}; errs = []
+with sync_playwright() as p:
+    b = p.chromium.launch(); pg = b.new_context(viewport={"width":1280,"height":900}).new_page()
+    pg.on("pageerror", lambda e: errs.append(str(e)))
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
+    B = lambda expr: pg.evaluate("(()=>{const b=__muster.S.cur.battle; return %s})()" % expr)
+    pg.click('[data-a="mode"][data-v="dark"]'); pg.click('[data-a="home"] >> nth=0'); pg.wait_for_timeout(200); pg.click('[data-a="example"][data-v="Zerg"]'); pg.wait_for_timeout(500)
+    pg.click('[data-a="scale"][data-v="skirmish"]'); pg.wait_for_timeout(300)
+    pg.click('[data-a="tab"][data-v="battle"]'); pg.wait_for_timeout(300)
+    out["setup_side"] = pg.locator(".subhead .aside").first.inner_text()
+    pg.click('[data-a="b-set"][data-v="missionId:supply-drop"]'); pg.click('[data-a="b-start"]'); pg.wait_for_timeout(400)
+    out["markers"] = B("Object.keys(b.markers)")
+    out["length_pool"] = pg.locator("#meters .meter").nth(0).inner_text().replace("\n"," | ")
+    def end_phase(who=None):
+        pg.click('[data-a="b-end"]'); pg.wait_for_timeout(120)
+        pg.click('[data-a="b-pass"][data-v="%s"]' % (who or "go")); pg.wait_for_timeout(200)
+    # round 1: deploy one, summon roachling, burrow toggle
+    pg.locator('.bunit.res [data-a="b-act"]').first.click(); pg.wait_for_timeout(200)
+    pg.click('[data-a="b-sumpick"]'); pg.wait_for_timeout(150); out["summon_options"] = pg.locator('[data-a="b-summon"]').all_inner_texts()
+    pg.click('[data-a="b-summon"]'); pg.wait_for_timeout(200)
+    out["summoned_state"] = B("b.summoned.map(s=>[s.unitId,b.units[s.uid].st,b.units[s.uid].act[0]])")
+    bur = pg.locator('.bunit.fld [data-a="b-stat"][data-v="burrowed"]')
+    out["burrow_chips"] = bur.count()
+    pg.screenshot(path="bt_dark.png")
+    for rnd in range(1,5):
+        due = pg.locator('[data-a="b-mkon"]').count()
+        out["r%d_activation_buttons" % rnd] = due
+        if due: pg.locator('[data-a="b-mkon"][data-v="random"]').click() if pg.locator('[data-a="b-mkon"][data-v="random"]').count() else pg.locator('[data-a="b-mkon"]').first.click(); pg.wait_for_timeout(200)
+        on = B("Object.keys(b.markers).filter(n=>b.markers[n].on)")
+        end_phase("me"); end_phase("opp"); end_phase()
+        for n in on: pg.locator('.section [data-a="b-mk"][data-v="%s"]' % n).click(); pg.wait_for_timeout(100)
+        out["r%d_me_lines" % rnd] = pg.locator(".bs-col").nth(0).inner_text().replace("\n"," | ")
+        if rnd==4: out["r4_opp_lines"] = pg.locator(".bs-col").nth(1).inner_text().replace("\n"," | ")
+        pg.click('[data-a="b-confirm"]'); pg.wait_for_timeout(250)
+        if B("!!b.over"): break
+        pg.click('[data-a="b-next"]'); pg.wait_for_timeout(250)
+    out["over"] = B("b.over"); out["vp"] = B("[b.vp.me,b.vp.opp]")
+    pg.evaluate("window.scrollTo(0,0)"); pg.wait_for_timeout(200); pg.screenshot(path="bt_over.png")
+    out["result_text"] = pg.locator(".bresult").inner_text().replace("\n"," | ")
+    pg.click('[data-a="b-undo"]'); pg.wait_for_timeout(200); out["undo_reopens_scoring"] = B("[!!b.over,b.phase,b.scored]")
+    pg.click('[data-a="b-quit"]'); pg.wait_for_timeout(150); pg.click('[data-a="b-quit-yes"]'); pg.wait_for_timeout(300)
+    out["cleared"] = pg.evaluate("__muster.S.cur.battle===undefined") ; out["setup_again"] = pg.locator('[data-a="b-start"]').count()
+    # roster edit mid-battle + duplicate drops battle
+    pg.click('[data-a="b-start"]'); pg.wait_for_timeout(300)
+    pg.click('[data-a="tab"][data-v="build"]'); pg.wait_for_timeout(300)
+    n0 = pg.evaluate("__muster.S.cur.units.length")
+    pg.locator('[data-a="rm-unit"]').first.click(); pg.wait_for_timeout(300)
+    pg.click('[data-a="tab"][data-v="battle"]'); pg.wait_for_timeout(300)
+    out["units_follow_roster_edit"] = [n0, B("Object.keys(b.units).length")]
+    pg.wait_for_timeout(900); pg.click('[data-a="home"] >> nth=0'); pg.wait_for_timeout(300)
+    pg.locator('[data-a="dup"]').first.click(); pg.wait_for_timeout(300)
+    out["duplicate_has_battle"] = pg.evaluate("__muster.S.rosters.map(r=>!!r.battle)")
+    out["pageerrors"] = errs; b.close()
+for k,v in out.items(): print(k, ":", v)

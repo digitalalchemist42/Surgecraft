@@ -1,0 +1,1296 @@
+{
+ "units": [
+  {
+   "id": "nova-assault-mode",
+   "name": "Nova Assault Mode",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": "Hero",
+   "combat_role": null,
+   "unique": true,
+   "summoned": false,
+   "stats": {
+    "speed": "7",
+    "armour": "5+",
+    "evade": "5+",
+    "hp": 8,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Battle Preparation",
+     "type": "Passive",
+     "cost": null,
+     "text": "During Army Building, your army cannot include both the Nova Assault Mode Unit and the Nova Stealth Mode Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Ghost Visor",
+     "type": "Passive",
+     "cost": null,
+     "text": "While Enemy Units are Within 6\" of this Unit, they lose the HIDDEN Status."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Holo Decoy",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Resolve the SUMMON (Holo Decoy) effect. Then, Holo Decoy may immediately perform a Move action."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Super Stimpack",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "This Unit gains BUFF Speed (2). Additionally, all its Weapons gain PRECISION (2)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Phase Reactor Suit",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "If Unengaged, resolve the PLACE (6) effect."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Devastating Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, resolve the IMPACT (4) 4+ effect."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Hellfire Shotgun",
+     "rng": "8",
+     "target": "Ground",
+     "roa": "3",
+     "hit": "4+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "2",
+     "keywords": [
+      "ANTI-EVADE (1)",
+      "BURST FIRE 4\" (3)"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Monomolecular Blade",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "8",
+     "hit": "3+",
+     "surge_type": "Light, Armoured",
+     "s_dice": "D6",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "excludes": [
+    "nova-stealth-mode"
+   ],
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 260,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "nova-stealth-mode",
+   "name": "Nova Stealth Mode",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": "Hero",
+   "combat_role": null,
+   "unique": true,
+   "summoned": false,
+   "stats": {
+    "speed": "7",
+    "armour": "5+",
+    "evade": "5+",
+    "hp": 8,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Battle Preparation",
+     "type": "Passive",
+     "cost": null,
+     "text": "During Army Building, your army cannot include both the Nova Assault Mode Unit and the Nova Stealth Mode Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Tactical Stealth Suit",
+     "type": "Passive",
+     "cost": null,
+     "text": "After this Unit fully resolves an Action, it gains the HIDDEN Status."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Ghost Visor",
+     "type": "Passive",
+     "cost": null,
+     "text": "While Enemy Units are Within 6\" of this Unit, they lose the HIDDEN Status."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Super Stimpack",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "This Unit gains BUFF Speed (2). Additionally, all its Weapons gain PRECISION (2)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Holo Decoy",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Resolve the SUMMON (Holo Decoy) effect. Then, Holo Decoy may immediately perform a Move action."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Operational Efficiency",
+     "type": "Passive",
+     "cost": null,
+     "text": "After this Unit fully resolves a Ranged Attack with its C-20A Canister Rifle, if the target Enemy Unit was Destroyed or its Current Supply Value was reduced, the active player may return one of their Exhausted non-Unique Tactical Cards to its Ready state."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Head Shot",
+     "type": "Reaction",
+     "cost": "1 CP",
+     "text": "Once Per Game. While this Unit is Unengaged and has the Stationary Status, when it makes a Ranged Attack with its C-20A Canister Rifle, treat that weapon's Damage characteristic as 3, and it gains CONCENTRATED FIRE (1)."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "C-20A Canister Rifle",
+     "rng": "12",
+     "target": "All",
+     "roa": "4",
+     "hit": "3+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "2",
+     "keywords": [
+      "CRITICAL HIT (2)",
+      "LONG RANGE (18\")"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Combat Knife",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "3",
+     "hit": "5+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "excludes": [
+    "nova-assault-mode"
+   ],
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 240,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "spec-ops-marauder",
+   "name": "Spec Ops Marauder (Marauder)",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": "Core",
+   "combat_role": null,
+   "unique": false,
+   "summoned": false,
+   "stats": {
+    "speed": "4/7",
+    "armour": "4+",
+    "evade": "6+",
+    "hp": 5,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    },
+    {
+     "models": "2-2",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Biological",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Spec Ops Armour",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "This Unit gains the HIDDEN Status until it performs another action."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Commando Stimpack",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "This Unit gains BUFF Speed (3). Additionally, its Quad K12 and all Close Combat Weapons gain PRECISION (2)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Magrail Munitions",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit's first Attack in the game with its Quad K12 gains PIERCE Armoured (3)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Suppression Shells",
+     "type": "Reaction",
+     "cost": "1 CP",
+     "text": "When an Enemy declares a Charge against a Friendly Unit Within 8\", that Enemy gains DEBUFF Speed (3)."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Quad K12",
+     "rng": "12",
+     "target": "Ground",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "Armoured",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "LONG RANGE (16\")",
+      "PIERCE Armoured (2)"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Strike",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "3",
+     "hit": "4+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview.",
+    "The preview shows 230 Minerals; the 10.6 Unit Cost Table (09.10.2026) lists 240, which is used."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 2,
+     "minerals": 240,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "raven",
+   "name": "Raven",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": "Support",
+   "combat_role": null,
+   "unique": false,
+   "summoned": false,
+   "stats": {
+    "speed": "7",
+    "armour": "5+",
+    "evade": "6+",
+    "hp": 8,
+    "size": "-"
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Light",
+    "Mechanical",
+    "Flying"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Detection",
+     "type": "Passive",
+     "cost": null,
+     "text": "While Enemy Units are Within 6\" of this Unit, they lose the HIDDEN Status."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Deploy Auto-Turret",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Set a Friendly Auto-Turret Unit Within 6\", and not Within the Engagement Range of any Enemy Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Anti-Armour Missile",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Select one Enemy Unit Within 12\". Apply DEBUFF Armour (1)."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Railguns",
+     "rng": "12",
+     "target": "Ground",
+     "roa": "4",
+     "hit": "3+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Corvid Reactor",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit may resolve its first Special Ability with the CP cost reduced by 1 if it targets the closest Enemy Unit.",
+     "cost_by_composition": [
+      30
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Internal Tech Module",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit is nominated to deploy from Reserves, it may Deploy from any table edge that is not a player's Entry Edge. This Unit cannot be set Within 8\" of any Enemy model.",
+     "cost_by_composition": [
+      20
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Seeker Missile",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Select one Enemy Unit Within 12\". At the End of the Assault Phase, if that Enemy Unit has the Stationary Status or it is Within 8\" of this Unit, it suffers HITS 4 (2). If that Unit is Engaged, it is eligible to make an Evade Roll against these hits.",
+     "cost_by_composition": [
+      20
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Explosive Shrapnel Shells",
+     "type": "Passive",
+     "cost": null,
+     "text": "The Gauss Cannon of the Auto-Turret set by this Unit gains Surge Type: Light and S-Dice: D3+1.",
+     "cost_by_composition": [
+      10
+     ]
+    }
+   ],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 170,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "auto-turret",
+   "name": "Auto-Turret",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "unique": false,
+   "summoned": true,
+   "stats": {
+    "speed": "-",
+    "armour": "5+",
+    "evade": "-",
+    "hp": 3,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Mechanical",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Timed Life",
+     "type": "Passive",
+     "cost": null,
+     "text": "Remove this Unit at the End of the Round."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Structure",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit cannot be Activated in any Phase and cannot perform actions. Additionally, its Current Supply Value is treated as 0, and it can never Control or Contest Mission Markers, ignoring the standard Zero Supply Exception. This Unit cannot be a target of an ability, unless stated otherwise."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Overwatch",
+     "type": "Reaction",
+     "cost": "0 CP",
+     "text": "Use when an Enemy Unit ends its Activation Within 8\" of this Unit. This Unit immediately performs a Ranged Attack against that Enemy Unit."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Gauss Cannon",
+     "rng": "8",
+     "target": "All",
+     "roa": "6",
+     "hit": "3+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [
+      "PINPOINT"
+     ],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "compositions": []
+  },
+  {
+   "id": "holo-decoy",
+   "name": "Holo Decoy",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "unique": false,
+   "summoned": true,
+   "stats": {
+    "speed": "7",
+    "armour": "6+",
+    "evade": "6+",
+    "hp": 1,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Lethal Hologram",
+     "type": "Passive",
+     "cost": null,
+     "text": "All Weapons of Friendly Units targeting an Enemy Unit Within 4\" of this Unit gain PRECISION (1)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Timed Life",
+     "type": "Passive",
+     "cost": null,
+     "text": "Remove this Unit at the End of the Round."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Decoy",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit is never Engaged. It cannot Engage Enemy Units, cannot be Engaged by Enemy Units and cannot perform a Charge Action. This Unit cannot be the target of an ability, unless stated otherwise. It can never Control or Contest Mission Markers."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Surprise!",
+     "type": "Passive",
+     "cost": null,
+     "text": "At the End of the Round, you can set a Friendly Nova Stealth Mode or Nova Assault Mode in Coherency with this Unit."
+    }
+   ],
+   "weapons": [],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "compositions": []
+  },
+  {
+   "id": "sabotage-drone",
+   "name": "Sabotage Drone",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "unique": false,
+   "summoned": true,
+   "stats": {
+    "speed": "-",
+    "armour": "6+",
+    "evade": "6+",
+    "hp": 3,
+    "size": 1
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Mechanical",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Structure",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit cannot be Activated in any Phase and cannot perform actions. Additionally, its Current Supply Value is treated as 0, and it can never Control or Contest Mission Markers, ignoring the standard Zero Supply Exception. This Unit cannot be a target of an ability, unless stated otherwise."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Have a Nice Day",
+     "type": "Passive",
+     "cost": null,
+     "text": "At the End of the Assault Phase, target each Unit Within 3\" of this Unit (including Units with the Structure ability) suffers HITS 5 (1). If an affected Unit has the Structure ability, that Unit suffers an additional HITS 5 (1)."
+    }
+   ],
+   "weapons": [],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "compositions": []
+  },
+  {
+   "id": "high-templar",
+   "name": "High Templar",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": "Support",
+   "combat_role": null,
+   "unique": false,
+   "summoned": false,
+   "stats": {
+    "shield": 3,
+    "speed": "4/7",
+    "armour": "5+",
+    "evade": "6+",
+    "hp": 3,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    },
+    {
+     "models": "2-2",
+     "supply": 1
+    },
+    {
+     "models": "3-4",
+     "supply": 2
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Light",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Our Minds as One",
+     "type": "Passive",
+     "cost": null,
+     "text": "While this Unit's Current Supply Value is 2, it gains the following effects: The first Special Ability resolved by this Unit each Round has its PE cost reduced by 1 (to a minimum of 0). Apply a +1 Modifier to the dice rolled for its Psionic Storm Special Ability."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Feedback",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Target one Enemy Mechanical or Psionic Unit Within 8\". Until the End of the Round, after that Unit resolves an Active or Reaction Special Ability (excluding abilities granted by a Tactical Card or Faction Card), it suffers NON-LETHAL DAMAGE (3)."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Psi Blast",
+     "rng": "8",
+     "target": "All",
+     "roa": "1",
+     "hit": "3+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "2",
+     "keywords": [
+      "INSTANT"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Strike",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "1",
+     "hit": "4+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Psionic Storm",
+     "type": "Active",
+     "cost": "2 PE",
+     "text": "Set a Psionic Storm token Within 10\" and Line of Sight of this Unit. This token is not removed if this Unit is Destroyed. At the End of each Phase, set a Psionic Storm Blast Template on the centre of this token. For each Unit that has at least one model whose base is partially covered by the template, roll 3 dice, plus 1 additional die for each model in that Unit whose base is partially covered. For each result of 5+, that Unit suffers an effect depending on the current Phase: Movement Phase: NON-LETHAL DAMAGE (1). Assault Phase: 1 Damage. If multiple effects trigger at the End of the Assault Phase, resolve them in the order specified in Part 8.9.4.",
+     "cost_by_composition": [
+      20,
+      30
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Farsight",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Target one Friendly Unit Within 12\". Until the End of the Round, that Unit is eligible to make an Evade Roll against any attacks targeting it.",
+     "cost_by_composition": [
+      20,
+      20
+     ]
+    }
+   ],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview.",
+    "The preview shows Models/Supply 1→0 and 2→1 and prices of 130/230; the 10.6 Unit Cost Table (09.10.2026) lists 2 models 120 (Supply 1) and 4 models 200 (Supply 2). The table is used, and the 3-4 → Supply 2 bracket is inferred from it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 2,
+     "minerals": 120,
+     "supply": 1
+    },
+    {
+     "models": 4,
+     "minerals": 200,
+     "supply": 2
+    }
+   ]
+  },
+  {
+   "id": "twilight-templar",
+   "name": "Twilight Templar (High Templar)",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": "Support",
+   "combat_role": null,
+   "unique": true,
+   "summoned": false,
+   "stats": {
+    "shield": 3,
+    "speed": "4/7",
+    "armour": "5+",
+    "evade": "6+",
+    "hp": 3,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    },
+    {
+     "models": "2-2",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Light",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Bound by the Khala",
+     "type": "Reaction",
+     "cost": "0 PE",
+     "text": "Use when the Current Supply Value of another Friendly Unit Within 8\" of this Unit is reduced. Return one Non-Unique Exhausted Tactical Card to the Ready state."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Warp-In",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Resolve the PLACE (6) effect."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Psionic Gale",
+     "type": "Active",
+     "cost": "2 PE",
+     "text": "Set a Psionic Storm token Within 10\" and Line of Sight of this Unit. This token is not removed if this Unit is Destroyed. At the End of each Phase, set a Psionic Storm Blast Template on the centre of this token. For each Unit that has at least one model whose base is partially covered by the template, roll 3 dice, plus 1 additional die for each model in that Unit whose base is partially covered. For each result of 4+, that Unit suffers an effect depending on the current Phase: Movement Phase: NON-LETHAL DAMAGE (1). Assault Phase: 1 Damage. If multiple effects trigger at the End of the Assault Phase, resolve them in the order specified in Part 8.9.4."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Feedback",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Target one Enemy Mechanical or Psionic Unit Within 8\". Until the End of the Round, after that Unit resolves an Active or Reaction Special Ability (excluding abilities granted by a Tactical Card or Faction Card), it suffers NON-LETHAL DAMAGE (3)."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Psi Blast",
+     "rng": "8",
+     "target": "All",
+     "roa": "2",
+     "hit": "3+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "2",
+     "keywords": [
+      "INSTANT"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Strike",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "1",
+     "hit": "4+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 2,
+     "minerals": 230,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "tassadar",
+   "name": "Tassadar",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": "Hero",
+   "combat_role": null,
+   "unique": true,
+   "summoned": false,
+   "stats": {
+    "shield": 3,
+    "speed": "7",
+    "armour": "5+",
+    "evade": "5+",
+    "hp": 6,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Commander",
+     "type": "Passive",
+     "cost": null,
+     "text": "Treat this Unit's Supply characteristic as increased by 1 for Controlling and Contesting Mission Markers, completing objectives, and resolving Disengage checks."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Force Wall",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Set two Force Wall tokens Wholly Within 8\" in an unoccupied space. Units of Size 2 or lower cannot move across the Force Wall. Models of Size 3 or more can move over it, and it's then removed."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Executor's Will",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Target two Enemy Units on the battlefield (Line of Sight is not required) and place a Faction Indicator next to each of them. During the next Assault Phase, if either of these Units ends its Activation while its Faction Indicator remains on the battlefield, you may Activate two Friendly Units consecutively. Remove both Faction Indicators after any Enemy Unit completes its Activation in the following Assault Phase."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Khala's Gift",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Target another Friendly Biological Unit Within 12\". Until the End of the Round, that Unit resolves its first Special Ability with the cost reduced by 1 (to a minimum of 0)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Telekinetic Push",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Set each Friendly Force Wall token Wholly Within 6\" of its current position."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Psi Lightning",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Each Unit Within 2\" of one or more Friendly Force Wall tokens suffers 1 Damage."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Resonance Beam",
+     "rng": "12",
+     "target": "All",
+     "roa": "6",
+     "hit": "3+",
+     "surge_type": "Armoured",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "INSTANT"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Strike",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "6",
+     "hit": "4+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 230,
+     "supply": 1
+    }
+   ]
+  }
+ ],
+ "cards": [
+  {
+   "id": "nova-covert-ops",
+   "name": "Nova Covert Ops",
+   "kind": "Faction",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "unique": false,
+   "slots": {
+    "Core": 3,
+    "Elite": 1,
+    "Support": 1,
+    "Hero": 1
+   },
+   "resource": {
+    "type": "CP",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Movement",
+     "name": "Griffin Support",
+     "type": "Active",
+     "text": "Set a Friendly Sabotage Drone Unit Within 12\" of a Friendly Unit, more than 1\" away from any Enemy model. Remove this Unit at the End of the Round."
+    },
+    {
+     "phase": "Movement",
+     "name": "Mark for Death",
+     "type": "Active",
+     "text": "Target an Enemy Unit on the battlefield. When a Friendly Unit makes an Attack targeting that Unit, its first Melee or Ranged Weapon used gains CRITICAL HIT (1) and PRECISION (1)."
+    }
+   ],
+   "card_version": "Preview (Oct 2026)",
+   "corrections": [],
+   "provisional": true,
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags as given by the user (race only)."
+   ],
+   "gas_cost": 0
+  },
+  {
+   "id": "templar-caste",
+   "name": "Templar Caste",
+   "kind": "Faction",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "unique": false,
+   "slots": {
+    "Core": 3,
+    "Support": 2,
+    "Hero": 1
+   },
+   "resource": {
+    "type": "PE",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Our Duty is Unending",
+     "type": "Active",
+     "text": "Once per Game. Select up to two of your Exhausted Tactical Cards. Return them to the Ready state."
+    },
+    {
+     "phase": "Any",
+     "name": "Khassar de Templari",
+     "type": "Active",
+     "text": "Instead of performing an action, select one other Friendly Biological Unit that has already been Activated this Phase. That Unit immediately performs one action available in the current Phase, then suffers NON-LETHAL DAMAGE (3)."
+    }
+   ],
+   "card_version": "Preview (Oct 2026)",
+   "corrections": [],
+   "provisional": true,
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags as given by the user (race only)."
+   ],
+   "gas_cost": 0
+  },
+  {
+   "id": "zagaras-swarm",
+   "name": "Zagara's Swarm",
+   "kind": "Faction",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {
+    "Core": 4,
+    "Support": 1,
+    "Hero": 1
+   },
+   "resource": {
+    "type": "BM",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Combat",
+     "name": "Scourge Queen",
+     "type": "Active",
+     "text": "If the active Unit contains more models than the combined number of models in all Engaged Enemy Units, its Close Combat Weapons gain INSTANT and PRECISION (4)."
+    },
+    {
+     "phase": "Any",
+     "name": "Instinctive Reaction",
+     "type": "Reaction",
+     "text": "Use when an Enemy Unit declares a Close Combat Attack against a Friendly Unit. That Friendly Unit becomes eligible to make an Evade Roll against that attack."
+    },
+    {
+     "phase": "Any",
+     "name": "Zerg Creep",
+     "type": "Passive",
+     "text": "During Army Building, select exactly one Creep Card and add it to their Army List, paying its listed cost (if any)."
+    }
+   ],
+   "card_version": "Preview (Oct 2026)",
+   "corrections": [],
+   "provisional": true,
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags as given by the user (race only)."
+   ],
+   "gas_cost": 0
+  },
+  {
+   "id": "vanadium-plating",
+   "name": "Vanadium Plating",
+   "kind": "Tactical",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "unique": false,
+   "slots": {
+    "Support": 1
+   },
+   "resource": {
+    "type": "CP",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Crystalline Alloy",
+     "type": "Reaction",
+     "text": "Use before a Friendly Mechanical Unit makes an Armour Roll. That Unit gains DODGE (2) for this roll."
+    }
+   ],
+   "card_version": "Preview (Oct 2026)",
+   "corrections": [],
+   "provisional": true,
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags are not shown in the preview; race tag only is assumed."
+   ],
+   "gas_cost": 25
+  },
+  {
+   "id": "templar-archives",
+   "name": "Templar Archives",
+   "kind": "Tactical",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "unique": false,
+   "slots": {
+    "Support": 2
+   },
+   "resource": {
+    "type": "PE",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Ancestral Wisdom",
+     "type": "Reaction",
+     "text": "Once per Round, when a Friendly Support Unit activates a Special Ability that costs PE, resolve that ability with its PE cost reduced by 1 (to a minimum of 0). Do not Exhaust this card."
+    }
+   ],
+   "card_version": "Preview (Oct 2026)",
+   "corrections": [],
+   "provisional": true,
+   "notes": [
+    "Provisional: transcribed from a preview, not the printed card. Faction tags are not shown in the preview; race tag only is assumed."
+   ],
+   "gas_cost": 40
+  }
+ ]
+}

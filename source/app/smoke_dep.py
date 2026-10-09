@@ -1,0 +1,24 @@
+from playwright.sync_api import sync_playwright
+out = {}; errs = []
+with sync_playwright() as p:
+    b = p.chromium.launch(); ctx = b.new_context(viewport={"width": 1280, "height": 900})
+    pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_timeout(13000)
+    pg.click('[data-a="mode"][data-v="light"]')
+    pg.evaluate("document.getElementById('sec-scenario').scrollIntoView()"); pg.wait_for_timeout(1200)
+    out["map_imgs_loaded"] = pg.evaluate("Array.from(document.querySelectorAll('.dtile img')).filter(i=>i.complete&&i.naturalWidth>0).length+'/'+document.querySelectorAll('.dtile img').length")
+    pg.click('[data-a="dmap"][data-v="typhoon"]'); pg.wait_for_timeout(700)
+    out["modal_img"] = pg.evaluate("(()=>{const i=document.querySelector('.dmodal img');return i&&i.naturalWidth+'x'+i.naturalHeight})()")
+    out["selected_after_view_map"] = pg.evaluate("__muster.S.cur.deployments.slice()")
+    pg.screenshot(path="dep_modal.png"); pg.keyboard.press("Escape")
+    pg.click('[data-a="deploy"][data-v="typhoon"]'); pg.click('[data-a="deploy"][data-v="breach"]'); pg.wait_for_timeout(400)
+    out["selected"] = pg.evaluate("__muster.S.cur.deployments.slice()")
+    pg.evaluate("document.getElementById('sec-scenario').scrollIntoView()"); pg.wait_for_timeout(500)
+    pg.screenshot(path="dep_tiles.png")
+    man = pg.evaluate("__muster.build(__muster.FORMATS[0]).then(h=>({deploy:(h.match(/class=\"sc-deploy\"/g)||[]).length, imgs:(h.match(/data:image\\/webp/g)||[]).length, size:h.length}))")
+    out["manual"] = man
+    pg.click('[data-a="scale"][data-v="skirmish"]'); pg.wait_for_timeout(300)
+    out["skirmish_tile_names"] = pg.evaluate("Array.from(document.querySelectorAll('.dtile .t-name')).map(n=>n.firstChild.textContent)")
+    b.close()
+for k, v in out.items(): print(k, ":", v)
+print("errors:", errs)
