@@ -63,6 +63,16 @@ eq("unique unit twice flagged", C.validate(u2).some(v=>/Jim Raynor is Unique/.te
 eq("skirmish limits", C.limits({scale:"skirmish"}), {minerals:1000, gas:100, scale: Core.SCALES.skirmish});
 eq("grand offensive limits 3000", [C.limits({scale:"grand",grandMinerals:3000}).minerals, C.limits({scale:"grand",grandMinerals:3000}).gas], [3000,300]);
 eq("grand offensive floor 2001", C.limits({scale:"grand",grandMinerals:500}).minerals, 2001);
+eq("skirmish 500 limits", [C.limits({scale:"skirmish",minerals:500}).minerals, C.limits({scale:"skirmish",minerals:500}).gas, C.limits({scale:"skirmish",minerals:500}).scale.side], [500,50,"skirmish"]);
+eq("standard 1500 limits", [C.limits({scale:"standard",minerals:1500}).minerals, C.limits({scale:"standard",minerals:1500}).gas, C.limits({scale:"standard",minerals:1500}).scale.side], [1500,150,"standard"]);
+eq("size not offered at scale falls back to scale max", [C.limits({scale:"standard",minerals:500}).minerals, C.limits({scale:"skirmish",minerals:1500}).minerals], [2000,1000]);
+eq("new roster defaults to 2000", C.limits(C.newRoster()).minerals, 2000);
+(function(){ var r = C.newRoster(); r.scale="skirmish"; r.minerals=500;
+  var back = C.normalize(JSON.parse(JSON.stringify(C.exportable(r)))).roster;
+  eq("500 list survives export/import", [back.scale, C.limits(back).minerals], ["skirmish",500]);
+  var old = C.normalize({format:"sc-tmg-roster",version:1,scale:"skirmish",units:[]}).roster;
+  eq("older export without a size imports at scale max", C.limits(old).minerals, 1000);
+  r.units = []; eq("over-500 error message uses 500", C.limits(r).minerals, 500); })();
 
 // Double replacement warning (Goliath Haywire + Scatter)
 const g = C.newRoster(); g.race="Terran"; g.factionId="terran-armed-forces"; const ge=C.newEntry("goliath"); ge.upgrades=["Haywire Missiles","Scatter Missiles"]; g.units.push(ge);

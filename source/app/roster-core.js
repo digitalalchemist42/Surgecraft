@@ -7,8 +7,10 @@
 
   var SLOT_TYPES = ["Core", "Elite", "Support", "Air", "Hero"];
   var SCALES = {
-    skirmish: { id: "skirmish", name: "Skirmish", minerals: 1000, battlefield: "36\" × 36\"", side: "skirmish" },
-    standard: { id: "standard", name: "Standard", minerals: 2000, battlefield: "54\" × 36\"", side: "standard" },
+    // Part 9.1.1: Skirmish is "up to 1,000" and Standard "up to 2,000" Minerals. `sizes` are the list sizes
+    // offered at each scale; the scale (not the size) sets the battlefield and the Mission/Deployment card side.
+    skirmish: { id: "skirmish", name: "Skirmish", minerals: 1000, sizes: [500, 1000], battlefield: "36\" × 36\"", side: "skirmish" },
+    standard: { id: "standard", name: "Standard", minerals: 2000, sizes: [1500, 2000], battlefield: "54\" × 36\"", side: "standard" },
     grand: { id: "grand", name: "Grand Offensive", minerals: null, battlefield: "72\" × 36\"", side: "standard" }
   };
   var RESOURCE_NAMES = { CP: "Command Points", PE: "Psionic Energy", BM: "Biomass" };
@@ -28,6 +30,12 @@
 
   Core.SLOT_TYPES = SLOT_TYPES;
   Core.SCALES = SCALES;
+  // The list sizes shown on Army setup, in order. Grand Offensive takes a custom limit above 2,000.
+  Core.LIST_SIZES = [
+    { scale: "skirmish", minerals: 500 }, { scale: "skirmish", minerals: 1000 },
+    { scale: "standard", minerals: 1500 }, { scale: "standard", minerals: 2000 },
+    { scale: "grand", minerals: null }
+  ];
   Core.RESOURCE_NAMES = RESOURCE_NAMES;
 
   /* ---------- helpers ---------- */
@@ -41,7 +49,7 @@
 
   Core.prototype.newRoster = function () {
     return {
-      id: "r_" + uid(), name: "New roster", player: "", scale: "standard", grandMinerals: 3000,
+      id: "r_" + uid(), name: "New roster", player: "", scale: "standard", minerals: 2000, grandMinerals: 3000,
       race: null, factionId: null, tactical: {}, creepId: null, units: [],
       missions: [], deployments: [], notes: "", createdAt: Date.now(), updatedAt: Date.now()
     };
@@ -49,7 +57,8 @@
 
   Core.prototype.limits = function (r) {
     var s = SCALES[r.scale] || SCALES.standard;
-    var minerals = s.id === "grand" ? Math.max(2001, Math.floor(Number(r.grandMinerals) || 2001)) : s.minerals;
+    var minerals = s.id === "grand" ? Math.max(2001, Math.floor(Number(r.grandMinerals) || 2001))
+      : (s.sizes.indexOf(Number(r.minerals)) !== -1 ? Number(r.minerals) : s.minerals);
     // Part 9.1.1 / 9.1.4: Vespene Gas is 10% of the Mineral limit at every scale.
     return { minerals: minerals, gas: Math.floor(minerals / 10), scale: s };
   };
@@ -263,6 +272,7 @@
     if (!raw || typeof raw !== "object") return { roster: null, dropped: ["Not a roster file."] };
     ["name", "player", "notes"].forEach(function (k) { if (typeof raw[k] === "string") r[k] = raw[k].slice(0, 200); });
     if (SCALES[raw.scale]) r.scale = raw.scale;
+    r.minerals = this.limits({ scale: r.scale, minerals: raw.minerals }).minerals;
     if (Number(raw.grandMinerals) > 2000) r.grandMinerals = Math.floor(Number(raw.grandMinerals));
     if (["Terran", "Protoss", "Zerg"].indexOf(raw.race) !== -1) r.race = raw.race;
     if (raw.factionId && this.cards[raw.factionId] && this.cards[raw.factionId].kind === "Faction") r.factionId = raw.factionId;
@@ -292,7 +302,7 @@
   Core.prototype.exportable = function (r) {
     return {
       format: "sc-tmg-roster", version: 1,
-      name: r.name, player: r.player, scale: r.scale, grandMinerals: r.grandMinerals, race: r.race,
+      name: r.name, player: r.player, scale: r.scale, minerals: r.minerals, grandMinerals: r.grandMinerals, race: r.race,
       factionId: r.factionId, tactical: r.tactical, creepId: r.creepId,
       units: r.units.map(function (e) { return { unitId: e.unitId, models: e.models, upgrades: e.upgrades, specialists: e.specialists }; }),
       missions: r.missions, deployments: r.deployments, notes: r.notes

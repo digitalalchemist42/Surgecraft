@@ -17,8 +17,15 @@ with sync_playwright() as p:
     pg.screenshot(path="dep_tiles.png")
     man = pg.evaluate("__muster.build(__muster.FORMATS[0]).then(h=>({deploy:(h.match(/class=\"sc-deploy\"/g)||[]).length, imgs:(h.match(/data:image\\/webp/g)||[]).length, size:h.length}))")
     out["manual"] = man
-    pg.click('[data-a="scale"][data-v="skirmish"]'); pg.wait_for_timeout(300)
+    pg.click('[data-a="scale"][data-v="skirmish:1000"]'); pg.wait_for_timeout(300)
     out["skirmish_tile_names"] = pg.evaluate("Array.from(document.querySelectorAll('.dtile .t-name')).map(n=>n.firstChild.textContent)")
+    pg.click('[data-a="scale"][data-v="skirmish:500"]'); pg.wait_for_timeout(300)
+    out["size500_limit"] = pg.evaluate("__muster.C.limits(__muster.S.cur).minerals + '/' + __muster.C.limits(__muster.S.cur).gas + '/' + __muster.C.limits(__muster.S.cur).scale.side")
+    out["size500_tiles_same_as_skirmish"] = pg.evaluate("Array.from(document.querySelectorAll('.dtile .t-name')).map(n=>n.firstChild.textContent)") == out["skirmish_tile_names"]
+    pg.click('[data-a="scale"][data-v="standard:1500"]'); pg.wait_for_timeout(300)
+    out["size1500_limit"] = pg.evaluate("__muster.C.limits(__muster.S.cur).minerals + '/' + __muster.C.limits(__muster.S.cur).gas + '/' + __muster.C.limits(__muster.S.cur).scale.side")
+    out["pressed_buttons"] = pg.evaluate("Array.from(document.querySelectorAll('[data-a=scale][aria-pressed=true]')).map(b=>b.dataset.v)")
+    pg.click('[data-a="scale"][data-v="skirmish:1000"]'); pg.wait_for_timeout(300)
     b.close()
 for k, v in out.items(): print(k, ":", v)
 print("errors:", errs)

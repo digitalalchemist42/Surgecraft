@@ -238,7 +238,7 @@ function renderList(){
       var f = C.faction(r), t = C.totals(r), lim = C.limits(r), errs = C.validate(r).filter(function(x){return x.level==="error";}).length;
       var seen = {}, minis = r.units.filter(function(e){ if(seen[e.unitId]) return false; seen[e.unitId]=1; return C.units[e.unitId]; }).slice(0,7);
       h += '<article class="rcard"'+(r.race?' data-skin="'+esc(r.race)+'"':'')+'><div class="rc-top">'+(r.race?'<img src="'+ART.race(r.race)+'" alt="">':'')+
-        '<div style="flex:1;min-width:0"><div class="rc-name">'+esc(r.name||"Untitled roster")+'</div><div class="rc-fac">'+esc(f?f.name:"No faction yet")+' · '+esc(lim.scale.name)+'</div></div>'+
+        '<div style="flex:1;min-width:0"><div class="rc-name">'+esc(r.name||"Untitled roster")+'</div><div class="rc-fac">'+esc(f?f.name:"No faction yet")+' · '+esc(lim.scale.name)+' '+fmt(lim.minerals)+'</div></div>'+
         (errs?'<span class="pill err">'+errs+' issue'+(errs>1?'s':'')+'</span>':'<span class="pill ok">Legal</span>')+'</div><div class="rc-b">'+
         '<div class="rc-minis">'+(minis.length?minis.map(function(e){return miniImg(e.unitId);}).join(""):'<span class="faint">No units yet</span>')+'</div>'+
         '<div class="rc-stats"><div>Minerals<b>'+fmt(t.minerals)+'<span class="faint">/'+fmt(lim.minerals)+'</span></b></div><div>Gas<b>'+fmt(t.gas)+'<span class="faint">/'+fmt(lim.gas)+'</span></b></div><div>Supply<b>'+t.supply+'</b></div></div><div class="rc-act">';
@@ -292,8 +292,10 @@ function renderSetup(){
   var h = secHead(1, "Army setup", "Part 9.1.1–9.1.2") + '<div class="sbody">';
   h += '<div class="grid2"><div class="field"><label for="f-name">Roster name</label><input class="input" id="f-name" value="'+esc(r.name)+'" maxlength="120"></div><div class="field"><label for="f-player">Player name</label><input class="input" id="f-player" value="'+esc(r.player)+'" maxlength="80" placeholder="Shown on the tournament roster"></div></div>';
   h += '<div class="subhead">Engagement scale</div><div class="seg" role="group" aria-label="Engagement scale">';
-  ["skirmish","standard","grand"].forEach(function(k){ var s = SCALES[k], lim = C.limits({scale:k, grandMinerals:r.grandMinerals});
-    h += '<button data-a="scale" data-v="'+k+'" aria-pressed="'+(r.scale===k)+'">'+esc(s.name)+' <span class="faint num">'+(k==="grand"?"2,001+":fmt(lim.minerals))+' / '+(k==="grand"?"10%":fmt(lim.gas))+'</span></button>'; });
+  var curLim = C.limits(r);
+  RosterCore.LIST_SIZES.forEach(function(z){ var s = SCALES[z.scale], g = z.scale==="grand", lim = C.limits({scale:z.scale, minerals:z.minerals, grandMinerals:r.grandMinerals});
+    var on = r.scale===z.scale && (g || curLim.minerals===z.minerals);
+    h += '<button data-a="scale" data-v="'+z.scale+(g?'':':'+z.minerals)+'" aria-pressed="'+on+'" title="'+esc(s.name+' · '+s.battlefield)+'"><span class="num">'+(g?'2,001+':fmt(z.minerals))+'</span> <span class="faint">'+esc(s.name)+(g?'':' · '+fmt(lim.gas)+' Gas')+'</span></button>'; });
   h += '</div>';
   if(r.scale==="grand") h += '<div class="field" style="max-width:260px;margin-top:10px"><label for="f-go">Mineral limit (Grand Offensive)</label><input class="input num" id="f-go" type="number" min="2001" step="50" value="'+esc(r.grandMinerals)+'"></div>';
   h += '<div class="subhead">Race</div><div class="seg race" role="group" aria-label="Race">';
@@ -1127,7 +1129,7 @@ document.addEventListener("click", function(ev){
     case "reload": location.reload(); break;
     case "install": if(APP.prompt){ var ev = APP.prompt; APP.prompt = null; ev.prompt(); (ev.userChoice||Promise.resolve()).then(function(){ render(); }); } break;
     case "tab": S.tab=v; S.exp.preview=null; S.exp.copyText=null; render(); window.scrollTo(0,0); break;
-    case "scale": r.scale=v; commit(); break;
+    case "scale": var sv = String(v).split(":"); r.scale=sv[0]; if(sv[1]) r.minerals=Number(sv[1]); commit(); break;
     case "race": setRace(v); break;
     case "race-yes": var rc=S.confirmRace; r.race=null; setRace(rc); break;
     case "race-no": S.confirmRace=null; render(); break;
