@@ -35,5 +35,36 @@ ok("richText bolds keywords", R.richText("gains BUFF Speed (3) and PRECISION (2)
 // zerg creep + summons
 const z = C.newRoster(); z.race="Zerg"; z.factionId="kerrigans-swarm"; z.creepId="malignant-creep"; const co=C.newEntry("corpser"); z.units.push(co);
 const zm = X.fieldManualDoc(C, z, p=>p); ok("zerg manual includes Omega Worm + Roachling", zm.indexOf("OMEGA WORM") !== -1 && zm.indexOf("ROACHLING") !== -1);
+// ---- reference sheet ----
+const KW = require("./keywords.js");
+const ref = X.referenceDoc(C, r, { kw: KW });
+ok("ref doc well-formed", ref.startsWith("<!doctype html>") && ref.trim().endsWith("</html>") && (ref.match(/<div/g)||[]).length === (ref.match(/<\/div>/g)||[]).length);
+ok("ref has A4 page rule", ref.indexOf("@page{size:A4") !== -1);
+ok("ref shows Haywire for Hellfire, no Hellfire row", ref.indexOf('Haywire Missiles <span class="rf-note">for Hellfire Missiles</span>') !== -1 && ref.indexOf('<td class="rf-wn">Hellfire Missiles') === -1);
+ok("ref shows specialist models", ref.indexOf('Rocket Launcher <span class="rf-note">model 2</span>') !== -1 && ref.indexOf('AGG-12 <span class="rf-note">model 3, for C-14 Rifle</span>') !== -1);
+ok("ref leaves out untaken upgrades", ref.indexOf("Slugthrower") === -1 && ref.indexOf("Combat Shield") === -1);
+ok("ref leaves out ability text", ref.indexOf("NON-LETHAL DAMAGE (2)") === -1 && ref.indexOf("Stimpack") !== -1);
+ok("ref glossary off by default", ref.indexOf("KEYWORD GLOSSARY") === -1);
+ok("ref summoned PDD listed", ref.indexOf("SUMMONED UNITS") !== -1 && ref.indexOf("POINT DEFENSE DRONE") !== -1);
+const refG = X.referenceDoc(C, r, { kw: KW, glossary: true });
+ok("ref glossary lists used keywords only", refG.indexOf("KEYWORD GLOSSARY") !== -1 && refG.indexOf("LONG RANGE") !== -1 && refG.indexOf('rf-gh">BURROWED') === -1);
+const Ex = require("./examples.js"), ter = Ex.build(C, "Terran");
+const refT = X.referenceDoc(C, ter, { kw: KW });
+ok("ref merges identical units (2× Marine 9)", refT.indexOf("2× MARINE") !== -1 && /9 models · Core · Supply 2 · <b>220<\/b> each \(440\)/.test(refT) && (refT.match(/MARINE<\/b>/g)||[]).length === 2);
+// every base weapon value on every unit card appears unchanged, in card column order
+let wbad = [];
+data.units.forEach(u => {
+  if (u.summoned) return;
+  const rr = C.newRoster(); rr.race = u.race; rr.units.push(C.newEntry(u.id));
+  const h = R.referenceSheetHTML(C, rr);
+  u.weapons.forEach(w => {
+    const esc = R.esc, row = "<td>" + [w.rng, w.target, w.roa, w.hit, w.surge_type, w.s_dice, w.dmg].map(esc).join("</td><td>") + '</td><td class="rf-kw">' + esc(w.keywords.join(", ") || "-") + "</td>";
+    if (h.indexOf('<td class="rf-wn">' + esc(w.name) + "</td>" + row) === -1) wbad.push(u.id + ":" + w.name);
+  });
+  const st = u.stats; if (h.indexOf("<i>ARMOUR</i><b>" + R.esc(st.armour) + "</b>") === -1 || h.indexOf("<i>HP</i><b>" + st.hp + "</b>") === -1) wbad.push(u.id + ":stats");
+});
+ok("ref copies every weapon profile and stat exactly", wbad.length === 0 || console.log(wbad));
+require("fs").writeFileSync("/home/claude/app/sample_reference.html", refG);
+require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.referenceDoc(C, ter, { kw: KW, glossary: true }));
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 require("fs").writeFileSync("/home/claude/app/sample_manual.html", man.replace(/img\//g, "img/"));

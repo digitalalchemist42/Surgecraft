@@ -469,6 +469,195 @@
     });
     return out;
   }
+  /* ---------- REFERENCE SHEET (compact table reference, aimed at 1–2 A4 pages) ----------
+     Every value is copied from the unit card data unchanged; only the layout is condensed.
+     Ability text is left out (names, phase, type and cost only). Identical entries are merged as "2×". */
+  var PHASE_ORDER = { Movement: 0, Assault: 1, Combat: 2, Any: 3 };
+
+  /* The weapons a fielded Unit carries: base weapons with non-SPECIALIST replacements swapped in place,
+     extra upgrade weapons appended, SPECIALIST weapons listed with the model that carries them. */
+  function fieldedWeapons(C, u, entry) {
+    var ups = entry ? entry.upgrades.map(function (n) { return C.upgradeDef(entry, n); }).filter(function (x) { return x && x.kind === "weapon"; }) : [];
+    var swap = {}, extra = [], spec = [];
+    ups.forEach(function (x) {
+      if (x.specialist) spec.push({ w: x, model: (entry.specialists && entry.specialists[x.name]) || null, forName: x.replaces || null });
+      else if (x.replaces) swap[x.replaces] = x;
+      else extra.push({ w: x, model: null, forName: null });
+    });
+    var rows = u.weapons.map(function (w) { var s = swap[w.name]; return s ? { w: s, model: null, forName: w.name } : { w: w, model: null, forName: null }; });
+    rows = rows.concat(extra, spec);
+    return rows.map(function (r, i) { r.i = i; return r; })
+      .sort(function (a, b) { return ((PHASE_ORDER[a.w.phase] || 0) - (PHASE_ORDER[b.w.phase] || 0)) || (a.i - b.i); });
+  }
+  function fieldedAbilities(C, u, entry) {
+    var out = u.abilities.map(function (a) { return { a: a, up: false }; });
+    if (entry) entry.upgrades.forEach(function (n) { var x = C.upgradeDef(entry, n); if (x && x.kind !== "weapon") out.push({ a: x, up: true }); });
+    return out.map(function (r, i) { r.i = i; return r; })
+      .sort(function (a, b) { return ((PHASE_ORDER[a.a.phase] || 0) - (PHASE_ORDER[b.a.phase] || 0)) || (a.i - b.i); });
+  }
+  /* Merge entries that are the same unit, model count, upgrades and SPECIALIST nominations. */
+  function groupEntries(C, r) {
+    var groups = [], byKey = {};
+    r.units.forEach(function (e) {
+      if (!C.units[e.unitId]) return;
+      var sp = Object.keys(e.specialists || {}).filter(function (n) { return e.upgrades.indexOf(n) !== -1; }).sort().map(function (n) { return n + "=" + e.specialists[n]; });
+      var key = [e.unitId, e.models, e.upgrades.slice().sort().join("|"), sp.join("|")].join("#");
+      if (byKey[key]) byKey[key].count++; else { byKey[key] = { entry: e, count: 1 }; groups.push(byKey[key]); }
+    });
+    return groups;
+  }
+  function refUnitHTML(C, u, entry, count) {
+    var st = u.stats, h = '<section class="rf-u" data-race="' + esc(u.race) + '">';
+    // header: name, stat line, fielded size and cost
+    var stats = [["SPEED", st.speed], ["ARMOUR", st.armour], ["EVADE", st.evade], ["HP", st.hp]];
+    if (st.shield != null) stats.push(["SHIELD", st.shield]);
+    stats.push(["SIZE", st.size]);
+    h += '<div class="rf-uh"><div class="rf-nm"><b>' + (count > 1 ? count + "× " : "") + esc(u.name.toUpperCase()) + "</b>" +
+      (u.unique ? ' <span class="rf-tag">UNIQUE</span>' : "") + (u.provisional ? ' <span class="rf-tag">PREVIEW</span>' : "") + "</div>";
+    h += '<div class="rf-stats">' + stats.map(function (s) { return '<span class="' + (s[0] === "SHIELD" ? "rf-sh" : "") + '"><i>' + s[0] + "</i><b>" + esc(s[1]) + "</b></span>"; }).join("") + "</div>";
+    if (entry) {
+      var c = C.entryCost(entry);
+      h += '<div class="rf-cost">' + entry.models + " model" + (entry.models > 1 ? "s" : "") + " · " + esc(u.army_slot) + " · Supply " + c.supply + " · <b>" + c.total + "</b>" +
+        (count > 1 ? " each (" + fmt(c.total * count) + ")" : "") + "</div>";
+    } else h += '<div class="rf-cost">Summoned Unit</div>';
+    h += "</div>";
+    // weapons
+    var ws = fieldedWeapons(C, u, entry);
+    if (ws.length) {
+      h += '<table class="rf-wt"><thead><tr><th>Phase</th><th>Name</th><th>RNG</th><th>Target</th><th>RoA</th><th>Hit</th><th>Surge type</th><th>S Dice</th><th>Dmg</th><th>Keyword</th></tr></thead><tbody>';
+      ws.forEach(function (x) {
+        var w = x.w, note = [];
+        if (x.model) note.push("model " + x.model); else if (x.w.specialist) note.push("model ?");
+        if (x.forName) note.push("for " + x.forName);
+        h += "<tr><td class=\"rf-ph\">" + esc(w.phase) + '</td><td class="rf-wn">' + esc(w.name) + (note.length ? ' <span class="rf-note">' + esc(note.join(", ")) + "</span>" : "") + "</td><td>" + esc(w.rng) + "</td><td>" + esc(w.target) + "</td><td>" + esc(w.roa) + "</td><td>" + esc(w.hit) +
+          "</td><td>" + esc(w.surge_type) + "</td><td>" + esc(w.s_dice) + "</td><td>" + esc(w.dmg) + '</td><td class="rf-kw">' + esc(w.keywords.join(", ") || "-") + "</td></tr>";
+      });
+      h += "</tbody></table>";
+    }
+    // abilities by name only, with phase, type and cost as printed
+    var ab = fieldedAbilities(C, u, entry);
+    if (ab.length) h += '<p class="rf-line"><i>Abilities</i>' + ab.map(function (x) {
+      var a = x.a, meta = [PHASE_NAME[a.phase] || a.phase, a.type, a.cost].filter(Boolean).join(" · ");
+      return '<span class="rf-ab' + (x.up ? " rf-up" : "") + '">' + esc(a.name) + (x.up ? "&#9650;" : "") + ' <span class="rf-note">' + esc(meta) + "</span></span>";
+    }).join("") + "</p>";
+    // upgrades taken, with their cost at this composition
+    if (entry && entry.upgrades.length) h += '<p class="rf-line"><i>Upgrades</i>' + entry.upgrades.map(function (n) {
+      var x = C.upgradeDef(entry, n), cost = C.upgradeCost(entry, n), m = entry.specialists && entry.specialists[n], bits = [];
+      if (x && x.specialist) bits.push("model " + (m || "?"));
+      if (x && x.replaces) bits.push("replaces " + x.replaces);
+      return '<span class="rf-ab">' + esc(n) + (bits.length ? ' <span class="rf-note">' + esc(bits.join(", ")) + "</span>" : "") + (typeof cost === "number" ? ' <span class="rf-min">' + cost + "</span>" : "") + "</span>";
+    }).join("") + "</p>";
+    h += '<p class="rf-line rf-tags"><i>Combat tags</i>' + esc(u.combat_tags.join(", ")) +
+      (u.combat_role ? '<span class="rf-sep"></span><i>Combat role</i>' + esc(u.combat_role) : "") +
+      '<span class="rf-sep"></span><i>Models / Supply</i>' + u.supply_profile.map(function (b) { return esc(b.models) + ": " + b.supply; }).join(" · ") + "</p>";
+    return h + "</section>";
+  }
+  /* Keywords the army uses: weapon keywords on fielded weapons, plus keywords named in the text of the
+     army's abilities (units, taken upgrades, summoned units, Faction / Tactical / Creep Cards). */
+  function refKeywords(C, r, KW) {
+    if (!KW) return [];
+    var seen = {}, texts = [];
+    function scan(s) { KW.find(String(s || "")).forEach(function (x) { seen[x.id] = true; }); }
+    r.units.forEach(function (e) {
+      var u = C.units[e.unitId]; if (!u) return;
+      fieldedWeapons(C, u, e).forEach(function (x) { x.w.keywords.forEach(scan); });
+      fieldedAbilities(C, u, e).forEach(function (x) { texts.push(x.a.text); });
+    });
+    summonedFor(C, r).forEach(function (u) { u.weapons.forEach(function (w) { w.keywords.forEach(scan); }); u.abilities.forEach(function (a) { texts.push(a.text); }); });
+    var cards = [C.faction(r)].concat(Object.keys(r.tactical || {}).filter(function (id) { return r.tactical[id]; }).map(function (id) { return C.cards[id]; }), r.creepId ? [C.cards[r.creepId]] : []);
+    cards.forEach(function (c) { if (c) c.abilities.forEach(function (a) { texts.push(a.text); }); });
+    texts.forEach(scan);
+    return KW.list.filter(function (k) { return seen[k.id]; }).sort(function (a, b) { return a.term < b.term ? -1 : a.term > b.term ? 1 : 0; });
+  }
+  function refGlossaryHTML(list) {
+    if (!list.length) return "";
+    return '<section class="rf-gl"><h3>KEYWORD GLOSSARY <span>Full Rules, Part 11 · keywords used by this army</span></h3><div class="rf-glc">' + list.map(function (k) {
+      var h = "", ul = false;
+      k.body.forEach(function (b) {
+        if (b[0] === "li") { if (!ul) { h += "<ul>"; ul = true; } h += "<li>" + richText(b[1]) + "</li>"; }
+        else { if (ul) { h += "</ul>"; ul = false; } h += "<p>" + richText(b[1]) + "</p>"; }
+      });
+      if (ul) h += "</ul>";
+      return '<div class="rf-ge"><b class="rf-gh">' + esc(k.head) + "</b>" + h + "</div>";
+    }).join("") + "</div></section>";
+  }
+  function referenceSheetHTML(C, r, opts) {
+    opts = opts || {};
+    var f = C.faction(r), t = C.totals(r), lim = C.limits(r), side = lim.scale.side;
+    var errs = C.validate(r).filter(function (x) { return x.level === "error"; });
+    var h = '<div class="rf"><header class="rf-h"><div class="rf-ht"><h2>' + esc(r.name || "Roster") + "</h2>" +
+      '<span class="rf-status ' + (errs.length ? "bad" : "ok") + '">' + (errs.length ? errs.length + " RULES ISSUE" + (errs.length > 1 ? "S" : "") : "LEGAL") + "</span></div>" +
+      '<div class="rf-hm"><span><i>Player</i>' + esc(r.player || "—") + "</span><span><i>Faction</i>" + esc((r.race || "—") + (f ? " · " + f.name : "")) + "</span>" +
+      "<span><i>" + esc(lim.scale.name) + "</i>" + fmt(t.minerals) + " / " + fmt(lim.minerals) + " Minerals</span><span><i>Gas</i>" + fmt(t.gas) + " / " + fmt(lim.gas) + "</span><span><i>Supply</i>" + t.supply + "</span></div>";
+    function resTxt(c) { return c && c.resource && c.resource.value != null ? " (" + c.resource.type + ": " + c.resource.value + ")" : ""; }
+    var cards = [];
+    if (f) cards.push("<b>" + esc(f.name) + "</b>" + esc(resTxt(f)));
+    Object.keys(r.tactical || {}).forEach(function (id) { var c = C.cards[id], n = r.tactical[id]; if (c && n) cards.push(esc(c.name + (n > 1 ? " ×" + n : "") + resTxt(c))); });
+    if (r.creepId && C.cards[r.creepId]) cards.push(esc(C.cards[r.creepId].name) + ' <span class="rf-note">Creep</span>');
+    h += '<p class="rf-line"><i>Cards</i>' + (cards.join(" · ") || "—") + "</p>";
+    var ms = (r.missions || []).map(function (id) { return C.missions[id] ? C.missions[id].name : id; }), ds = (r.deployments || []).map(function (id) { return C.deployments[id] ? C.deployments[id][side] : id; });
+    h += '<p class="rf-line"><i>Missions</i>' + esc(ms.join(", ") || "—") + '<span class="rf-sep"></span><i>Deployments</i>' + esc(ds.join(", ") || "—") + "</p></header>";
+    if (errs.length) h += '<ul class="rf-issues">' + errs.map(function (x) { return "<li>" + esc(x.msg) + " <i>" + esc(x.ref) + "</i></li>"; }).join("") + "</ul>";
+    groupEntries(C, r).forEach(function (g) { h += refUnitHTML(C, C.units[g.entry.unitId], g.entry, g.count); });
+    var sm = summonedFor(C, r);
+    if (sm.length) { h += '<h3 class="rf-sh">SUMMONED UNITS</h3>'; sm.forEach(function (u) { h += refUnitHTML(C, u, null, 1); }); }
+    if (opts.glossary) h += refGlossaryHTML(refKeywords(C, r, opts.kw));
+    return h + "</div>";
+  }
+  var REF_CSS = [
+    "body{margin:0;background:#D9DDE2;color:#09202E;font-family:'Noto Sans',Arial,sans-serif;font-stretch:87.5%;font-size:8.6pt;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}",
+    ".sheet{box-sizing:border-box;width:210mm;max-width:100%;margin:16px auto;background:#fff;padding:9mm;box-shadow:0 1px 4px rgba(0,0,0,.15)}",
+    ".rf i{font-style:normal}",
+    ".rf-h{border-bottom:2px solid #09202E;padding-bottom:4px;margin-bottom:6px}",
+    ".rf-ht{display:flex;align-items:baseline;gap:10px}",
+    ".rf-h h2{margin:0;font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-weight:600;font-size:15pt;line-height:1.1;flex:1;min-width:0}",
+    ".rf-status{font-weight:800;font-size:7.5pt;letter-spacing:.08em;padding:1px 6px;border-radius:2px;white-space:nowrap}.rf-status.ok{background:#DDF0E4;color:#1F6B41}.rf-status.bad{background:#F7DEDC;color:#A2231D}",
+    ".rf-hm{display:flex;flex-wrap:wrap;gap:2px 14px;margin:3px 0 2px;font-weight:600}",
+    ".rf-hm i,.rf-line>i{font-size:7pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5d6670;margin-right:4px}",
+    ".rf-line{margin:2px 0 0}",
+    ".rf-sep{display:inline-block;width:12px}",
+    ".rf-note{color:#5d6670;font-size:7.5pt;font-weight:400}",
+    ".rf-min{color:#1685C2;font-weight:800;font-size:7.5pt}",
+    ".rf-issues{margin:0 0 6px;padding:3px 8px 3px 20px;background:#F7DEDC;color:#7D1B16;font-size:7.5pt}",
+    ".rf-u{--race:#005BA4;border-left:3px solid var(--race);padding:3px 0 4px 6px;margin:0 0 5px;break-inside:avoid;page-break-inside:avoid}",
+    ".rf-u[data-race=Protoss]{--race:#BD8A00}.rf-u[data-race=Zerg]{--race:#823287}",
+    ".rf-uh{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;margin-bottom:2px}",
+    ".rf-nm b{font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-weight:700;font-size:10pt;letter-spacing:.02em}",
+    ".rf-tag{font-size:6.5pt;font-weight:800;letter-spacing:.06em;border:1px solid #09202E;padding:0 3px;vertical-align:1px}",
+    ".rf-stats{display:flex;gap:3px}",
+    ".rf-stats span{display:inline-flex;align-items:baseline;gap:3px;background:#EEF0F2;padding:0 5px;border-radius:2px}",
+    ".rf-stats i{font-size:6.5pt;font-weight:800;color:#5d6670;letter-spacing:.04em}",
+    ".rf-stats b{font-size:9pt;font-variant-numeric:tabular-nums}",
+    ".rf-stats .rf-sh{background:#DCEEFA}",
+    ".rf-cost{margin-left:auto;font-weight:600;white-space:nowrap}.rf-cost b{color:#1685C2}",
+    ".rf-wt{width:100%;border-collapse:collapse;margin:1px 0 2px;font-variant-numeric:tabular-nums;table-layout:fixed}",
+    ".rf-wt th:nth-child(1){width:7%}.rf-wt th:nth-child(2){width:22%}.rf-wt th:nth-child(3),.rf-wt th:nth-child(5),.rf-wt th:nth-child(6),.rf-wt th:nth-child(9){width:5%}.rf-wt th:nth-child(4){width:7%}.rf-wt th:nth-child(7){width:9%}.rf-wt th:nth-child(8){width:6%}.rf-wt th:nth-child(10){width:29%}",
+    ".rf-wt th{background:#6F6F6E;color:#fff;font-size:6.5pt;font-weight:700;letter-spacing:.03em;padding:1px 4px;text-align:center;white-space:nowrap}",
+    ".rf-wt th:nth-child(1),.rf-wt th:nth-child(2),.rf-wt th:last-child{text-align:left}",
+    ".rf-wt td{border-bottom:1px solid #DDE1E5;padding:1px 4px;text-align:center;white-space:nowrap}",
+    ".rf-wt td.rf-ph{color:#5d6670;font-size:7.5pt;text-align:left}",
+    ".rf-wt td.rf-wn{text-align:left;font-weight:700;white-space:normal}",
+    ".rf-wt td.rf-kw{text-align:left;white-space:normal}",
+    ".rf-ab{display:inline}.rf-ab+.rf-ab::before{content:' · ';color:#9aa0a6}",
+    ".rf-up{font-weight:700}",
+    ".rf-sh{font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-size:9pt;letter-spacing:.1em;margin:8px 0 4px;font-weight:700}",
+    ".rf-gl{margin-top:8px;border-top:2px solid #09202E;padding-top:4px}",
+    ".rf-gl h3{margin:0 0 4px;font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-size:9pt;letter-spacing:.1em}.rf-gl h3 span{font-family:'Noto Sans',Arial,sans-serif;font-size:7pt;letter-spacing:0;font-weight:400;color:#5d6670;margin-left:6px}",
+    ".rf-glc{column-count:2;column-gap:7mm;font-size:7.5pt;line-height:1.28}",
+    ".rf-ge{break-inside:avoid;page-break-inside:avoid;margin:0 0 4px}",
+    ".rf-gh{font-size:8pt}.rf-ge p{margin:1px 0}.rf-ge ul{margin:1px 0;padding-left:14px}",
+    ".rf-foot{font-size:7pt;color:#5d6670;margin-top:8px;text-align:center}",
+    "@page{size:A4;margin:9mm}",
+    "@media print{body{background:#fff}.sheet{width:auto;margin:0;padding:0;box-shadow:none}}",
+    "@media (max-width:700px){.sheet{padding:12px;margin:0}.rf-wt{min-width:560px}.rf-u{overflow-x:auto}.rf-glc{column-count:1}}"
+  ].join("\n");
+  function referenceDoc(C, r, opts) {
+    var body = '<div class="sheet">' + referenceSheetHTML(C, r, opts) +
+      '<p class="rf-foot">Built with SurgeCraft · Values from the unit cards; costs from the Unit Cost Table · Ability text is on the cards · Print on A4 with your browser\'s Print command.</p></div>';
+    return "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" + esc((r.name || "Roster") + " — Reference Sheet") + "</title>" + FONT_LINK +
+      "<style>" + REF_CSS + "</style></head><body>" + body + "</body></html>\n";
+  }
+
   /* image paths an HTML export needs (for embedding as data URIs) */
   function imagesFor(C, r, kind) {
     var set = {};
@@ -489,7 +678,8 @@
     ART: ART, PHASES: PHASES, PHASE_NAME: PHASE_NAME, CARD_CSS: CARD_CSS, esc: esc, fmt: fmt, richText: richText,
     typePill: typePill, abilityBox: abilityBox, weaponTable: weaponTable, unitCardHTML: unitCardHTML, tacCardHTML: tacCardHTML,
     missionCardHTML: missionCardHTML, deploymentCardHTML: deploymentCardHTML, sheetHTML: sheetHTML, slotsText: slotsText, summonedFor: summonedFor, imagesFor: imagesFor,
-    exports: { textFull: textFull, textCompact: textCompact, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc }
+    fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS,
+    exports: { textFull: textFull, textCompact: textCompact, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc }
   };
   if (typeof module !== "undefined" && module.exports) module.exports = R; else root.Render = R;
 })(typeof window !== "undefined" ? window : this);

@@ -9,7 +9,7 @@ var esc = Render.esc, fmt = Render.fmt;
 var S = {
   view:"list", tab:"build", rosters:[], cur:null, store:"loading", save:"idle",
   open:{}, picker:false, importOpen:false, confirmDel:null, confirmRace:null, notice:null, downloads:null, tileOpen:null,
-  exp:{ base:"", art:true, preview:null, busy:null, copyText:null }
+  exp:{ base:"", art:true, gloss:false, preview:null, busy:null, copyText:null }
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function $(id){ return document.getElementById(id); }
@@ -515,12 +515,13 @@ function renderRail(){
 var FORMATS = [
   {id:"manual", ext:"html", name:"Field manual", hero:true, art:true, desc:"Roster sheet plus the full card for every unit, summoned unit, Faction, Tactical and Creep Card, and your Mission Cards. Made for the table."},
   {id:"sheet", ext:"html", name:"Roster sheet", art:true, desc:"The tournament roster with every Organized Play field, laid out for printing."},
+  {id:"ref", ext:"html", name:"Reference sheet", suffix:"-reference", gloss:true, desc:"Every unit's stats, fielded weapon profiles, ability names and taken upgrades in compact tables, sized for one or two A4 pages. Identical units are merged (2×). Rules text stays on the cards."},
   {id:"text", ext:"txt", name:"Plain text", desc:"The full roster as plain text: units, loadouts, cards and totals."},
   {id:"compact", ext:"txt", name:"Compact list", suffix:"-list", desc:"A short list for messages and forum posts, one line per unit."},
   {id:"md", ext:"md", name:"Markdown", desc:"Tables for Discord, Reddit, GitHub or notes apps."},
   {id:"csv", ext:"csv", name:"Spreadsheet", desc:"One row per unit and card with the cost breakdown. Opens in Excel, Numbers or Google Sheets."},
   {id:"json", ext:"json", name:"Roster file", desc:"Brings this roster back into SurgeCraft later through Import, on any device."},
-  {id:"zip", ext:"zip", name:"Everything", desc:"All seven formats above in one .zip file."}
+  {id:"zip", ext:"zip", name:"Everything", desc:"Every format above in one .zip file."}
 ];
 function fmtById(id){ return FORMATS.filter(function(f){return f.id===id;})[0]; }
 var imgCache = {};
@@ -548,6 +549,7 @@ function build(f, forPreview){
     case "csv": return Promise.resolve(X.csv(C, r));
     case "json": return Promise.resolve(X.json(C, r));
     case "sheet": return (forPreview ? Promise.resolve(null) : art ? embedResolver(r, "sheet") : Promise.resolve(BLANK)).then(function(res){ return X.rosterSheetDoc(C, r, res, {art: art}); });
+    case "ref": return Promise.resolve(X.referenceDoc(C, r, {glossary: S.exp.gloss, kw: KW}));
     case "manual": return (forPreview ? Promise.resolve(art ? null : BLANK) : art ? embedResolver(r, "manual") : Promise.resolve(BLANK)).then(function(res){ return X.fieldManualDoc(C, r, res); });
     case "zip": return buildZip();
   }
@@ -570,6 +572,7 @@ function renderExport(){
   FORMATS.forEach(function(f){
     var busy = S.exp.busy===f.id;
     h += '<div class="fmt'+(f.hero?' hero':'')+'"><div class="fh"><span class="ext">.'+f.ext.toUpperCase()+'</span><span class="fn">'+esc(f.name)+'</span></div><div class="fd">'+esc(f.desc)+'<div class="faint fname" style="margin-top:4px;font-size:12px">'+esc(fileName(f))+'</div></div>';
+    if(f.gloss) h += '<label class="fo"><input type="checkbox" data-a="exp-gloss"'+(S.exp.gloss?' checked':'')+'> Add a keyword glossary at the end</label>';
     if(f.art) h += '<label class="fo"><input type="checkbox" data-a="exp-art"'+(S.exp.art?' checked':'')+'> Include card art and miniatures</label>';
     h += '<div class="fa"><button class="btn primary sm" data-a="exp-save" data-v="'+f.id+'"'+(!S.downloads||busy?' disabled':'')+'>'+(busy?'Preparing…':'Save to disk')+'</button>'+
       (f.id!=="zip"?'<button class="btn sm" data-a="exp-copy" data-v="'+f.id+'">Copy'+(f.ext==="html"?' HTML':'')+'</button><button class="btn ghost sm" data-a="exp-prev" data-v="'+f.id+'">'+(S.exp.preview&&S.exp.preview.id===f.id?'Hide preview':'Preview')+'</button>':'')+'</div></div>';
@@ -1172,6 +1175,7 @@ document.addEventListener("change", function(ev){
   var t = ev.target, a = t.getAttribute && t.getAttribute("data-a"), r = S.cur;
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
+  if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-art"){ S.exp.art = t.checked; S.exp.preview=null; renderExport(); return; }
   if(!a || !r) return;
   var e = entryById(t.getAttribute("data-e")), name = t.getAttribute("data-v");
