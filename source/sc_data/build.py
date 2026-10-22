@@ -8,14 +8,14 @@ from cards import CARDS
 # per-unit fields such as cost_by_composition can never leak between units.
 TU, PU, ZU, CARDS = copy.deepcopy(TU), copy.deepcopy(PU), copy.deepcopy(ZU), copy.deepcopy(CARDS)
 from costs import UNIT_COSTS, GAS_COSTS
-import preview_106
-# Provisional cards (preview screenshots) for units priced in the 10.6 Unit Cost Table; replace when official cards arrive.
-TU = TU + copy.deepcopy(preview_106.TERRAN)
-PU = PU + copy.deepcopy(preview_106.PROTOSS)
-ZU = ZU + copy.deepcopy(preview_106.ZERG)
-CARDS = CARDS + copy.deepcopy(preview_106.CARDS)
-UNIT_COSTS = dict(UNIT_COSTS, **preview_106.COSTS)
-GAS_COSTS = dict(GAS_COSTS, **preview_106.GAS)
+import cards_1009
+# Official v1.09.26 cards for the units and cards first priced in the 10.6 Unit Cost Table (replaced the preview transcriptions).
+TU = TU + copy.deepcopy(cards_1009.TERRAN)
+PU = PU + copy.deepcopy(cards_1009.PROTOSS)
+ZU = ZU + copy.deepcopy(cards_1009.ZERG)
+CARDS = CARDS + copy.deepcopy(cards_1009.CARDS)
+UNIT_COSTS = dict(UNIT_COSTS, **cards_1009.COSTS)
+GAS_COSTS = dict(GAS_COSTS, **cards_1009.GAS)
 from scenarios import MISSIONS, DEPLOYMENTS, SCENARIO_NOTES
 
 UNITS = TU + PU + ZU
@@ -137,6 +137,10 @@ for u in UNITS:
     if not slot_sources:
         Wn(f"{u['id']}: no card provides a {u['army_slot']} slot for it")
 
+for x in UNITS + CARDS:
+    if x.get("provisional"):
+        E(f"{x['id']}: still marked provisional")
+
 # Air slots are provided but no Air unit exists yet
 if not any(u["army_slot"] == "Air" for u in UNITS):
     Wn("Faction cards provide Air slots, but no unit in the current card set uses the Air slot.")
@@ -145,8 +149,8 @@ data = {
     "meta": {
         "game": "StarCraft: Tabletop Miniatures Game",
         "sources": {
-            "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); provisional preview cards for units new in 10.6",
-            "costs": "Unit Cost Table 10.6, 09.10.2026 (with 10.6 Changelog)",
+            "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); Terran Update 3, Protoss Update 2, Zerg Update 3 (cards v1.09.26)",
+            "costs": "Unit Cost Table 10.6, 09.10.2026 as reissued with the v1.09.26 cards (with 10.6 Changelog)",
             "rules": "Full Rules Part 9.1; Organized Play Rules",
         },
         "engagement_scales": [

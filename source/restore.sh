@@ -6,12 +6,13 @@
 set -e
 ROOT="${ROOT:-/home/claude}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-mkdir -p "$ROOT/sc_data" "$ROOT/app" "$ROOT/upd106"
+mkdir -p "$ROOT/sc_data" "$ROOT/app" "$ROOT/upd106" "$ROOT/upd1026/tools" "$ROOT/upd1026/pdf"
 cp -r "$REPO/source/sc_data/." "$ROOT/sc_data/"
 cp -r "$REPO/source/app/." "$ROOT/app/"
 cp -r "$REPO/source/upd106/." "$ROOT/upd106/"
+cp "$REPO/source/upd1026/"*.py "$ROOT/upd1026/tools/" && cp "$REPO/source/upd1026/costs1026.json" "$ROOT/upd1026/"
 # Card, unit, mini, race and deployment art: the published site's img/ folder is the same set the build uses.
 mkdir -p "$ROOT/app/img"
 cp -r "$REPO/img/." "$ROOT/app/img/"
 mv "$ROOT/app/extract_report.json" "$ROOT/app/img/extract_report.json"
-echo "Restored to $ROOT/{sc_data,app,upd106}"
+echo "Restored to $ROOT/{sc_data,app,upd106,upd1026}"

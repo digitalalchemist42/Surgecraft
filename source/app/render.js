@@ -154,7 +154,7 @@
     // footer
     h += '<footer class="sc-foot"><span><em>COMBAT TAGS:</em> ' + esc(u.combat_tags.join(", ").toUpperCase()) + "</span>" +
       '<span class="sc-ftags">' + u.faction_tags.map(function (t) { return '<i>' + esc(t.toUpperCase()) + "</i>"; }).join("") + "</span></footer>";
-    var fine = []; if (u.base_mm) fine.push("Base Ø " + u.base_mm + (typeof u.base_mm === "number" ? "mm" : ""));
+    var fine = []; if (u.base_mm) fine.push(/\d/.test(String(u.base_mm)) ? "Base Ø " + u.base_mm + (typeof u.base_mm === "number" ? "mm" : "") : "Base: " + u.base_mm);
     if (u.card_version) fine.push("Card " + u.card_version);
     if (u.compositions && u.compositions.length) fine.push("Cost table: " + u.compositions.map(function (c) { return c.models + " models " + c.minerals + " / Supply " + c.supply; }).join(" · "));
     (u.corrections || []).forEach(function (x) { fine.push("Corrected: " + x); });

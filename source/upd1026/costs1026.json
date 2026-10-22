@@ -1,0 +1,1012 @@
+{
+ "units": {
+  "MARINE": {
+   "models": [
+    6,
+    9
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    170,
+    220
+   ],
+   "upgrades": {
+    "AGG-12": {
+     "type": "SPECIALIST, FOR C-14 Rifle",
+     "costs": [
+      10,
+      10
+     ]
+    },
+    "Bayonet": {
+     "type": "FOR Strike",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Combat Shield": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Grenades - Frag": {
+     "type": "-",
+     "costs": [
+      10,
+      10
+     ]
+    },
+    "Rocket Launcher": {
+     "type": "SPECIALIST",
+     "costs": [
+      40,
+      40
+     ]
+    },
+    "Slugthrower": {
+     "type": "-",
+     "costs": [
+      10,
+      20
+     ]
+    }
+   }
+  },
+  "MARAUDER": {
+   "models": [
+    2,
+    4
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    160,
+    290
+   ],
+   "upgrades": {
+    "Kinetic Foam": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    },
+    "Laser Targeting Systems": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    },
+    "Veteran of Tarsonis": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    }
+   }
+  },
+  "MEDIC": {
+   "models": [
+    3
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    120
+   ],
+   "upgrades": {
+    "A-13 Flash Grenade Launcher": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Advanced Medic Facilities": {
+     "type": "-",
+     "costs": [
+      60
+     ]
+    },
+    "Stabilizer Medpacks": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    }
+   }
+  },
+  "GOLIATH": {
+   "models": [
+    1
+   ],
+   "supply": [
+    2
+   ],
+   "minerals": [
+    180
+   ],
+   "upgrades": {
+    "Ares-Class Targeting System": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Haywire Missiles": {
+     "type": "FOR Hellfire Missiles",
+     "costs": [
+      40
+     ]
+    },
+    "Scatter Missiles": {
+     "type": "FOR Hellfire Missiles",
+     "costs": [
+      30
+     ]
+    }
+   }
+  },
+  "JIM RAYNOR": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    280
+   ],
+   "upgrades": {
+    "C-14 Rifle": {
+     "type": "FOR Commando Rifle",
+     "costs": [
+      0
+     ]
+    }
+   }
+  },
+  "RAYNOR’S RAIDERS (MARINE)": {
+   "models": [
+    6
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    230
+   ],
+   "upgrades": {}
+  },
+  "SIEGE TANK": {
+   "models": [
+    1
+   ],
+   "supply": [
+    2
+   ],
+   "minerals": [
+    220
+   ],
+   "upgrades": {
+    "Mode Transformation": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Coordinated Strike": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Shaped Blast": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Smart Shells": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "NOVA STEALTH MODE": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    240
+   ],
+   "upgrades": {}
+  },
+  "NOVA ASSAULT MODE": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    260
+   ],
+   "upgrades": {}
+  },
+  "SPEC OPS MARAUDER (MARAUDER)": {
+   "models": [
+    2
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    230
+   ],
+   "upgrades": {}
+  },
+  "RAVEN": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    170
+   ],
+   "upgrades": {
+    "Corvid Reactor": {
+     "type": "-",
+     "costs": [
+      30
+     ]
+    },
+    "Internal Tech Module": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Seeker Missile": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Explosive Shrapnel Shells": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "ZERGLING": {
+   "models": [
+    12,
+    18
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    150,
+    210
+   ],
+   "upgrades": {
+    "Adrenal Glands": {
+     "type": "-",
+     "costs": [
+      20,
+      20
+     ]
+    },
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Shredding Claws": {
+     "type": "FOR Claws",
+     "costs": [
+      10,
+      10
+     ]
+    }
+   }
+  },
+  "RAPTOR (ZERGLING)": {
+   "models": [
+    12,
+    18
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    210,
+    260
+   ],
+   "upgrades": {
+    "Adrenal Glands": {
+     "type": "-",
+     "costs": [
+      20,
+      20
+     ]
+    },
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Shredding Claws": {
+     "type": "FOR Claws",
+     "costs": [
+      10,
+      10
+     ]
+    }
+   }
+  },
+  "ROACH": {
+   "models": [
+    3
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    170
+   ],
+   "upgrades": {
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Glial Reconstitution": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Hydriodic Bile": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Tunneling Claws": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "VILE (ROACH)": {
+   "models": [
+    3
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    190
+   ],
+   "upgrades": {
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Glial Reconstitution": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Hydriodic Bile": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Tunneling Claws": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "CORPSER (ROACH)": {
+   "models": [
+    3
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    220
+   ],
+   "upgrades": {
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Glial Reconstitution": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Hydriodic Bile": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Tunneling Claws": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "SWARMLING (ZERGLING)": {
+   "models": [
+    18
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    210
+   ],
+   "upgrades": {
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    }
+   }
+  },
+  "KERRIGAN SWARM RAPTOR (ZERGLING)": {
+   "models": [
+    6
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    230
+   ],
+   "upgrades": {}
+  },
+  "KERRIGAN": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    250
+   ],
+   "upgrades": {}
+  },
+  "ZAGARA": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    250
+   ],
+   "upgrades": {}
+  },
+  "VILELING (ZERGLING)": {
+   "models": [
+    18
+   ],
+   "supply": [
+    2
+   ],
+   "minerals": [
+    180
+   ],
+   "upgrades": {}
+  },
+  "BILE LAUNCHER": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    150
+   ],
+   "upgrades": {}
+  },
+  "HYDRALISK": {
+   "models": [
+    2,
+    4
+   ],
+   "supply": [
+    2,
+    3
+   ],
+   "minerals": [
+    140,
+    260
+   ],
+   "upgrades": {
+    "Ancillary Carapace": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    },
+    "Grooved Spines": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Lurking": {
+     "type": "-",
+     "costs": [
+      10,
+      10
+     ]
+    }
+   }
+  },
+  "QUEEN": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    140
+   ],
+   "upgrades": {
+    "Creep Speed": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Domineering Presence": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "RAVAGER": {
+   "models": [
+    1,
+    2
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    160,
+    270
+   ],
+   "upgrades": {
+    "Bloated Bile Ducts": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    },
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    },
+    "Potent Bile": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    }
+   }
+  },
+  "DEFILER": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    130
+   ],
+   "upgrades": {
+    "Burrow Ambush": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Plague": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Cancerous Bite": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    }
+   }
+  },
+  "ZEALOT": {
+   "models": [
+    3
+   ],
+   "supply": [
+    2
+   ],
+   "minerals": [
+    170
+   ],
+   "upgrades": {
+    "Leg Enhancements": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "My Life for Aiur": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "We Stand as One": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Zealous Round": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "PRAETOR GUARD (ZEALOT)": {
+   "models": [
+    3
+   ],
+   "supply": [
+    2
+   ],
+   "minerals": [
+    260
+   ],
+   "upgrades": {}
+  },
+  "ARTANIS": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    270
+   ],
+   "upgrades": {}
+  },
+  "ZERATUL": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    230
+   ],
+   "upgrades": {}
+  },
+  "NERAZIM WATCHERS (ADEPT)": {
+   "models": [
+    4
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    210
+   ],
+   "upgrades": {}
+  },
+  "ADEPT": {
+   "models": [
+    4
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    160
+   ],
+   "upgrades": {
+    "Glaive Strike": {
+     "type": "FOR Strike",
+     "costs": [
+      20
+     ]
+    },
+    "Guidance": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    },
+    "Resonating Glaives": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    }
+   }
+  },
+  "SENTRY": {
+   "models": [
+    2
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    130
+   ],
+   "upgrades": {
+    "Hallucination": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Solid-Field Projectors": {
+     "type": "-",
+     "costs": [
+      10
+     ]
+    }
+   }
+  },
+  "STALKER": {
+   "models": [
+    1,
+    2
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    160,
+    270
+   ],
+   "upgrades": {
+    "Fury of the Nerazim": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Path of Shadows": {
+     "type": "-",
+     "costs": [
+      20,
+      40
+     ]
+    }
+   }
+  },
+  "IMMORTAL": {
+   "models": [
+    1
+   ],
+   "supply": [
+    2
+   ],
+   "minerals": [
+    280
+   ],
+   "upgrades": {
+    "Shield Overcharge": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "Left Phase Disruptor": {
+     "type": "FOR Left Photon Disruptor",
+     "costs": [
+      20
+     ]
+    },
+    "Right Phase Disruptor": {
+     "type": "FOR Right Photon Disruptor",
+     "costs": [
+      20
+     ]
+    },
+    "Fury Unyielding": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    },
+    "For the Ancients": {
+     "type": "-",
+     "costs": [
+      20
+     ]
+    }
+   }
+  },
+  "TASSADAR": {
+   "models": [
+    1
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    230
+   ],
+   "upgrades": {}
+  },
+  "TWILIGHT TEMPLAR (HIGH TEMPLAR)": {
+   "models": [
+    2
+   ],
+   "supply": [
+    1
+   ],
+   "minerals": [
+    230
+   ],
+   "upgrades": {}
+  },
+  "HIGH TEMPLAR": {
+   "models": [
+    2,
+    4
+   ],
+   "supply": [
+    1,
+    2
+   ],
+   "minerals": [
+    130,
+    200
+   ],
+   "upgrades": {
+    "Psionic Storm": {
+     "type": "-",
+     "costs": [
+      20,
+      30
+     ]
+    },
+    "Farsight": {
+     "type": "-",
+     "costs": [
+      20,
+      20
+     ]
+    }
+   }
+  }
+ },
+ "gas": {
+  "Barracks": 30,
+  "Barracks (Proxy)": 40,
+  "Barracks (Tech Lab)": 40,
+  "Supply Depot": 40,
+  "Factory": 35,
+  "Engineering Bay": 25,
+  "Armory": 30,
+  "Academy": 40,
+  "Orbital Command": 25,
+  "Dropship": 35,
+  "Factory (Tech Lab)": 40,
+  "Vanadium Plating": 25,
+  "Spawning Pool": 25,
+  "Spawning Pool (Six Pool)": 35,
+  "Roach Warren": 25,
+  "Hydralisk Den": 30,
+  "Evolution Chamber": 25,
+  "Hatchery": 30,
+  "Lair": 35,
+  "Overseer": 25,
+  "Overlord": 35,
+  "Cocoon": 30,
+  "Defiler Mound": 35,
+  "Accelerating Creep": 0,
+  "Malignant Creep": 10,
+  "Reactive Creep": 10,
+  "Gateway": 25,
+  "Warp Gate": 40,
+  "Gate Chronoboosted": 35,
+  "Observer": 25,
+  "Nexus": 40,
+  "Overcharged Nexus": 35,
+  "Power Field": 40,
+  "Forge": 30,
+  "Warp Prism": 35,
+  "Twilight Council": 40,
+  "Robotics Facility": 35,
+  "Void Seeker": 40,
+  "Templar Archives": 40
+ }
+}

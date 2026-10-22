@@ -76,6 +76,22 @@ r.units.forEach(e => bg.units[e.uid].st = "fld");
 eq("gather action offered", B.actionsFor(C,r,bg,U[0]).includes("gather"), true);
 B.act(C,r,bg,U[0],"gather"); bg.phase = 4; B.setMarker(C,bg,1,"me"); B.setMarker(C,bg,2,"me");
 s = B.suggestion(C,r,bg); eq("Gather: Marker 1 is Red (opponent's) 2 VP + 1 gather = 3", s.me.total, 3);
+// --- Fire in the Sky (cards v1.09.26) ---
+const bfi = B.create(C, r, { missionId: "fire-in-the-sky", color: "red" });
+eq("Fire in the Sky: Standard pool 5, +3 per Round, lead 10", [B.supply(C,r,bfi).pool, B.mission(C,bfi).supply_per_round, B.mission(C,bfi).special_win_lead], [5,3,10]);
+eq("every Marker starts at Sabotage Level 1", Object.keys(bfi.markers).map(n => bfi.markers[n].lvl), [1,1,1,1,1]);
+bfi.phase = 2; r.units.forEach(e => bfi.units[e.uid].st = "fld"); bfi.units[U[0]].eng = false;
+eq("sabotage action offered to an Unengaged Unit", B.actionsFor(C,r,bfi,U[0]).includes("sabotage"), true);
+bfi.units[U[1]].eng = true; eq("no sabotage while Engaged", B.actionsFor(C,r,bfi,U[1]).includes("sabotage"), false);
+B.setMarker(C,bfi,2,"me"); res = B.act(C,r,bfi,U[0],"sabotage"); eq("sabotage with a Controlled Marker gives only the level hint", res.warnings.length, 1);
+B.setLevel(C,bfi,2,1); B.setLevel(C,bfi,2,1); B.setLevel(C,bfi,2,1); eq("Sabotage Level capped at 3", bfi.markers[2].lvl, 3);
+B.setLevel(C,bfi,5,-1); eq("Sabotage Level floor 1", bfi.markers[5].lvl, 1);
+bfi.phase = 4; s = B.suggestion(C,r,bfi); eq("Round 1: Markers do not score yet", s.me.total, 0);
+bfi.round = 2; B.setMarker(C,bfi,1,"me"); B.setMarker(C,bfi,5,"me"); B.setLevel(C,bfi,5,1);
+s = B.suggestion(C,r,bfi); eq("Red player: Marker 2 (Blue) lvl 3 + Marker 5 (Neutral) lvl 2; own-colour Marker 1 scores nothing", s.me.total, 5);
+B.setMarker(C,bfi,3,"opp"); bfi.markers[3].lvl = 2; s = B.suggestion(C,r,bfi); eq("opponent (Blue) scores Red Marker 3 at its level", s.opp.total, 2);
+const rfs = mk("Terran","terran-armed-forces",["barracks"],[["marine",6]],"skirmish"); const bfs = B.create(C, rfs, { missionId: "fire-in-the-sky", color: "blue" });
+eq("Fire in the Sky Skirmish: pool 3, +2, lead 8, Markers 1, 2, 5", [B.supply(C,rfs,bfs).pool, B.mission(C,bfs).supply_per_round, B.mission(C,bfs).special_win_lead, Object.keys(bfs.markers).map(Number)], [3,2,8,[1,2,5]]);
 // --- Divide and Conquer ---
 const bd = B.create(C, r, { missionId: "divide-and-conquer", color: "red" }); bd.phase = 4; bd.si.quartersMe = 2; bd.si.quartersOpp = 1; B.setMarker(C,bd,5,"opp");
 s = B.suggestion(C,r,bd); eq("Divide and Conquer round 1: 2 quarters; opp 1 quarter + 2 for Marker 5 (+ reserves not counted before final round)", [s.me.total, s.opp.total], [2,3]);

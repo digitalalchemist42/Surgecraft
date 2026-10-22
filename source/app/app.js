@@ -868,13 +868,19 @@ function bMut(fn){
 function bStepper(label, value, dec, inc, extra){
   return '<span class="bstep"><span class="bs-l">'+label+'</span><span class="stepper"><button '+dec+' aria-label="Decrease '+esc(label)+'">−</button><span class="num">'+value+'</span><button '+inc+' aria-label="Increase '+esc(label)+'">+</button></span>'+(extra||'')+'</span>';
 }
+function bLevelsHTML(b){
+  return Object.keys(b.markers).map(Number).filter(function(n){ return b.markers[n].lvl!=null; }).map(function(n){
+    return bStepper("Marker "+n+" Sabotage Level", b.markers[n].lvl, 'data-a="b-lvl" data-v="'+n+':-1"', 'data-a="b-lvl" data-v="'+n+':1"');
+  }).join("");
+}
 function bMarkersHTML(b){
   var h = '<div class="mks">';
   Object.keys(b.markers).map(Number).forEach(function(n){
     var mk = b.markers[n], aff = BT.affinity(n), mine = aff && aff===b.color, cls = "mmk "+(aff||"neutral")+(mk.own?" "+mk.own:"")+(mk.gone?" gone":"");
     var sub = mk.gone ? "Removed" : mk.own ? bWho(mk.own) : "No one";
     h += '<button class="'+cls+'" data-a="b-mk" data-v="'+n+'"'+(mk.gone?' disabled':'')+' aria-label="Mission Marker '+n+', '+(aff?aff+(mine?", your colour":", opponent\'s colour"):"neutral")+', controlled by '+sub+'. Tap to change."><span class="mk-n">'+n+'</span><span class="mk-o">'+sub+'</span>'+
-      (b.missionId==="supply-drop" && !mk.gone ? '<span class="mk-s">'+(mk.on?"Activated R"+mk.ar:"Deactivated")+'</span>' : '')+'</button>';
+      (b.missionId==="supply-drop" && !mk.gone ? '<span class="mk-s">'+(mk.on?"Activated R"+mk.ar:"Deactivated")+'</span>' : '')+
+      (mk.lvl!=null ? '<span class="mk-s">Sabotage '+mk.lvl+'</span>' : '')+'</button>';
   });
   return h+'</div><div class="faint" style="font-size:12px">Tap a Marker to change who Controls it. Ring colour: red Markers 1 and 3, blue 2 and 4, green 5 is Neutral. You are '+(b.color==="red"?"Red":"Blue")+'.</div>';
 }
@@ -969,6 +975,7 @@ function bScoringHTML(b, r){
   h += '<div class="subhead">2 · This Round</div><div class="binputs">'+
     bStepper("Enemy Supply destroyed", b.si.enemyLost, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"');
   if(id==="gather-the-resources") h += bStepper("Your Gather Actions", b.si.gatherMe, 'data-a="b-inp" data-v="gatherMe:-1"', 'data-a="b-inp" data-v="gatherMe:1"')+bStepper("Opponent's Gather Actions", b.si.gatherOpp, 'data-a="b-inp" data-v="gatherOpp:-1"', 'data-a="b-inp" data-v="gatherOpp:1"');
+  if(id==="fire-in-the-sky") h += bLevelsHTML(b);
   if(id==="divide-and-conquer") h += bStepper("Quarters you win", b.si.quartersMe, 'data-a="b-inp" data-v="quartersMe:-1"', 'data-a="b-inp" data-v="quartersMe:1"')+bStepper("Quarters the opponent wins", b.si.quartersOpp, 'data-a="b-inp" data-v="quartersOpp:-1"', 'data-a="b-inp" data-v="quartersOpp:1"');
   if(id==="artefact-hunt" && final) h += bStepper("Your Units that CLAIM a Marker inside your Zone of Influence", b.si.claimMe, 'data-a="b-inp" data-v="claimMe:-1"', 'data-a="b-inp" data-v="claimMe:1"')+bStepper("Your-colour Markers not CLAIMED by an Enemy", b.si.safeMe, 'data-a="b-inp" data-v="safeMe:-1"', 'data-a="b-inp" data-v="safeMe:1"')+
     bStepper("Opponent's Units that CLAIM a Marker inside their Zone of Influence", b.si.claimOpp, 'data-a="b-inp" data-v="claimOpp:-1"', 'data-a="b-inp" data-v="claimOpp:1"')+bStepper("Opponent-colour Markers not CLAIMED by your Units", b.si.safeOpp, 'data-a="b-inp" data-v="safeOpp:-1"', 'data-a="b-inp" data-v="safeOpp:1"');
@@ -1007,6 +1014,7 @@ function bPhaseHTML(b, r){
   if(p===4) return h+'<div style="margin-top:12px">'+bScoringHTML(b, r)+'</div></div></section>';
   h += '<ul class="bsteps" style="margin-top:10px">'+PHASE_GUIDE[p].map(function(g){ return '<li>'+esc(g)+'</li>'; }).join("")+'</ul>';
   if(b.missionId==="gather-the-resources" && p===2) h += '<div style="margin-top:6px">'+bStepper("Opponent's Gather Actions this Round", b.si.gatherOpp, 'data-a="b-inp" data-v="gatherOpp:-1"', 'data-a="b-inp" data-v="gatherOpp:1"')+'</div>';
+  if(b.missionId==="fire-in-the-sky" && p===2) h += '<div class="subhead">Sabotage Levels <span class="aside">Mission Card</span></div><div class="binputs">'+bLevelsHTML(b)+'</div><div class="faint" style="font-size:12px;margin-top:4px">Each Sabotage Action, yours or the opponent\'s, raises or lowers one Controlled Marker by 1 (minimum 1, maximum 3).</div>';
   var pw = BT.phaseWarnings(C, r, b);
   if(BS.pass){
     if(pw.length) h += '<div class="checks" style="margin-top:10px">'+pw.map(function(w){ return '<div class="check warn"><span class="mk"></span><span>'+esc(w)+'</span></div>'; }).join("")+'</div>';
@@ -1080,6 +1088,7 @@ function bClick(a, v, eu, t){
     case "b-unuse": bMut(function(){ BT.unuseAbility(C, r, b, eu, v); }); return true;
     case "b-card": bMut(function(){ BT.toggleCard(C, r, b, v); }); return true;
     case "b-mk": bMut(function(){ BT.cycleMarker(C, b, Number(v)); }); return true;
+    case "b-lvl": var lq = v.split(":"); bMut(function(){ BT.setLevel(C, b, Number(lq[0]), Number(lq[1])); }); return true;
     case "b-mkon": bMut(function(){ var due = BT.activationDue(C, b); if(!due) return; var n = v==="random" ? due.pool[Math.floor(Math.random()*due.pool.length)] : Number(v); BT.activateMarker(C, b, n); return v==="random" ? {warnings:["Mission Marker "+n+" was picked at random and is now Activated."]} : null; }); return true;
     case "b-inp": var f = v.split(":"), cap = /quarters/.test(f[0]) ? 4 : 99; bMut(function(){ b.si[f[0]] = Math.max(0, Math.min(cap, (b.si[f[0]]||0)+Number(f[1]))); }); return true;
     case "b-adj": var g = v.split(":"); BS.adj[g[0]] += Number(g[1]); renderBattle(); return true;

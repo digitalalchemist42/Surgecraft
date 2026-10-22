@@ -1,5 +1,5 @@
 # Mission and Deployment (Scenario) Cards. Mission cards: Terran Units 1.pdf pp.11-13 (identical copies in the Protoss and Zerg PDFs)
-# plus Artefact Hunt from Protoss Units 2.pdf p.5. Each physical card has a Standard Engagement side and a Skirmish Level side.
+# plus Artefact Hunt from Protoss Units 2.pdf p.5 and Fire in the Sky from the v1.09.26 update PDFs. Each physical card has a Standard Engagement side and a Skirmish Level side.
 # Deployment cards: Terran Units 1.pdf pp.13-14 and Protoss Units 2.pdf p.4.
 
 ENEMY_SUPPLY = "Score VPs equal to Enemy Supply destroyed this Round."
@@ -35,6 +35,13 @@ ARTEFACT_ADD = ["SCORING PHASE: From the Start of the Second Round, if a Unit is
                 "When a Unit DROP a Mission Marker, the Opponent places the Mission Marker Within 2\" of the Unit or its last model removed.",
                 "Unit may CLAIM only one Mission Marker at a time."]
 ALL_ACTIVE = ["All Mission Markers are Activated."]
+SABOTAGE_PARAMS = ["All Mission Markers are Activated.",
+                   "During battlefield setup, place a D6 next to each Mission Marker to track its Sabotage Level. Set the starting Sabotage Level of each Mission Marker to 1."]
+SABOTAGE_SCORING = [ENEMY_SUPPLY, "FROM THE START OF THE SECOND ROUND:",
+                    "Gain VP for each Controlled Mission Marker that is Neutral or associated with the Opponent colour. The VP gained is equal to the Sabotage Level on the marker.",
+                    "Sabotage Level 3 = 3 VP", "Sabotage Level 2 = 2 VP", "Sabotage Level 1 = 1 VP"]
+SABOTAGE_ADD = ["ASSAULT PHASE: If an Unengaged Unit is Within 3\" of a Controlled Mission Marker, this unit may perform Sabotage Action instead of a standard action.",
+                "Sabotage Action: Decrease or Increase that Mission Marker's Sabotage Level by 1 (to a minimum of 1 or maximum of 3)."]
 
 MISSIONS = [
     {"id": "supply-drop", "name": "Supply Drop",
@@ -62,6 +69,10 @@ MISSIONS = [
     {"id": "artefact-hunt", "name": "Artefact Hunt", "source": "Protoss Units 2.pdf p.5 (dated September 2026)",
      "standard": side(6, 2, 5, None, ALL_ACTIVE, artefact_scoring(4, 2), ARTEFACT_ADD),
      "skirmish": side(3, 1, 5, None, ALL_ACTIVE, artefact_scoring(3, 1), ARTEFACT_ADD)},
+    {"id": "fire-in-the-sky", "name": "Fire in the Sky",
+     "source": "Terran Update 3 p.9, Protoss Update 2 p.5, Zerg Update 3 p.6 (cards v1.09.26)",
+     "standard": side(5, 3, 5, 10, SABOTAGE_PARAMS, SABOTAGE_SCORING, SABOTAGE_ADD),
+     "skirmish": side(3, 2, 5, 8, SABOTAGE_PARAMS, SABOTAGE_SCORING, SABOTAGE_ADD)},
 ]
 
 # Each physical Deployment Card: Standard side (54"x36") and Skirmish side (36"x36").
@@ -73,6 +84,8 @@ DEPLOYMENTS = [
     {"id": "breach", "standard": "Breach", "skirmish": "Char Plains"},
     {"id": "meeting-engagement", "standard": "Meeting Engagement", "skirmish": "Green Valleys",
      "source": "Protoss Units 2.pdf p.4"},
+    {"id": "one-bridge-too-close", "standard": "One Bridge Too Close", "skirmish": "Power Lines",
+     "source": "Terran Update 3 p.8, Protoss Update 2 p.4, Zerg Update 3 p.6 (cards v1.09.26)"},
 ]
 for d in DEPLOYMENTS:
     d["battlefield"] = {"standard": "54x36", "skirmish": "36x36"}

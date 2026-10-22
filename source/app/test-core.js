@@ -43,10 +43,10 @@ console.log("   loadout:", C.loadoutText(m));
 // Tag eligibility (rules example: Zerg Swarm cannot take Kerrigan Swarm Raptor)
 const zs = C.newRoster(); zs.race="Zerg"; zs.factionId="zerg-swarm";
 eq("KS Raptor not eligible for Zerg Swarm", C.eligibleUnits(zs).some(u=>u.id==="kerrigan-swarm-raptor"), false);
-eq("Malignant Creep not eligible for Zerg Swarm (Reactive Creep is race-tagged only)", C.eligibleCreep(zs).map(c=>c.id).sort(), ["accelerating-creep","reactive-creep"]);
+eq("Zerg Swarm creep options: Accelerating only (Malignant is Kerrigan's Swarm, Reactive is Zagara's Swarm)", C.eligibleCreep(zs).map(c=>c.id).sort(), ["accelerating-creep"]);
 eq("Zerg Swarm requires creep", C.validate(zs).some(v=>/requires exactly one Creep/.test(v.msg)), true);
 const ks = C.newRoster(); ks.race="Zerg"; ks.factionId="kerrigans-swarm";
-eq("Kerrigan's Swarm creep options", C.eligibleCreep(ks).map(c=>c.id).sort(), ["accelerating-creep","malignant-creep","reactive-creep"]);
+eq("Kerrigan's Swarm creep options", C.eligibleCreep(ks).map(c=>c.id).sort(), ["accelerating-creep","malignant-creep"]);
 eq("summoned units never eligible", C.eligibleUnits(ks).some(u=>u.summoned), false);
 
 // Rulebook 9.1.6 example: Kerrigan's Swarm 2 Elite -> small Hydralisk fits, full-strength needs 3
@@ -87,34 +87,46 @@ eq("import drops unknown/summoned/invalid", bad.dropped.length, 3);
 eq("invalid model count reset to first composition", bad.roster.units[0].models, 6);
 console.log("\n" + C.rosterText(r));
 
-// ---- 10.6 provisional units and cards ----
+// ---- official v1.09.26 cards (replaced the 10.6 previews) ----
 {
   const nc = C.newRoster(); nc.race = "Terran"; nc.factionId = "nova-covert-ops";
-  eq("Nova Covert Ops can field both Nova modes and new Terran units", ["nova-assault-mode","nova-stealth-mode","spec-ops-marauder","raven"].every(id => C.eligibleUnits(nc).some(u => u.id === id)), true);
+  eq("Nova Covert Ops can field both Nova modes, Spec Ops Marauder and Raven", ["nova-assault-mode","nova-stealth-mode","spec-ops-marauder","raven"].every(id => C.eligibleUnits(nc).some(u => u.id === id)), true);
   eq("Nova Covert Ops cannot field Raynor's Raiders units", C.eligibleUnits(nc).some(u => u.id === "raynors-raider"), false);
+  const ta = C.newRoster(); ta.race = "Terran"; ta.factionId = "terran-armed-forces";
+  eq("Spec Ops Marauder is Nova Covert Ops only (printed tag)", C.eligibleUnits(ta).some(u => u.id === "spec-ops-marauder"), false);
+  eq("Nova and Raven carry only the Terran tag", ["nova-assault-mode","raven"].every(id => C.eligibleUnits(ta).some(u => u.id === id)), true);
   ["nova-assault-mode","nova-stealth-mode"].forEach(id => nc.units.push(C.newEntry(id)));
   eq("Battle Preparation: both Nova modes is an error", C.validate(nc).filter(v => v.level === "error" && /cannot include both/.test(v.msg)).length, 1);
   nc.units.pop(); eq("one Nova mode is fine", C.validate(nc).some(v => /cannot include both/.test(v.msg)), false);
   eq("Raven supply 1, 170", [C.entryCost(C.newEntry("raven")).supply, C.entryCost(C.newEntry("raven")).total], [1, 170]);
+  eq("Spec Ops Marauder 230 (reissued cost table)", C.entryCost(C.newEntry("spec-ops-marauder")).total, 230);
   const tc = C.newRoster(); tc.race = "Protoss"; tc.factionId = "templar-caste";
   eq("Templar Caste fields Tassadar, Twilight and High Templar", ["tassadar","twilight-templar","high-templar"].every(id => C.eligibleUnits(tc).some(u => u.id === id)), true);
-  const ht = C.newEntry("high-templar"); ht.models = 4; eq("High Templar 4 models: 200, Supply 2", [C.entryCost(ht).total, C.entryCost(ht).supply], [200, 2]);
+  const kh = C.newRoster(); kh.race = "Protoss"; kh.factionId = "khalai";
+  eq("Twilight Templar is Templar Caste only; High Templar is not", [C.eligibleUnits(kh).some(u => u.id === "twilight-templar"), C.eligibleUnits(kh).some(u => u.id === "high-templar")], [false, true]);
+  const ht = C.newEntry("high-templar"); eq("High Templar 2 models: 130, Supply 1", [C.entryCost(ht).total, C.entryCost(ht).supply], [130, 1]);
+  ht.models = 4; eq("High Templar 4 models: 200, Supply 2", [C.entryCost(ht).total, C.entryCost(ht).supply], [200, 2]);
   const zs = C.newRoster(); zs.race = "Zerg"; zs.factionId = "zagaras-swarm"; eq("Zagara's Swarm requires a Creep Card", C.requiresCreep(zs), true);
-  eq("Templar Archives 40 gas, 2 Support", [C.cards["templar-archives"].gas_cost, C.cards["templar-archives"].slots.Support], [40, 2]);
+  eq("Templar Archives 40 gas, 2 Support, Unique", [C.cards["templar-archives"].gas_cost, C.cards["templar-archives"].slots.Support, C.cards["templar-archives"].unique], [40, 2, true]);
   eq("Vanadium Plating 25 gas", C.cards["vanadium-plating"].gas_cost, 25);
-  eq("provisional flags set", [C.units["tassadar"].provisional, C.cards["templar-caste"].provisional, !!C.units["marine"].provisional], [true, true, false]);
+  eq("no provisional entries remain", data.units.concat(data.cards).filter(x => x.provisional).map(x => x.id), []);
+  eq("new units carry card version, role and base", [C.units["tassadar"].card_version, C.units["defiler"].combat_role, C.units["zagara"].base_mm], ["v1.09.26", "Lifesaver", 100]);
+  eq("Holo Decoy combat tags as printed", C.units["holo-decoy"].combat_tags, ["Psionic", "Ground"]);
+  eq("Zagara's Broodmother kept as a built-in ability (no table price)", [C.units["zagara"].abilities.some(a => a.name === "Broodmother"), C.units["zagara"].upgrades.length], [true, 0]);
 }
-// ---- 10.6 Zerg preview batch ----
+// ---- v1.09.26 Zerg cards ----
 {
   const zr = C.newRoster(); zr.race = "Zerg"; zr.factionId = "zagaras-swarm"; zr.creepId = "reactive-creep"; zr.tactical = { "defiler-mound": 1 };
   ["zagara","vileling","defiler","bile-launcher"].forEach(id => zr.units.push(C.newEntry(id)));
   zr.units[2].upgrades = ["Plague", "Cancerous Bite"];
-  eq("Zagara 250, Vileling 18 = 180, Defiler 160+20+20, Bile Launcher 150", zr.units.map(e => C.entryCost(e).total), [250, 180, 200, 150]);
+  eq("Zagara 250, Vileling 18 = 180, Defiler 130+20+20, Bile Launcher 150", zr.units.map(e => C.entryCost(e).total), [250, 180, 170, 150]);
   eq("Vileling 18 models = Supply 2", C.entryCost(zr.units[1]).supply, 2);
-  eq("Zagara's Swarm roster totals 780 / 45 gas (Reactive Creep 10 + Defiler Mound 35)", [C.totals(zr).minerals, C.totals(zr).gas], [780, 45]);
+  eq("Zagara's Swarm roster totals 750 / 45 gas (Reactive Creep 10 + Defiler Mound 35)", [C.totals(zr).minerals, C.totals(zr).gas], [750, 45]);
   eq("Zagara's Swarm roster with Defiler Mound's Support slot is legal", C.validate(zr).filter(v => v.level === "error").map(v => v.msg), []);
   zr.tactical = {}; eq("without Defiler Mound, two Support units overflow the slot", C.validate(zr).some(v => v.level === "error" && /Support/.test(v.msg)), true);
   eq("Reactive Creep offered to Zagara's Swarm", C.eligibleCreep(zr).some(c => c.id === "reactive-creep"), true);
+  const ks = C.newRoster(); ks.race = "Zerg"; ks.factionId = "kerrigans-swarm";
+  eq("Reactive Creep and Vileling are Zagara's Swarm only (printed tags)", [C.eligibleCreep(ks).some(c => c.id === "reactive-creep"), C.eligibleUnits(ks).some(u => u.id === "vileling")], [false, false]);
   eq("Defiler upgrade Cancerous Bite is a SIDEARM weapon", C.units["defiler"].upgrades.find(x => x.name === "Cancerous Bite").keywords.includes("SIDEARM"), true);
 }
 // ---- example armies still legal at 10.6 costs ----

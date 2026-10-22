@@ -2,8 +2,8 @@
  "meta": {
   "game": "StarCraft: Tabletop Miniatures Game",
   "sources": {
-   "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); provisional preview cards for units new in 10.6",
-   "costs": "Unit Cost Table 10.6, 09.10.2026 (with 10.6 Changelog)",
+   "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); Terran Update 3, Protoss Update 2, Zerg Update 3 (cards v1.09.26)",
+   "costs": "Unit Cost Table 10.6, 09.10.2026 as reissued with the v1.09.26 cards (with 10.6 Changelog)",
    "rules": "Full Rules Part 9.1; Organized Play Rules"
   },
   "engagement_scales": [
@@ -1252,12 +1252,12 @@
     "Terran"
    ],
    "army_slot": "Hero",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": true,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "7",
     "armour": "5+",
@@ -1296,18 +1296,18 @@
     {
      "kind": "ability",
      "phase": "Movement",
-     "name": "Holo Decoy",
-     "type": "Active",
-     "cost": "1 CP",
-     "text": "Resolve the SUMMON (Holo Decoy) effect. Then, Holo Decoy may immediately perform a Move action."
-    },
-    {
-     "kind": "ability",
-     "phase": "Movement",
      "name": "Super Stimpack",
      "type": "Active",
      "cost": "1 CP",
      "text": "This Unit gains BUFF Speed (2). Additionally, all its Weapons gain PRECISION (2)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Holo Decoy",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Resolve the SUMMON (Holo Decoy) effect. Then, Holo Decoy may immediately perform a Move action."
     },
     {
      "kind": "ability",
@@ -1363,10 +1363,7 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "excludes": [
     "nova-stealth-mode"
    ],
@@ -1386,12 +1383,12 @@
     "Terran"
    ],
    "army_slot": "Hero",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": true,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "7",
     "armour": "5+",
@@ -1505,10 +1502,7 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "excludes": [
     "nova-assault-mode"
    ],
@@ -1525,15 +1519,16 @@
    "name": "Spec Ops Marauder (Marauder)",
    "race": "Terran",
    "faction_tags": [
-    "Terran"
+    "Terran",
+    "Nova Covert Ops"
    ],
    "army_slot": "Core",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 50,
    "unique": false,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "4/7",
     "armour": "4+",
@@ -1627,15 +1622,11 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview.",
-    "The preview shows 230 Minerals; the 10.6 Unit Cost Table (09.10.2026) lists 240, which is used."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 2,
-     "minerals": 240,
+     "minerals": 230,
      "supply": 1
     }
    ]
@@ -1648,12 +1639,12 @@
     "Terran"
    ],
    "army_slot": "Support",
-   "combat_role": null,
+   "combat_role": "Tactician",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": "Flight stand",
    "unique": false,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "7",
     "armour": "5+",
@@ -1762,10 +1753,7 @@
     }
    ],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 1,
@@ -1782,12 +1770,12 @@
     "Terran"
    ],
    "army_slot": null,
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": false,
    "summoned": true,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "-",
     "armour": "5+",
@@ -1853,10 +1841,7 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": []
   },
   {
@@ -1867,12 +1852,12 @@
     "Terran"
    ],
    "army_slot": null,
-   "combat_role": null,
+   "combat_role": "Tactician",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 32,
    "unique": false,
    "summoned": true,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "7",
     "armour": "6+",
@@ -1887,19 +1872,10 @@
     }
    ],
    "combat_tags": [
-    "Biological",
     "Psionic",
     "Ground"
    ],
    "abilities": [
-    {
-     "kind": "ability",
-     "phase": "Any",
-     "name": "Lethal Hologram",
-     "type": "Passive",
-     "cost": null,
-     "text": "All Weapons of Friendly Units targeting an Enemy Unit Within 4\" of this Unit gain PRECISION (1)."
-    },
     {
      "kind": "ability",
      "phase": "Any",
@@ -1923,15 +1899,20 @@
      "type": "Passive",
      "cost": null,
      "text": "At the End of the Round, you can set a Friendly Nova Stealth Mode or Nova Assault Mode in Coherency with this Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Lethal Hologram",
+     "type": "Passive",
+     "cost": null,
+     "text": "All Weapons of Friendly Units targeting an Enemy Unit Within 4\" of this Unit gain PRECISION (1)."
     }
    ],
    "weapons": [],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": []
   },
   {
@@ -1939,15 +1920,16 @@
    "name": "Sabotage Drone",
    "race": "Terran",
    "faction_tags": [
-    "Terran"
+    "Terran",
+    "Nova Covert Ops"
    ],
    "army_slot": null,
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": false,
    "summoned": true,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "-",
     "armour": "6+",
@@ -1987,10 +1969,7 @@
    "weapons": [],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": []
   },
   {
@@ -3269,12 +3248,12 @@
     "Protoss"
    ],
    "army_slot": "Support",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": false,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "shield": 3,
     "speed": "4/7",
@@ -3382,15 +3361,11 @@
     }
    ],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview.",
-    "The preview shows Models/Supply 1→0 and 2→1 and prices of 130/230; the 10.6 Unit Cost Table (09.10.2026) lists 2 models 120 (Supply 1) and 4 models 200 (Supply 2). The table is used, and the 3-4 → Supply 2 bracket is inferred from it."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 2,
-     "minerals": 120,
+     "minerals": 130,
      "supply": 1
     },
     {
@@ -3405,15 +3380,16 @@
    "name": "Twilight Templar (High Templar)",
    "race": "Protoss",
    "faction_tags": [
-    "Protoss"
+    "Protoss",
+    "Templar Caste"
    ],
    "army_slot": "Support",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": true,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "shield": 3,
     "speed": "4/7",
@@ -3450,14 +3426,6 @@
     {
      "kind": "ability",
      "phase": "Movement",
-     "name": "Warp-In",
-     "type": "Active",
-     "cost": "1 PE",
-     "text": "Resolve the PLACE (6) effect."
-    },
-    {
-     "kind": "ability",
-     "phase": "Movement",
      "name": "Psionic Gale",
      "type": "Active",
      "cost": "2 PE",
@@ -3470,6 +3438,14 @@
      "type": "Active",
      "cost": "1 PE",
      "text": "Target one Enemy Mechanical or Psionic Unit Within 8\". Until the End of the Round, after that Unit resolves an Active or Reaction Special Ability (excluding abilities granted by a Tactical Card or Faction Card), it suffers NON-LETHAL DAMAGE (3)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Warp-In",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Resolve the PLACE (6) effect."
     }
    ],
    "weapons": [
@@ -3508,10 +3484,7 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 2,
@@ -3528,12 +3501,12 @@
     "Protoss"
    ],
    "army_slot": "Hero",
-   "combat_role": null,
+   "combat_role": "Tactician",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 40,
    "unique": true,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "shield": 3,
     "speed": "7",
@@ -3573,14 +3546,6 @@
     {
      "kind": "ability",
      "phase": "Movement",
-     "name": "Executor's Will",
-     "type": "Active",
-     "cost": "1 PE",
-     "text": "Target two Enemy Units on the battlefield (Line of Sight is not required) and place a Faction Indicator next to each of them. During the next Assault Phase, if either of these Units ends its Activation while its Faction Indicator remains on the battlefield, you may Activate two Friendly Units consecutively. Remove both Faction Indicators after any Enemy Unit completes its Activation in the following Assault Phase."
-    },
-    {
-     "kind": "ability",
-     "phase": "Movement",
      "name": "Khala's Gift",
      "type": "Active",
      "cost": "0 PE",
@@ -3588,11 +3553,11 @@
     },
     {
      "kind": "ability",
-     "phase": "Assault",
-     "name": "Telekinetic Push",
+     "phase": "Movement",
+     "name": "Executor's Will",
      "type": "Active",
      "cost": "1 PE",
-     "text": "Set each Friendly Force Wall token Wholly Within 6\" of its current position."
+     "text": "Target two Enemy Units on the battlefield (Line of Sight is not required) and place a Faction Indicator next to each of them. During the next Assault Phase, if either of these Units ends its Activation while its Faction Indicator remains on the battlefield, you may Activate two Friendly Units consecutively. Remove both Faction Indicators after any Enemy Unit completes its Activation in the following Assault Phase."
     },
     {
      "kind": "ability",
@@ -3601,6 +3566,14 @@
      "type": "Active",
      "cost": "0 PE",
      "text": "Each Unit Within 2\" of one or more Friendly Force Wall tokens suffers 1 Damage."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Telekinetic Push",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Set each Friendly Force Wall token Wholly Within 6\" of its current position."
     }
    ],
    "weapons": [
@@ -3638,11 +3611,10 @@
     }
    ],
    "upgrades": [],
-   "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+   "corrections": [
+    "Ability header printed 'PSI LIGHTNING :' (space before the colon); shown as Psi Lightning."
    ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 1,
@@ -5374,12 +5346,12 @@
     "Zerg"
    ],
    "army_slot": "Hero",
-   "combat_role": null,
+   "combat_role": "Tactician",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 100,
    "unique": true,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "7",
     "armour": "4+",
@@ -5426,18 +5398,18 @@
     {
      "kind": "ability",
      "phase": "Movement",
-     "name": "Broodmother",
-     "type": "Active",
-     "cost": "1 BM",
-     "text": "Apply one of the following effects to all Friendly units (Line of Sight is not required). You cannot apply the effect chosen in the previous Game Round: Units of Size 1 gain a +1 Modifier to all IMPACT Rolls. All weapons of Size 2 Units gain CRITICAL HIT (1). Units of Size 3 or more gain TOUGH (1)."
-    },
-    {
-     "kind": "ability",
-     "phase": "Movement",
      "name": "Infested Drop",
      "type": "Passive",
      "cost": null,
      "text": "The base of the Zagara counts as an Entry Edge. Each Round, Friendly Units with a combined Supply cost of 1 may be Deployed via this Entry Edge."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Broodmother",
+     "type": "Active",
+     "cost": "1 BM",
+     "text": "Apply one of the following effects to all Friendly units (Line of Sight is not required). You cannot apply the effect chosen in the previous Game Round: Units of Size 1 gain a +1 Modifier to all IMPACT Rolls. All weapons of Size 2 Units gain CRITICAL HIT (1). Units of Size 3 or more gain TOUGH (1)."
     },
     {
      "kind": "ability",
@@ -5506,9 +5478,8 @@
    "upgrades": [],
    "corrections": [],
    "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
+    "Broodmother is printed on the card's UPGRADE side, but the Unit Cost Table (09.10.2026) lists no upgrade for Zagara. Kept as a built-in ability (owner decision, 22 Oct 2026)."
    ],
-   "provisional": true,
    "compositions": [
     {
      "models": 1,
@@ -5522,15 +5493,16 @@
    "name": "Vileling (Zergling)",
    "race": "Zerg",
    "faction_tags": [
-    "Zerg"
+    "Zerg",
+    "Zagara's Swarm"
    ],
    "army_slot": "Core",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 32,
    "unique": false,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "4/8",
     "armour": "6+",
@@ -5565,14 +5537,6 @@
     {
      "kind": "ability",
      "phase": "Movement",
-     "name": "Burrow Ambush",
-     "type": "Passive",
-     "cost": null,
-     "text": "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends."
-    },
-    {
-     "kind": "ability",
-     "phase": "Movement",
      "name": "Zergling Reconstitution",
      "type": "Active",
      "cost": "1 BM",
@@ -5580,11 +5544,11 @@
     },
     {
      "kind": "ability",
-     "phase": "Assault",
-     "name": "Metabolic Boost",
-     "type": "Active",
-     "cost": "1 BM",
-     "text": "When determining Charge Distance for this Unit, roll 2D6 instead of D6 and use the higher result to add to the Unit's Speed characteristic."
+     "phase": "Movement",
+     "name": "Burrow Ambush",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends."
     },
     {
      "kind": "ability",
@@ -5593,6 +5557,14 @@
      "type": "Passive",
      "cost": null,
      "text": "Immediately after this Unit completes a successful Charge, resolve the IMPACT (1) 5+ effect."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Metabolic Boost",
+     "type": "Active",
+     "cost": "1 BM",
+     "text": "When determining Charge Distance for this Unit, roll 2D6 instead of D6 and use the higher result to add to the Unit's Speed characteristic."
     },
     {
      "kind": "ability",
@@ -5622,10 +5594,7 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 18,
@@ -5642,12 +5611,12 @@
     "Zerg"
    ],
    "army_slot": "Support",
-   "combat_role": null,
+   "combat_role": "Lifesaver",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 80,
    "unique": false,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "7",
     "armour": "5+",
@@ -5725,7 +5694,7 @@
      "name": "Burrow Ambush",
      "type": "Passive",
      "cost": null,
-     "text": "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends.",
+     "text": "When this Unit is nominated to deploy from Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be placed Within 10\" of any Enemy model. This Unit's Activation ends.",
      "cost_by_composition": [
       20
      ]
@@ -5765,14 +5734,12 @@
    ],
    "corrections": [],
    "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview.",
-    "The preview shows 130 Minerals; the 10.6 Unit Cost Table (09.10.2026) lists 160, which is used."
+    "The Defiler's Burrow Ambush is worded as printed on this card ('from Reserves', 'placed'); other Zerg cards print 'from the Reserves' and 'set'."
    ],
-   "provisional": true,
    "compositions": [
     {
      "models": 1,
-     "minerals": 160,
+     "minerals": 130,
      "supply": 1
     }
    ]
@@ -5785,12 +5752,12 @@
     "Zerg"
    ],
    "army_slot": "Support",
-   "combat_role": null,
+   "combat_role": "Damage Dealer",
    "combat_range_indicator": null,
-   "base_mm": null,
+   "base_mm": 100,
    "unique": true,
    "summoned": false,
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "stats": {
     "speed": "-",
     "armour": "4+",
@@ -5821,18 +5788,18 @@
     {
      "kind": "ability",
      "phase": "Any",
-     "name": "Source of Creep",
-     "type": "Passive",
-     "cost": null,
-     "text": "A Friendly or Enemy Ground Zerg Unit Within 6\" of this Unit, counts as being ON CREEP."
-    },
-    {
-     "kind": "ability",
-     "phase": "Any",
      "name": "Detection",
      "type": "Passive",
      "cost": null,
      "text": "While Enemy Units are Within 6\" of this Unit, they lose the HIDDEN Status."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Source of Creep",
+     "type": "Passive",
+     "cost": null,
+     "text": "A Friendly or Enemy Ground Zerg Unit Within 6\" of this Unit counts as being ON CREEP."
     },
     {
      "kind": "ability",
@@ -5881,11 +5848,7 @@
    ],
    "upgrades": [],
    "corrections": [],
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags, combat role and base size are not shown in the preview.",
-    "The Bile Launcher is not listed in the 10.6 Unit Cost Table (09.10.2026); the preview's 150 Minerals is used until a cost table lists it."
-   ],
-   "provisional": true,
+   "notes": [],
    "compositions": [
     {
      "models": 1,
@@ -7382,9 +7345,10 @@
    "kind": "Faction",
    "race": "Terran",
    "faction_tags": [
-    "Terran"
+    "Terran",
+    "Nova Covert Ops"
    ],
-   "unique": false,
+   "unique": true,
    "slots": {
     "Core": 3,
     "Elite": 1,
@@ -7409,12 +7373,9 @@
      "text": "Target an Enemy Unit on the battlefield. When a Friendly Unit makes an Attack targeting that Unit, its first Melee or Ranged Weapon used gains CRITICAL HIT (1) and PRECISION (1)."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags as given by the user (race only)."
-   ],
+   "notes": [],
    "gas_cost": 0
   },
   {
@@ -7423,9 +7384,10 @@
    "kind": "Faction",
    "race": "Protoss",
    "faction_tags": [
-    "Protoss"
+    "Protoss",
+    "Templar Caste"
    ],
-   "unique": false,
+   "unique": true,
    "slots": {
     "Core": 3,
     "Support": 2,
@@ -7449,12 +7411,9 @@
      "text": "Instead of performing an action, select one other Friendly Biological Unit that has already been Activated this Phase. That Unit immediately performs one action available in the current Phase, then suffers NON-LETHAL DAMAGE (3)."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags as given by the user (race only)."
-   ],
+   "notes": [],
    "gas_cost": 0
   },
   {
@@ -7463,9 +7422,10 @@
    "kind": "Faction",
    "race": "Zerg",
    "faction_tags": [
-    "Zerg"
+    "Zerg",
+    "Zagara's Swarm"
    ],
-   "unique": false,
+   "unique": true,
    "slots": {
     "Core": 4,
     "Support": 1,
@@ -7477,12 +7437,6 @@
    },
    "abilities": [
     {
-     "phase": "Combat",
-     "name": "Scourge Queen",
-     "type": "Active",
-     "text": "If the active Unit contains more models than the combined number of models in all Engaged Enemy Units, its Close Combat Weapons gain INSTANT and PRECISION (4)."
-    },
-    {
      "phase": "Any",
      "name": "Instinctive Reaction",
      "type": "Reaction",
@@ -7493,14 +7447,17 @@
      "name": "Zerg Creep",
      "type": "Passive",
      "text": "During Army Building, select exactly one Creep Card and add it to their Army List, paying its listed cost (if any)."
+    },
+    {
+     "phase": "Combat",
+     "name": "Scourge Queen",
+     "type": "Active",
+     "text": "If the active Unit contains more models than the combined number of models in all Engaged Enemy Units, its Close Combat Weapons gain INSTANT and PRECISION (4)."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags as given by the user (race only)."
-   ],
+   "notes": [],
    "gas_cost": 0
   },
   {
@@ -7511,7 +7468,7 @@
    "faction_tags": [
     "Zerg"
    ],
-   "unique": false,
+   "unique": true,
    "slots": {
     "Elite": 1,
     "Support": 1
@@ -7534,12 +7491,9 @@
      "text": "The active, Unengaged Ground Unit is returned to Reserves instead of performing an action."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags are not shown in the preview; race tag only is assumed."
-   ],
+   "notes": [],
    "gas_cost": 35
   },
   {
@@ -7548,9 +7502,10 @@
    "kind": "Creep",
    "race": "Zerg",
    "faction_tags": [
-    "Zerg"
+    "Zerg",
+    "Zagara's Swarm"
    ],
-   "unique": false,
+   "unique": true,
    "slots": {},
    "resource": {
     "type": "BM",
@@ -7576,12 +7531,9 @@
      "text": "If an Enemy Unit ends a Move, Deploy, Run, Charge or Disengage action Within 1\" of a Friendly Creep Tumor token, remove that token from the battlefield."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags are not shown in the preview; race tag only is assumed."
-   ],
+   "notes": [],
    "gas_cost": 10
   },
   {
@@ -7608,12 +7560,9 @@
      "text": "Use before a Friendly Mechanical Unit makes an Armour Roll. That Unit gains DODGE (2) for this roll."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags are not shown in the preview; race tag only is assumed."
-   ],
+   "notes": [],
    "gas_cost": 25
   },
   {
@@ -7624,7 +7573,7 @@
    "faction_tags": [
     "Protoss"
    ],
-   "unique": false,
+   "unique": true,
    "slots": {
     "Support": 2
    },
@@ -7640,12 +7589,9 @@
      "text": "Once per Round, when a Friendly Support Unit activates a Special Ability that costs PE, resolve that ability with its PE cost reduced by 1 (to a minimum of 0). Do not Exhaust this card."
     }
    ],
-   "card_version": "Preview (Oct 2026)",
+   "card_version": "v1.09.26",
    "corrections": [],
-   "provisional": true,
-   "notes": [
-    "Provisional: transcribed from a preview, not the printed card. Faction tags are not shown in the preview; race tag only is assumed."
-   ],
+   "notes": [],
    "gas_cost": 40
   }
  ],
@@ -7885,6 +7831,55 @@
      "Unit may CLAIM only one Mission Marker at a time."
     ]
    }
+  },
+  {
+   "id": "fire-in-the-sky",
+   "name": "Fire in the Sky",
+   "source": "Terran Update 3 p.9, Protoss Update 2 p.5, Zerg Update 3 p.6 (cards v1.09.26)",
+   "standard": {
+    "deploy_supply": 5,
+    "supply_per_round": 3,
+    "game_length": 5,
+    "special_win_lead": 10,
+    "mission_parameters": [
+     "All Mission Markers are Activated.",
+     "During battlefield setup, place a D6 next to each Mission Marker to track its Sabotage Level. Set the starting Sabotage Level of each Mission Marker to 1."
+    ],
+    "scoring": [
+     "Score VPs equal to Enemy Supply destroyed this Round.",
+     "FROM THE START OF THE SECOND ROUND:",
+     "Gain VP for each Controlled Mission Marker that is Neutral or associated with the Opponent colour. The VP gained is equal to the Sabotage Level on the marker.",
+     "Sabotage Level 3 = 3 VP",
+     "Sabotage Level 2 = 2 VP",
+     "Sabotage Level 1 = 1 VP"
+    ],
+    "additional": [
+     "ASSAULT PHASE: If an Unengaged Unit is Within 3\" of a Controlled Mission Marker, this unit may perform Sabotage Action instead of a standard action.",
+     "Sabotage Action: Decrease or Increase that Mission Marker's Sabotage Level by 1 (to a minimum of 1 or maximum of 3)."
+    ]
+   },
+   "skirmish": {
+    "deploy_supply": 3,
+    "supply_per_round": 2,
+    "game_length": 5,
+    "special_win_lead": 8,
+    "mission_parameters": [
+     "All Mission Markers are Activated.",
+     "During battlefield setup, place a D6 next to each Mission Marker to track its Sabotage Level. Set the starting Sabotage Level of each Mission Marker to 1."
+    ],
+    "scoring": [
+     "Score VPs equal to Enemy Supply destroyed this Round.",
+     "FROM THE START OF THE SECOND ROUND:",
+     "Gain VP for each Controlled Mission Marker that is Neutral or associated with the Opponent colour. The VP gained is equal to the Sabotage Level on the marker.",
+     "Sabotage Level 3 = 3 VP",
+     "Sabotage Level 2 = 2 VP",
+     "Sabotage Level 1 = 1 VP"
+    ],
+    "additional": [
+     "ASSAULT PHASE: If an Unengaged Unit is Within 3\" of a Controlled Mission Marker, this unit may perform Sabotage Action instead of a standard action.",
+     "Sabotage Action: Decrease or Increase that Mission Marker's Sabotage Level by 1 (to a minimum of 1 or maximum of 3)."
+    ]
+   }
   }
  ],
  "deployments": [
@@ -7953,6 +7948,19 @@
    "standard": "Meeting Engagement",
    "skirmish": "Green Valleys",
    "source": "Protoss Units 2.pdf p.4",
+   "battlefield": {
+    "standard": "54x36",
+    "skirmish": "36x36"
+   },
+   "notes": [
+    "Deployment-zone and Mission Marker geometry is not yet transcribed; tracker should show the card image until it is."
+   ]
+  },
+  {
+   "id": "one-bridge-too-close",
+   "standard": "One Bridge Too Close",
+   "skirmish": "Power Lines",
+   "source": "Terran Update 3 p.8, Protoss Update 2 p.4, Zerg Update 3 p.6 (cards v1.09.26)",
    "battlefield": {
     "standard": "54x36",
     "skirmish": "36x36"

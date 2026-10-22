@@ -15,6 +15,7 @@
     run: { label: "Run", phase: 2, moves: true, ref: "8.7.1" },
     hold2: { label: "Hold", phase: 2, ref: "8.7.2" },
     gather: { label: "Gather", phase: 2, ref: "Mission Card" },
+    sabotage: { label: "Sabotage", phase: 2, ref: "Mission Card" },
     fight: { label: "Close Combat Attack", phase: 3, ref: "8.8.1" }
   };
   var STATUS = {
@@ -86,7 +87,10 @@
       si: freshInputs(), over: null, rollOff: false, log: [], startedAt: Date.now()
     };
     var allOn = opts.missionId !== "supply-drop";
-    markerIds(sd).forEach(function (n) { b.markers[n] = { own: null, prev: null, on: allOn, ar: allOn ? 0 : null, gone: false }; });
+    markerIds(sd).forEach(function (n) {
+      b.markers[n] = { own: null, prev: null, on: allOn, ar: allOn ? 0 : null, gone: false };
+      if (opts.missionId === "fire-in-the-sky") b.markers[n].lvl = 1; // Mission Card: starting Sabotage Level of each Marker is 1
+    });
     sync(C, r, b);
     startRound(C, r, b);
     log(b, "Battle started: " + m.name + ", " + (sd === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ". You are the " + (b.color === "red" ? "Red" : "Blue") + " Player.");
@@ -184,7 +188,7 @@
     if (i.unit.abilities.some(function (a) { return a.name === "Structure"; })) return [];
     var p = b.phase, out = [];
     if (p === 1) out = i.state === "res" ? ["deploy"] : (i.st.eng ? ["disengage", "hold1"] : ["move", "hold1"]);
-    else if (p === 2) { if (i.state === "fld") { out = i.st.eng ? ["ranged", "hold2"] : ["ranged", "charge", "run", "hold2"]; if (b.missionId === "gather-the-resources" && !i.st.eng) out.push("gather"); } }
+    else if (p === 2) { if (i.state === "fld") { out = i.st.eng ? ["ranged", "hold2"] : ["ranged", "charge", "run", "hold2"]; if (b.missionId === "gather-the-resources" && !i.st.eng) out.push("gather"); if (b.missionId === "fire-in-the-sky" && !i.st.eng) out.push("sabotage"); } }
     else if (p === 3) { if (i.state === "fld" && i.st.eng) out = ["fight"]; }
     return out;
   }
@@ -213,6 +217,10 @@
     if ((action === "move" || action === "run" || action === "disengage") && st.stat.siege) warn.push("A Unit in Siege Mode cannot " + a.label + " (Part 11).");
     if (action === "disengage") { st.dis = true; st.eng = false; }
     if (action === "gather") { b.si.gatherMe++; }
+    if (action === "sabotage") {
+      if (!Object.keys(b.markers).some(function (n) { return b.markers[n].own; })) warn.push("Sabotage needs an Unengaged Unit Within 3\" of a Controlled Mission Marker. No Marker is marked as Controlled yet.");
+      warn.push("Mission Marker: raise or lower that Marker's Sabotage Level by 1 below (minimum 1, maximum 3).");
+    }
     if (a.moves || action === "charge") {
       delete st.stat.stationary;
       if (st.stat.burrowed) { delete st.stat.burrowed; delete st.stat.hidden; warn.push(name + " is no longer Burrowed: " + a.label + " removes the status (Part 11)."); }
@@ -326,6 +334,12 @@
     var mk = b.markers[n]; if (!mk) return;
     mk.own = mk.own === null ? "me" : mk.own === "me" ? "opp" : null;
   }
+  /* Fire in the Sky: Sabotage Level 1-3 per Marker (Sabotage Action, Mission Card). */
+  function setLevel(C, b, n, delta) {
+    var mk = b.markers[n]; if (!mk || mk.lvl == null) return;
+    var v = Math.max(1, Math.min(3, mk.lvl + delta));
+    if (v !== mk.lvl) { mk.lvl = v; log(b, "Mission Marker " + n + " Sabotage Level " + v + "."); }
+  }
   function setMarker(C, b, n, who) { var mk = b.markers[n]; if (mk) mk.own = who === "me" || who === "opp" ? who : null; }
 
   /* ---------- scoring (8.9.2 + Mission Card) ---------- */
@@ -364,6 +378,12 @@
       if (b.round < first) lines.push({ label: "Mission Markers score from Round " + first, vp: 0, note: true });
       else held.filter(function (n) { return b.markers[n].on && !b.markers[n].gone; }).forEach(function (n) {
         lines.push({ label: "Activated Marker " + n + " (Activated in Round " + b.markers[n].ar + "), then remove it", vp: b.markers[n].ar || 0, remove: n });
+      });
+    } else if (id === "fire-in-the-sky") {
+      if (!from2) lines.push({ label: "Mission Markers score from Round 2", vp: 0, note: true });
+      else held.filter(function (n) { return affinity(n) === null || affinity(n) !== mine; }).forEach(function (n) {
+        var lv = b.markers[n].lvl || 1;
+        lines.push({ label: "Controlled Marker " + n + " (" + (affinity(n) === null ? "Neutral" : "Opponent's colour") + "), Sabotage Level " + lv, vp: lv });
       });
     } else if (id === "artefact-hunt") {
       if (final) {
@@ -452,7 +472,7 @@
     activationDue: activationDue, activateMarker: activateMarker, startNotes: startNotes, actionsFor: actionsFor, act: act, clearAct: clearAct,
     setState: setState, changeModels: changeModels, changeDamage: changeDamage, removeCasualty: removeCasualty, toggleStatus: toggleStatus, toggleEngaged: toggleEngaged,
     statusKeys: statusKeys, abilitiesFor: abilitiesFor, useAbility: useAbility, unuseAbility: unuseAbility, cardList: cardList, resource: resource, toggleCard: toggleCard,
-    cycleMarker: cycleMarker, setMarker: setMarker, suggestion: suggestion, totals: totals, confirmScores: confirmScores, nextRound: nextRound,
+    cycleMarker: cycleMarker, setMarker: setMarker, setLevel: setLevel, suggestion: suggestion, totals: totals, confirmScores: confirmScores, nextRound: nextRound,
     phaseWarnings: phaseWarnings, advance: advance, back: back, summonable: summonable, addSummoned: addSummoned, removeSummoned: removeSummoned, hasAssaultWeapon: hasAssaultWeapon
   };
   if (typeof module !== "undefined" && module.exports) module.exports = Battle; else root.Battle = Battle;
