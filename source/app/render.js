@@ -79,7 +79,7 @@
     var fielded = !!(opts.fielded && entry), face = opts.face || "", back = face === "back";
     var st = u.stats, lo = entry ? C.loadout(entry) : null, comp = entry ? C.composition(entry) : null;
     var takenNames = {}; if (entry) entry.upgrades.forEach(function (n) { takenNames[n] = true; });
-    var artSrc = back ? "" : src(ART.unit(u.id)), emb = src(ART.race(u.race));
+    var artSrc = back || opts.noArt ? "" : src(ART.unit(u.id)), emb = src(ART.race(u.race));
     var h = '<article class="sc-card' + (artSrc ? "" : " sc-noart") + (face ? " sc-face-" + face : "") + '" data-race="' + esc(u.race) + '">';
     if (artSrc) h += '<div class="sc-art' + (u.provisional ? " sc-pvart" : "") + '"><img src="' + esc(artSrc) + '" alt="' + esc(u.name) + ' miniatures" loading="lazy"></div>';
     h += '<div class="sc-body">';
@@ -434,12 +434,20 @@
      One face of a printed unit card: the cut line in the v1.09.26 update PDFs is 459.2 x 606.4 pt,
      folded in half, so each face is 459.2 x 303.2 pt = 162 x 107 mm (landscape). */
   var CARD_MM = { w: 162, h: 107 };
+  /* Two card-size layouts. official: the printed card's own face, 2 per page. quad: a portrait face without the art
+     column, sized so 2 x 2 faces fill a US Letter page (215.9 x 279.4 mm at 9 mm margins: 2 x 96 + 3 = 195 mm wide,
+     2 x 127 + 3 = 257 mm tall, leaving slack). Dropping the art gives the text the full width, so most faces still print at 7pt. */
+  var CARD_LAYOUTS = { official: { w: 162, h: 107, perPage: 2 }, quad: { w: 96, h: 127, perPage: 4 } };
   /* Compact print style. Sizes are in CSS px at real scale (1pt = 1.333px), copied from the official card's type:
      title 14pt, stat values 15pt, phase headers 8pt, ability and weapon text 7pt, keyword pills 6pt, labels 5pt. */
   var K = ".cs-wrap ";
   var CARDSIZE_CSS = ".cs-list{display:flex;flex-direction:column;align-items:center;gap:6mm}" +
     ".cs-pair{display:flex;flex-direction:column;align-items:center;gap:3mm;break-inside:avoid;page-break-inside:avoid}" +
-    ".cs-wrap{width:" + CARD_MM.w + "mm;height:" + CARD_MM.h + "mm;flex:none;overflow:hidden;border-radius:3mm;position:relative;break-inside:avoid;page-break-inside:avoid;background:#EDEDED;box-shadow:0 1px 3px rgba(0,0,0,.18)}" +
+    ".cs-official .cs-wrap{width:" + CARD_LAYOUTS.official.w + "mm;height:" + CARD_LAYOUTS.official.h + "mm}" +
+    ".cs-quad{gap:3mm}.cs-quad .cs-wrap{width:" + CARD_LAYOUTS.quad.w + "mm;height:" + CARD_LAYOUTS.quad.h + "mm}" +
+    ".cs-row{display:flex;gap:3mm;justify-content:center;break-inside:avoid;page-break-inside:avoid}" +
+    ".cs-quad .sc-wt td.sc-wn{white-space:normal}" +
+    ".cs-wrap{box-sizing:border-box;flex:none;overflow:hidden;border-radius:3mm;position:relative;break-inside:avoid;page-break-inside:avoid;background:#EDEDED;box-shadow:0 1px 3px rgba(0,0,0,.18)}" +
     ".cs-wrap>.sc-card{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:0;box-shadow:none;border:0;grid-template-columns:minmax(0,30%) minmax(0,1fr);font-size:9.33px;line-height:1.25}" +
     ".cs-wrap>.sc-card.sc-noart{grid-template-columns:minmax(0,1fr)}" +
     K + ".sc-art{position:relative;height:auto;min-height:0}" + K + ".sc-art img{position:absolute;inset:0;width:100%;height:100%;object-position:center 30%}" +
@@ -461,8 +469,9 @@
     K + ".sc-for{font-size:6.7px}" + K + ".sc-upband{font-size:8px;padding:1px 6px;margin-top:2px}" + K + ".sc-upw{padding:2px 3px 1px;border-width:1px}" + K + ".sc-upw.sc-taken{padding-left:7px}" + K + ".sc-ab.sc-taken{padding-left:9px}" +
     K + ".sc-foot{font-size:8px;padding:2px 6px;gap:3px 8px}" + K + ".sc-ftags i{font-size:7.5px;padding:0 5px}" +
     K + ".sc-fine{font-size:6.7px;line-height:1.3}" +
-    "@media print{.cs-list{gap:5mm}.cs-wrap{box-shadow:none;border:.3mm solid #999}.cs-wrap>.sc-card{border:0}}";
-  /* Shrinks a card face's content only if it doesn't fit at the official type sizes. The card is laid out wider (W / z) and
+    "@media print{.foot{display:none}.cs-official{gap:5mm}.cs-quad{gap:3mm;break-before:page}.cs-wrap{box-shadow:none;border:.3mm solid #999}.cs-wrap>.sc-card{border:0}}";
+  var QUAD_PAGE_CSS = "@page{margin:9mm}";
+  /* Shrinks a card face's content only if it doesn't fit at the official type sizes (too tall, or a weapon table too wide). The card is laid out wider (W / z) and
      scaled by z, so text wraps at the reduced size instead of being clipped. Runs in the exported page
      (on load and after fonts load, never during print layout, where a card split across pages measures wrong) and in the app's export preview. */
   function fitCards(root) {
@@ -472,10 +481,12 @@
       var W = box.clientWidth, H = box.clientHeight; if (!W || !H) continue;
       // zoom shrinks the layout box itself, so a printed card never fragments across pages; transform is the fallback
       var useZoom = typeof CSS !== "undefined" && CSS.supports && CSS.supports("zoom", "0.5");
+      var tws = card.querySelectorAll(".sc-tw");
+      var wide = function () { for (var j = 0; j < tws.length; j++) if (tws[j].scrollWidth > tws[j].clientWidth + 1) return true; return false; };
       var fits = function (z) {
         card.style.width = (W / z) + "px"; card.style.minHeight = "0";
-        if (useZoom) { card.style.transform = ""; card.style.zoom = z; return card.getBoundingClientRect().height <= box.getBoundingClientRect().height + 0.5; }
-        card.style.transform = "scale(" + z + ")"; return card.offsetHeight * z <= H + 0.5;
+        if (useZoom) { card.style.transform = ""; card.style.zoom = z; return card.getBoundingClientRect().height <= box.getBoundingClientRect().height + 0.5 && !wide(); }
+        card.style.transform = "scale(" + z + ")"; return card.offsetHeight * z <= H + 0.5 && !wide();
       };
       var lo = 0.3, hi = 1;
       if (fits(1)) lo = 1; else { for (var k = 0; k < 14; k++) { var mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } }
@@ -497,22 +508,35 @@
     return docShell((r.name || "Roster") + " — Army Roster", '<div class="paper">' + sheetHTML(C, r, src, { art: opts.art !== false, checks: true }) + "</div>");
   }
   function fieldManualDoc(C, r, src, opts) {
-    opts = opts || {}; var cs = !!opts.cardSize;
+    opts = opts || {};
+    // opts.cardSize: "official" (or true) = 162 x 107 mm faces, 2 per page; "quad" = 96 x 128 mm faces without art, 4 per Letter page
+    var cs = opts.cardSize === "quad" ? "quad" : opts.cardSize ? "official" : "";
     var wrapCard = function (html) { return cs ? '<div class="cs-wrap">' + html + "</div>" : html; };
     var lim = C.limits(r), side = lim.scale.side, body = '<div class="paper">' + sheetHTML(C, r, src, { art: !src || !!src(ART.race(r.race || "Terran")), checks: true }) + "</div>";
     if (r.units.length) {
-      body += '<h2 class="doc-h brk">UNIT CARDS</h2>';
-      if (cs) body += '<div class="cs-list">';
-      // card size: a front face and, when the unit has upgrades, an upgrade face, kept together on one page
-      var card = function (u, e) {
-        if (!cs) return unitCardHTML(C, u, e, src);
-        return '<div class="cs-pair">' + wrapCard(unitCardHTML(C, u, e, src, { face: "front" })) + (u.upgrades.length ? wrapCard(unitCardHTML(C, u, e, src, { face: "back" })) : "") + "</div>";
-      };
-      r.units.forEach(function (e) { var u = C.units[e.unitId]; if (u) body += card(u, e); });
+      if (cs !== "quad") body += '<h2 class="doc-h brk">UNIT CARDS</h2>';
+      var items = [];
+      r.units.forEach(function (e) { var u = C.units[e.unitId]; if (u) items.push([u, e]); });
       // summoned units the army can bring onto the table (referenced by SUMMON or faction abilities)
-      var summoned = summonedFor(C, r);
-      summoned.forEach(function (u) { body += card(u, null); });
-      if (cs) body += "</div>";
+      summonedFor(C, r).forEach(function (u) { items.push([u, null]); });
+      var faces = function (u, e) {
+        var o = { face: "front", noArt: cs === "quad" };
+        return { front: wrapCard(unitCardHTML(C, u, e, src, o)), back: u.upgrades.length ? wrapCard(unitCardHTML(C, u, e, src, { face: "back" })) : "" };
+      };
+      if (!cs) items.forEach(function (it) { body += unitCardHTML(C, it[0], it[1], src); });
+      else if (cs === "official") {
+        // a front face and, when the unit has upgrades, an upgrade face, kept together on one page
+        body += '<div class="cs-list cs-official">';
+        items.forEach(function (it) { var fc = faces(it[0], it[1]); body += '<div class="cs-pair">' + fc.front + fc.back + "</div>"; });
+        body += "</div>";
+      } else {
+        // rows of two: a unit's front and upgrade face side by side; units without upgrades share a row
+        var rows = [], pend = null;
+        items.forEach(function (it) { var fc = faces(it[0], it[1]);
+          if (fc.back) rows.push([fc.front, fc.back]); else if (pend) { rows.push([pend, fc.front]); pend = null; } else pend = fc.front; });
+        if (pend) rows.push([pend]);
+        body += '<div class="cs-list cs-quad">' + rows.map(function (rw) { return '<div class="cs-row">' + rw.join("") + "</div>"; }).join("") + "</div>";
+      }
     }
     var f = C.faction(r), cardsHTML = "";
     if (f) cardsHTML += tacCardHTML(C, f, src);
@@ -523,7 +547,7 @@
     if (ms.length) body += '<h2 class="doc-h brk">MISSION CARDS</h2><div class="grid2">' + ms.map(function (id) { return missionCardHTML(C.missions[id], side); }).join("") + "</div>";
     var ds = (r.deployments || []).filter(function (id) { return C.deployments[id]; });
     if (ds.length) body += '<h2 class="doc-h brk">DEPLOYMENT CARDS</h2><div class="grid2">' + ds.map(function (id) { return deploymentCardHTML(C.deployments[id], side, src); }).join("") + "</div>";
-    return docShell((r.name || "Roster") + " — Field Manual", body, cs ? { css: CARDSIZE_CSS, script: FIT_SCRIPT } : null);
+    return docShell((r.name || "Roster") + " — Field Manual", body, cs ? { css: CARDSIZE_CSS + (cs === "quad" ? QUAD_PAGE_CSS : ""), script: FIT_SCRIPT } : null);
   }
   function summonedFor(C, r) {
     var out = [], seen = {};
@@ -748,7 +772,7 @@
     ART: ART, PHASES: PHASES, PHASE_NAME: PHASE_NAME, CARD_CSS: CARD_CSS, esc: esc, fmt: fmt, richText: richText,
     typePill: typePill, abilityBox: abilityBox, weaponTable: weaponTable, unitCardHTML: unitCardHTML, tacCardHTML: tacCardHTML,
     missionCardHTML: missionCardHTML, deploymentCardHTML: deploymentCardHTML, sheetHTML: sheetHTML, slotsText: slotsText, summonedFor: summonedFor, imagesFor: imagesFor,
-    fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS, CARD_MM: CARD_MM, CARDSIZE_CSS: CARDSIZE_CSS, fitCards: fitCards,
+    fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS, CARD_MM: CARD_MM, CARD_LAYOUTS: CARD_LAYOUTS, CARDSIZE_CSS: CARDSIZE_CSS, fitCards: fitCards,
     exports: { textFull: textFull, textCompact: textCompact, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc }
   };
   if (typeof module !== "undefined" && module.exports) module.exports = R; else root.Render = R;
