@@ -66,5 +66,23 @@ data.units.forEach(u => {
 ok("ref copies every weapon profile and stat exactly", wbad.length === 0 || console.log(wbad));
 require("fs").writeFileSync("/home/claude/app/sample_reference.html", refG);
 require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.referenceDoc(C, ter, { kw: KW, glossary: true }));
+// card-size printing: front + upgrade faces, nothing lost between them, toggle off = unchanged
+{
+  const csDoc = X.fieldManualDoc(C, r, p => p, { cardSize: true });
+  const fronts = (csDoc.match(/sc-face-front/g) || []).length, backs = (csDoc.match(/sc-face-back/g) || []).length;
+  const withUps = r.units.map(e => C.units[e.unitId]).concat(R.summonedFor(C, r)).filter(u => u.upgrades.length).length;
+  ok("card size: one front per unit card", fronts === 5);
+  ok("card size: an upgrade face for every unit with upgrades", backs === withUps);
+  ok("card size: faces sit in fixed 162x107 mm boxes with the fit script", /\.cs-wrap\{width:162mm;height:107mm/.test(csDoc) && csDoc.indexOf("<script>") !== -1 && (csDoc.match(/class="cs-pair"/g) || []).length === 5);
+  ok("card size off = no card-size markup", X.fieldManualDoc(C, r, p => p, { cardSize: false }) === man);
+  // every ability, weapon and upgrade name on the one-face card appears across the two faces
+  const all = data.units.filter(u => !u.summoned && u.compositions && u.compositions.length), miss = [];
+  all.forEach(u => {
+    const one = R.unitCardHTML(C, u, null, p => p), two = R.unitCardHTML(C, u, null, p => p, { face: "front" }) + (u.upgrades.length ? R.unitCardHTML(C, u, null, p => p, { face: "back" }) : "");
+    u.abilities.concat(u.weapons, u.upgrades).forEach(x => { const n = R.esc(x.name.toUpperCase()); if (one.indexOf(n) !== -1 && two.indexOf(n) === -1) miss.push(u.name + ": " + x.name); });
+    if (u.upgrades.length && R.unitCardHTML(C, u, null, p => p, { face: "front" }).indexOf("sc-upband") !== -1) miss.push(u.name + ": upgrades on front");
+  });
+  ok("card size: front + back carry every ability, weapon and upgrade (" + all.length + " units)", miss.length === 0 || console.log(miss));
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 require("fs").writeFileSync("/home/claude/app/sample_manual.html", man.replace(/img\//g, "img/"));

@@ -9,7 +9,7 @@ var esc = Render.esc, fmt = Render.fmt;
 var S = {
   view:"list", tab:"build", rosters:[], cur:null, store:"loading", save:"idle",
   open:{}, picker:false, importOpen:false, confirmDel:null, confirmRace:null, notice:null, downloads:null, tileOpen:null,
-  exp:{ base:"", art:true, gloss:false, preview:null, busy:null, copyText:null }
+  exp:{ base:"", art:true, gloss:false, cardSize:true, preview:null, busy:null, copyText:null }
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function $(id){ return document.getElementById(id); }
@@ -513,7 +513,7 @@ function renderRail(){
 
 /* ------------ export ------------ */
 var FORMATS = [
-  {id:"manual", ext:"html", name:"Field manual", hero:true, art:true, desc:"Roster sheet plus the full card for every unit, summoned unit, Faction, Tactical and Creep Card, and your Mission Cards. Made for the table."},
+  {id:"manual", ext:"html", name:"Field manual", hero:true, art:true, cardSize:true, desc:"Roster sheet plus the full card for every unit, summoned unit, Faction, Tactical and Creep Card, and your Mission Cards. Made for the table."},
   {id:"sheet", ext:"html", name:"Roster sheet", art:true, desc:"The tournament roster with every Organized Play field, laid out for printing."},
   {id:"ref", ext:"html", name:"Reference sheet", suffix:"-reference", gloss:true, desc:"Every unit's stats, fielded weapon profiles, ability names and taken upgrades in compact tables, sized for one or two A4 pages. Identical units are merged (2×). Rules text stays on the cards."},
   {id:"text", ext:"txt", name:"Plain text", desc:"The full roster as plain text: units, loadouts, cards and totals."},
@@ -550,7 +550,7 @@ function build(f, forPreview){
     case "json": return Promise.resolve(X.json(C, r));
     case "sheet": return (forPreview ? Promise.resolve(null) : art ? embedResolver(r, "sheet") : Promise.resolve(BLANK)).then(function(res){ return X.rosterSheetDoc(C, r, res, {art: art}); });
     case "ref": return Promise.resolve(X.referenceDoc(C, r, {glossary: S.exp.gloss, kw: KW}));
-    case "manual": return (forPreview ? Promise.resolve(art ? null : BLANK) : art ? embedResolver(r, "manual") : Promise.resolve(BLANK)).then(function(res){ return X.fieldManualDoc(C, r, res); });
+    case "manual": return (forPreview ? Promise.resolve(art ? null : BLANK) : art ? embedResolver(r, "manual") : Promise.resolve(BLANK)).then(function(res){ return X.fieldManualDoc(C, r, res, {cardSize: S.exp.cardSize}); });
     case "zip": return buildZip();
   }
   return Promise.reject({code:"unknown"});
@@ -573,6 +573,7 @@ function renderExport(){
     var busy = S.exp.busy===f.id;
     h += '<div class="fmt'+(f.hero?' hero':'')+'"><div class="fh"><span class="ext">.'+f.ext.toUpperCase()+'</span><span class="fn">'+esc(f.name)+'</span></div><div class="fd">'+esc(f.desc)+'<div class="faint fname" style="margin-top:4px;font-size:12px">'+esc(fileName(f))+'</div></div>';
     if(f.gloss) h += '<label class="fo"><input type="checkbox" data-a="exp-gloss"'+(S.exp.gloss?' checked':'')+'> Add a keyword glossary at the end</label>';
+    if(f.cardSize) h += '<label class="fo"><input type="checkbox" data-a="exp-cardsize"'+(S.exp.cardSize?' checked':'')+'> Print unit cards at card size ('+Render.CARD_MM.w+' × '+Render.CARD_MM.h+' mm, front and upgrade faces)</label>';
     if(f.art) h += '<label class="fo"><input type="checkbox" data-a="exp-art"'+(S.exp.art?' checked':'')+'> Include card art and miniatures</label>';
     h += '<div class="fa"><button class="btn primary sm" data-a="exp-save" data-v="'+f.id+'"'+(!S.downloads||busy?' disabled':'')+'>'+(busy?'Preparing…':'Save to disk')+'</button>'+
       (f.id!=="zip"?'<button class="btn sm" data-a="exp-copy" data-v="'+f.id+'">Copy'+(f.ext==="html"?' HTML':'')+'</button><button class="btn ghost sm" data-a="exp-prev" data-v="'+f.id+'">'+(S.exp.preview&&S.exp.preview.id===f.id?'Hide preview':'Preview')+'</button>':'')+'</div></div>';
@@ -589,7 +590,8 @@ function renderExport(){
   if(S.exp.preview && host){
     var root = host.attachShadow ? host.attachShadow({mode:"open"}) : host;
     var doc = S.exp.preview.content, css = (doc.match(/<style>([\s\S]*?)<\/style>/)||[])[1]||"", body = (doc.match(/<body>([\s\S]*?)<\/body>/)||[])[1]||"";
-    root.innerHTML = '<style>:host{display:block}'+css.replace(/(^|\})body\{/g,"$1.docbody{")+'</style><div class="docbody">'+body+'</div>';
+    root.innerHTML = '<style>:host{display:block}'+css.replace(/(^|\})body\{/g,"$1.docbody{")+'</style><div class="docbody">'+body.replace(/<script>[\s\S]*?<\/script>/g,"")+'</div>';
+    if(root.querySelector(".cs-wrap")){ Render.fitCards(root); var refit=function(){ if(host.isConnected) Render.fitCards(root); }; root.querySelectorAll("img").forEach(function(im){ if(!im.complete) im.addEventListener("load", refit); }); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(refit); }
   }
 }
 function flash(text, kind){ S.notice = {kind:kind||"info", text:text}; render(); window.scrollTo({top:0, behavior:"smooth"}); }
@@ -1185,6 +1187,7 @@ document.addEventListener("change", function(ev){
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
   if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }
+  if(a==="exp-cardsize"){ S.exp.cardSize = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-art"){ S.exp.art = t.checked; S.exp.preview=null; renderExport(); return; }
   if(!a || !r) return;
   var e = entryById(t.getAttribute("data-e")), name = t.getAttribute("data-v");

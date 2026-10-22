@@ -72,20 +72,23 @@
   /* ---------- UNIT CARD ---------- */
   /* opts.fielded: show the Unit as it is on this roster — base profile with the purchased upgrades merged in
      (replacement weapons swapped, SPECIALIST weapons listed with their model) and unpurchased upgrades left out. */
+  /* opts.face (card-size printing, like the official two-sided card): "front" = art, stats, abilities, weapons and tags;
+     "back" = the upgrade face (every upgrade by phase) plus the fine print. Omitted = the whole card on one face. */
   function unitCardHTML(C, u, entry, src, opts) {
     src = src || identity; opts = opts || {};
-    var fielded = !!(opts.fielded && entry);
+    var fielded = !!(opts.fielded && entry), face = opts.face || "", back = face === "back";
     var st = u.stats, lo = entry ? C.loadout(entry) : null, comp = entry ? C.composition(entry) : null;
     var takenNames = {}; if (entry) entry.upgrades.forEach(function (n) { takenNames[n] = true; });
-    var artSrc = src(ART.unit(u.id)), emb = src(ART.race(u.race));
-    var h = '<article class="sc-card' + (artSrc ? "" : " sc-noart") + '" data-race="' + esc(u.race) + '">';
+    var artSrc = back ? "" : src(ART.unit(u.id)), emb = src(ART.race(u.race));
+    var h = '<article class="sc-card' + (artSrc ? "" : " sc-noart") + (face ? " sc-face-" + face : "") + '" data-race="' + esc(u.race) + '">';
     if (artSrc) h += '<div class="sc-art' + (u.provisional ? " sc-pvart" : "") + '"><img src="' + esc(artSrc) + '" alt="' + esc(u.name) + ' miniatures" loading="lazy"></div>';
     h += '<div class="sc-body">';
     // title bar
     h += '<header class="sc-title"><div class="sc-tl"><h3>' + esc(u.name.toUpperCase()) + "</h3>" +
       '<div class="sc-meta">' + (u.army_slot ? '<span><em>ARMY SLOT:</em> ' + esc(u.army_slot.toUpperCase()) + "</span>" : '<span><em>SUMMONED UNIT</em></span>') +
-      (u.combat_role ? '<span><em>COMBAT ROLE:</em> ' + esc(String(u.combat_role).toUpperCase()) + "</span>" : "") + (u.unique ? '<span class="sc-uq">UNIQUE</span>' : "") + (u.provisional ? '<span class="sc-pv" title="Transcribed from a preview, not the printed card">PREVIEW</span>' : "") + "</div></div>" +
+      (u.combat_role ? '<span><em>COMBAT ROLE:</em> ' + esc(String(u.combat_role).toUpperCase()) + "</span>" : "") + (u.unique ? '<span class="sc-uq">UNIQUE</span>' : "") + (u.provisional ? '<span class="sc-pv" title="Transcribed from a preview, not the printed card">PREVIEW</span>' : "") + (back ? '<span class="sc-backtag">&#9650; UPGRADES</span>' : "") + "</div></div>" +
       (emb ? '<img class="sc-emb" src="' + esc(emb) + '" alt="" loading="lazy">' : "") + "</header>";
+    if (!back) {
     // stats + supply
     var stats = [["SPEED", st.speed], ["ARMOUR", st.armour], ["EVADE", st.evade], ["HIT POINTS", st.hp]];
     if (st.shield != null) stats.push(["SHIELD", st.shield]);
@@ -129,9 +132,10 @@
       h += weaponTable(ws, { replaced: lo ? lo.replaced : null });
       h += "</section>";
     });
+    }
     // upgrades
-    if (u.upgrades.length && !fielded) {
-      h += '<div class="sc-upband">&#9650; UPGRADES</div>';
+    if (u.upgrades.length && !fielded && face !== "front") {
+      if (!back) h += '<div class="sc-upband">&#9650; UPGRADES</div>';
       PHASES.forEach(function (p) {
         var ups = u.upgrades.filter(function (x) { return x.phase === p; });
         if (!ups.length) return;
@@ -152,14 +156,14 @@
       });
     }
     // footer
-    h += '<footer class="sc-foot"><span><em>COMBAT TAGS:</em> ' + esc(u.combat_tags.join(", ").toUpperCase()) + "</span>" +
+    if (!back) h += '<footer class="sc-foot"><span><em>COMBAT TAGS:</em> ' + esc(u.combat_tags.join(", ").toUpperCase()) + "</span>" +
       '<span class="sc-ftags">' + u.faction_tags.map(function (t) { return '<i>' + esc(t.toUpperCase()) + "</i>"; }).join("") + "</span></footer>";
     var fine = []; if (u.base_mm) fine.push(/\d/.test(String(u.base_mm)) ? "Base Ø " + u.base_mm + (typeof u.base_mm === "number" ? "mm" : "") : "Base: " + u.base_mm);
     if (u.card_version) fine.push("Card " + u.card_version);
     if (u.compositions && u.compositions.length) fine.push("Cost table: " + u.compositions.map(function (c) { return c.models + " models " + c.minerals + " / Supply " + c.supply; }).join(" · "));
     (u.corrections || []).forEach(function (x) { fine.push("Corrected: " + x); });
     (u.notes || []).forEach(function (x) { fine.push("Note: " + x); });
-    h += '<div class="sc-fine">' + fine.map(esc).join("<br>") + "</div>";
+    if (face !== "front" || !u.upgrades.length) h += '<div class="sc-fine">' + fine.map(esc).join("<br>") + "</div>";
     h += "</div></article>";
     return h;
   }
@@ -426,23 +430,89 @@
     "@media print{body{background:#fff}.page{padding:0;max-width:none}.paper{box-shadow:none;padding:0}.sc-card,.sc-mission{box-shadow:none;border:1px solid #bbb}.doc-h{break-after:avoid}.brk{break-before:page}}";
   var FONT_LINK = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wdth,wght@62.5..100,400..900&family=Saira:wdth,wght@75..100,500..700&display=swap">';
 
-  function docShell(title, body) {
+  /* ---------- CARD-SIZE PRINTING ----------
+     One face of a printed unit card: the cut line in the v1.09.26 update PDFs is 459.2 x 606.4 pt,
+     folded in half, so each face is 459.2 x 303.2 pt = 162 x 107 mm (landscape). */
+  var CARD_MM = { w: 162, h: 107 };
+  /* Compact print style. Sizes are in CSS px at real scale (1pt = 1.333px), copied from the official card's type:
+     title 14pt, stat values 15pt, phase headers 8pt, ability and weapon text 7pt, keyword pills 6pt, labels 5pt. */
+  var K = ".cs-wrap ";
+  var CARDSIZE_CSS = ".cs-list{display:flex;flex-direction:column;align-items:center;gap:6mm}" +
+    ".cs-pair{display:flex;flex-direction:column;align-items:center;gap:3mm;break-inside:avoid;page-break-inside:avoid}" +
+    ".cs-wrap{width:" + CARD_MM.w + "mm;height:" + CARD_MM.h + "mm;flex:none;overflow:hidden;border-radius:3mm;position:relative;break-inside:avoid;page-break-inside:avoid;background:#EDEDED;box-shadow:0 1px 3px rgba(0,0,0,.18)}" +
+    ".cs-wrap>.sc-card{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:0;box-shadow:none;border:0;grid-template-columns:minmax(0,30%) minmax(0,1fr);font-size:9.33px;line-height:1.25}" +
+    ".cs-wrap>.sc-card.sc-noart{grid-template-columns:minmax(0,1fr)}" +
+    K + ".sc-art{position:relative;height:auto;min-height:0}" + K + ".sc-art img{position:absolute;inset:0;width:100%;height:100%;object-position:center 30%}" +
+    K + ".sc-body{gap:3px;padding:0 0 4px}" +
+    K + ".sc-statrow," + K + ".sc-sec," + K + ".sc-fielded," + K + ".sc-upband," + K + ".sc-upw," + K + ".sc-foot," + K + ".sc-fine{margin-inline:6px}" +
+    K + ".sc-title{gap:6px;padding:4px 8px 5px;clip-path:polygon(0 0,100% 0,100% 100%,10px 100%,0 calc(100% - 10px))}" +
+    K + ".sc-title h3{font-size:18.7px;line-height:1}" + K + ".sc-meta{font-size:6.7px;gap:2px 8px;margin-top:2px}" +
+    K + ".sc-uq," + K + ".sc-backtag{padding:0 4px}" + K + ".sc-backtag{background:#fff;color:var(--race-3);border-radius:2px;letter-spacing:.06em}" +
+    K + ".sc-emb{width:24px;height:24px;padding:3px}" +
+    K + ".sc-statrow{gap:6px}" + K + ".sc-stats{gap:3px}" + K + ".sc-st{min-width:26px}" + K + ".sc-st span{font-size:6.5px;letter-spacing:.02em}" +
+    K + ".sc-st b{font-size:20px;min-width:26px;padding:0 4px;line-height:1.1;clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}" +
+    K + ".sc-sup{font-size:8px;margin-left:auto}" + K + ".sc-sup th{font-size:6.5px;padding:1px 4px}" + K + ".sc-sup td{padding:0 4px}" +
+    K + ".sc-fielded{font-size:8px;padding:1px 6px}" +
+    K + ".sc-sec{gap:3px}" + K + ".sc-ph{gap:4px;border-bottom-width:1.5px}" +
+    K + ".sc-phtab{font-size:10.7px;gap:4px;padding:1px 10px 0 5px}" + K + ".sc-ico svg{width:10px;height:10px}" + K + ".sc-phx{font-size:7px}" +
+    K + ".sc-ab{padding:2px 6px;border-width:1px;clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%)}" +
+    K + ".sc-pill{font-size:8px;padding:0 3px}" + K + ".sc-cost{font-size:8px}" + K + ".sc-uptag{font-size:6.7px;margin-bottom:1px}" +
+    K + ".sc-wt{font-size:9.33px}" + K + ".sc-wt th{font-size:8.8px;padding:1px 3px}" + K + ".sc-wt td{padding:1px 3px}" + K + ".sc-wt td:last-child{font-size:8.5px}" +
+    K + ".sc-for{font-size:6.7px}" + K + ".sc-upband{font-size:8px;padding:1px 6px;margin-top:2px}" + K + ".sc-upw{padding:2px 3px 1px;border-width:1px}" + K + ".sc-upw.sc-taken{padding-left:7px}" + K + ".sc-ab.sc-taken{padding-left:9px}" +
+    K + ".sc-foot{font-size:8px;padding:2px 6px;gap:3px 8px}" + K + ".sc-ftags i{font-size:7.5px;padding:0 5px}" +
+    K + ".sc-fine{font-size:6.7px;line-height:1.3}" +
+    "@media print{.cs-list{gap:5mm}.cs-wrap{box-shadow:none;border:.3mm solid #999}.cs-wrap>.sc-card{border:0}}";
+  /* Shrinks a card face's content only if it doesn't fit at the official type sizes. The card is laid out wider (W / z) and
+     scaled by z, so text wraps at the reduced size instead of being clipped. Runs in the exported page
+     (on load and after fonts load, never during print layout, where a card split across pages measures wrong) and in the app's export preview. */
+  function fitCards(root) {
+    var boxes = (root || document).querySelectorAll(".cs-wrap");
+    for (var i = 0; i < boxes.length; i++) {
+      var box = boxes[i], card = box.firstElementChild; if (!card) continue;
+      var W = box.clientWidth, H = box.clientHeight; if (!W || !H) continue;
+      // zoom shrinks the layout box itself, so a printed card never fragments across pages; transform is the fallback
+      var useZoom = typeof CSS !== "undefined" && CSS.supports && CSS.supports("zoom", "0.5");
+      var fits = function (z) {
+        card.style.width = (W / z) + "px"; card.style.minHeight = "0";
+        if (useZoom) { card.style.transform = ""; card.style.zoom = z; return card.getBoundingClientRect().height <= box.getBoundingClientRect().height + 0.5; }
+        card.style.transform = "scale(" + z + ")"; return card.offsetHeight * z <= H + 0.5;
+      };
+      var lo = 0.3, hi = 1;
+      if (fits(1)) lo = 1; else { for (var k = 0; k < 14; k++) { var mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } }
+      fits(lo); card.style.minHeight = (H / lo) + "px"; box.setAttribute("data-scale", lo.toFixed(3));
+    }
+  }
+  var FIT_SCRIPT = "<script>(function(){var fit=" + fitCards.toString() + ";function run(){if(window.matchMedia&&matchMedia('print').matches)return;fit(document);}" +
+    "if(document.readyState!=='loading')run();else document.addEventListener('DOMContentLoaded',run);" +
+    "window.addEventListener('load',run);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(run);})();<\/script>";
+
+  function docShell(title, body, extra) {
+    extra = extra || {};
     return "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" + esc(title) + "</title>" + FONT_LINK +
-      "<style>" + DOC_CSS + "\n" + CARD_CSS + "</style></head><body><main class=\"page\">" + body +
+      "<style>" + DOC_CSS + "\n" + CARD_CSS + (extra.css ? "\n" + extra.css : "") + "</style></head><body><main class=\"page\">" + body + (extra.script || "") +
       '<p class="foot">Built with SurgeCraft · Unit data from the unit cards; costs from the Unit Cost Table (September 2026) · Printing: use your browser\'s Print command.</p></main></body></html>\n';
   }
   function rosterSheetDoc(C, r, src, opts) {
     opts = opts || {};
     return docShell((r.name || "Roster") + " — Army Roster", '<div class="paper">' + sheetHTML(C, r, src, { art: opts.art !== false, checks: true }) + "</div>");
   }
-  function fieldManualDoc(C, r, src) {
+  function fieldManualDoc(C, r, src, opts) {
+    opts = opts || {}; var cs = !!opts.cardSize;
+    var wrapCard = function (html) { return cs ? '<div class="cs-wrap">' + html + "</div>" : html; };
     var lim = C.limits(r), side = lim.scale.side, body = '<div class="paper">' + sheetHTML(C, r, src, { art: !src || !!src(ART.race(r.race || "Terran")), checks: true }) + "</div>";
     if (r.units.length) {
       body += '<h2 class="doc-h brk">UNIT CARDS</h2>';
-      r.units.forEach(function (e) { var u = C.units[e.unitId]; if (u) body += unitCardHTML(C, u, e, src); });
+      if (cs) body += '<div class="cs-list">';
+      // card size: a front face and, when the unit has upgrades, an upgrade face, kept together on one page
+      var card = function (u, e) {
+        if (!cs) return unitCardHTML(C, u, e, src);
+        return '<div class="cs-pair">' + wrapCard(unitCardHTML(C, u, e, src, { face: "front" })) + (u.upgrades.length ? wrapCard(unitCardHTML(C, u, e, src, { face: "back" })) : "") + "</div>";
+      };
+      r.units.forEach(function (e) { var u = C.units[e.unitId]; if (u) body += card(u, e); });
       // summoned units the army can bring onto the table (referenced by SUMMON or faction abilities)
       var summoned = summonedFor(C, r);
-      summoned.forEach(function (u) { body += unitCardHTML(C, u, null, src); });
+      summoned.forEach(function (u) { body += card(u, null); });
+      if (cs) body += "</div>";
     }
     var f = C.faction(r), cardsHTML = "";
     if (f) cardsHTML += tacCardHTML(C, f, src);
@@ -453,7 +523,7 @@
     if (ms.length) body += '<h2 class="doc-h brk">MISSION CARDS</h2><div class="grid2">' + ms.map(function (id) { return missionCardHTML(C.missions[id], side); }).join("") + "</div>";
     var ds = (r.deployments || []).filter(function (id) { return C.deployments[id]; });
     if (ds.length) body += '<h2 class="doc-h brk">DEPLOYMENT CARDS</h2><div class="grid2">' + ds.map(function (id) { return deploymentCardHTML(C.deployments[id], side, src); }).join("") + "</div>";
-    return docShell((r.name || "Roster") + " — Field Manual", body);
+    return docShell((r.name || "Roster") + " — Field Manual", body, cs ? { css: CARDSIZE_CSS, script: FIT_SCRIPT } : null);
   }
   function summonedFor(C, r) {
     var out = [], seen = {};
@@ -678,7 +748,7 @@
     ART: ART, PHASES: PHASES, PHASE_NAME: PHASE_NAME, CARD_CSS: CARD_CSS, esc: esc, fmt: fmt, richText: richText,
     typePill: typePill, abilityBox: abilityBox, weaponTable: weaponTable, unitCardHTML: unitCardHTML, tacCardHTML: tacCardHTML,
     missionCardHTML: missionCardHTML, deploymentCardHTML: deploymentCardHTML, sheetHTML: sheetHTML, slotsText: slotsText, summonedFor: summonedFor, imagesFor: imagesFor,
-    fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS,
+    fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS, CARD_MM: CARD_MM, CARDSIZE_CSS: CARDSIZE_CSS, fitCards: fitCards,
     exports: { textFull: textFull, textCompact: textCompact, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc }
   };
   if (typeof module !== "undefined" && module.exports) module.exports = R; else root.Render = R;
