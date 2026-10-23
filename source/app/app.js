@@ -764,6 +764,97 @@ function filterKw(q){
   var c = $("kw-count"); if(c) c.textContent = q ? n+" of "+KW.list.length : KW.list.length+" keywords";
   var e = $("kw-empty"); if(e) e.hidden = n>0;
 }
+/* ------------ card reference ------------
+   Every unit, Faction, Tactical and Creep Card for one faction, opened from the header. Cards render from the
+   dataset unchanged through the same renderers as the roster views: a unit is shown as its full printed card
+   (every weapon, ability and upgrade, nothing marked as taken). */
+var CR = { race:null, type:"all", q:"", open:{} };
+var CR_TYPES = [["all","All"],["units","Units"],["Faction","Faction"],["Tactical","Tactical"],["Creep","Creep"]];
+function crText(o){ var out = []; (function walk(x, k){ if(k==="id"||k==="corrections"||k==="notes"||k==="card_version") return;
+  if(typeof x==="string") out.push(x); else if(x && typeof x==="object") Object.keys(x).forEach(function(kk){ walk(x[kk], kk); }); })(o, ""); return out.join(" ").toLowerCase(); }
+var crIndex = null;
+function crItems(race){
+  if(!crIndex){ crIndex = {}; C.data.units.forEach(function(u){ crIndex["u:"+u.id] = crText(u); }); C.data.cards.forEach(function(c){ crIndex["c:"+c.id] = crText(c); }); }
+  var q = CR.q.trim().toLowerCase(), hit = function(k){ return !q || crIndex[k].indexOf(q)!==-1; };
+  var units = C.data.units.filter(function(u){ return u.race===race && hit("u:"+u.id); });
+  var cards = C.data.cards.filter(function(c){ return c.race===race && hit("c:"+c.id); });
+  return { units: units, cards: cards };
+}
+function crRow(key, thumb, title, meta, right){
+  var open = !!CR.open[key];
+  return '<div class="vitem'+(open?' open':'')+'" data-crkey="'+esc(key)+'"><button class="vrow" data-a="cr-open" data-v="'+esc(key)+'" aria-expanded="'+open+'">'+thumb+
+    '<span class="v-t"><span class="v-name">'+title+'</span><span class="v-meta">'+meta+'</span></span><span class="v-r">'+(right||'')+'</span><span class="v-chev" aria-hidden="true"></span></button>'+
+    (open ? '<div class="v-body">'+crCard(key)+'</div>' : '')+'</div>';
+}
+function crCard(key){
+  var id = key.slice(2);
+  if(key[0]==="u") return C.units[id] ? Render.unitCardHTML(C, C.units[id], null, null) : "";
+  return C.cards[id] ? Render.tacCardHTML(C, C.cards[id], null, 1) : "";
+}
+function crTags(list, race){ return (list||[]).filter(function(t){ return t!==race; }).map(function(t){ return '<span class="chip">'+esc(t)+'</span>'; }).join(""); }
+function crListHTML(){
+  var race = CR.race, it = crItems(race), h = "", n = 0, show = function(t){ return CR.type==="all" || CR.type===t; };
+  if(show("units")){
+    var groups = SLOT_TYPES.map(function(s){ return [s, it.units.filter(function(u){ return !u.summoned && u.army_slot===s; })]; });
+    groups.push(["Summoned Units", it.units.filter(function(u){ return u.summoned; })]);
+    groups.forEach(function(g){
+      if(!g[1].length) return; n += g[1].length;
+      h += '<div class="subhead">'+esc(g[0]==="Summoned Units"?g[0]:g[0]+" units")+' <span class="aside">'+g[1].length+'</span></div><div class="vlist">';
+      g[1].forEach(function(u){
+        var sizes = u.compositions.map(function(c){ return '<span class="chip">'+c.models+(c.models>1?' models':' model')+' · Supply '+c.supply+'</span>'; }).join("");
+        var meta = (u.combat_role?'<span class="chip">'+esc(u.combat_role)+'</span>':'')+(u.unique?'<span class="chip uniq">Unique</span>':'')+crTags(u.faction_tags, race)+(u.summoned?'<span class="faint">No Mineral cost</span>':sizes);
+        var right = u.summoned ? '' : '<span class="mincost">'+u.compositions.map(function(c){ return c.minerals; }).join(" / ")+'</span>';
+        h += crRow("u:"+u.id, '<span class="thumb mini">'+miniImg(u.id)+'</span>', esc(u.name), meta, right);
+      });
+      h += '</div>';
+    });
+  }
+  ["Faction","Tactical","Creep"].forEach(function(kind){
+    if(!show(kind)) return;
+    var cs = it.cards.filter(function(c){ return c.kind===kind; }); if(!cs.length) return; n += cs.length;
+    h += '<div class="subhead">'+esc(kind)+' Cards <span class="aside">'+cs.length+'</span></div><div class="vlist">';
+    cs.forEach(function(c){
+      var meta = (c.unique?'<span class="chip uniq">Unique</span>':'')+slotChips(c.slots)+(c.resource && c.resource.value!=null?'<span class="chip">'+esc(c.resource.value+" "+c.resource.type)+'</span>':'')+crTags(c.faction_tags, race)+
+        '<span class="faint">'+c.abilities.map(function(a){ return esc(a.name); }).join(" · ")+'</span>';
+      h += crRow("c:"+c.id, '<span class="thumb art-bg"><img src="'+ART.card(c.id)+'" alt="" loading="lazy"></span>', esc(c.name), meta, kind==="Faction"?'':'<span class="gascost">'+(c.gas_cost||0)+'</span>');
+    });
+    h += '</div>';
+  });
+  if(!n) h = '<div class="kr-empty">'+(CR.q.trim() ? 'No '+esc(race)+' card matches that search.' : 'No '+esc(race)+' cards of this type.')+'</div>';
+  return {html:h, n:n};
+}
+function renderCrList(){
+  var box = $("cr-list"), cnt = $("cr-count"); if(!box) return;
+  var res = crListHTML(); box.innerHTML = res.html;
+  if(cnt) cnt.textContent = res.n+(res.n===1?" card":" cards");
+}
+function crControlsHTML(){
+  return '<div class="seg race" role="group" aria-label="Faction">'+["Terran","Protoss","Zerg"].map(function(rc){
+      return '<button data-a="cr-race" data-v="'+rc+'" aria-pressed="'+(CR.race===rc)+'"><img src="'+ART.race(rc)+'" alt="">'+rc+'</button>'; }).join("")+'</div>'+
+    '<div class="seg" role="group" aria-label="Card type">'+CR_TYPES.filter(function(t){ return t[0]!=="Creep" || CR.race==="Zerg"; }).map(function(t){
+      return '<button data-a="cr-type" data-v="'+t[0]+'" aria-pressed="'+(CR.type===t[0])+'">'+t[1]+'</button>'; }).join("")+'</div>';
+}
+function openCardRef(){
+  if(!CR.race) CR.race = (S.cur && S.cur.race) || "Terran";
+  var h = '<div class="kwref cref" id="cref" data-skin="'+esc(CR.race)+'"><div class="kr-head"><h2>Card reference</h2><p>Every unit and every Faction, Tactical and Creep Card, with the values printed on the official cards. Units show the whole card, upgrades included. Tap a line to open its card. Tap an underlined keyword for its definition.</p></div>'+
+    '<div class="cr-ctl" id="cr-ctl">'+crControlsHTML()+'</div>'+
+    '<div class="kr-tools"><input class="input" id="cr-q" type="search" placeholder="Search names and card text" aria-label="Search cards" autocomplete="off" value="'+esc(CR.q)+'"><span class="faint" id="cr-count"></span></div>'+
+    '<div id="cr-list"></div></div>';
+  openModal(h); renderCrList();
+}
+function crClick(a, v){
+  if(a==="cr-race"){ if(CR.race===v) return; CR.race = v; CR.open = {}; if(CR.type==="Creep" && v!=="Zerg") CR.type = "all";
+    var box = $("cref"); if(box) box.setAttribute("data-skin", v); var ctl = $("cr-ctl"); if(ctl) ctl.innerHTML = crControlsHTML(); renderCrList(); return; }
+  if(a==="cr-type"){ CR.type = v; var ctl2 = $("cr-ctl"); if(ctl2) ctl2.innerHTML = crControlsHTML(); renderCrList(); return; }
+  if(a==="cr-open"){
+    CR.open[v] = !CR.open[v];
+    var item = document.querySelector('#cr-list .vitem[data-crkey="'+v.replace(/"/g,'')+'"]'); if(!item) return;
+    var btn = item.querySelector(".vrow"), body = item.querySelector(".v-body");
+    item.classList.toggle("open", CR.open[v]); btn.setAttribute("aria-expanded", CR.open[v]);
+    if(CR.open[v] && !body){ body = document.createElement("div"); body.className = "v-body"; body.innerHTML = crCard(v); item.appendChild(body); }
+    else if(!CR.open[v] && body) body.remove();
+  }
+}
 var kwScrollY = 0;
 window.addEventListener("scroll", function(){ if($("kw-pop") && window.innerWidth>680 && Math.abs(window.scrollY-kwScrollY)>60) closeKwPop(); }, {passive:true});
 window.addEventListener("resize", function(){ if($("kw-pop")) closeKwPop(); });
@@ -1172,6 +1263,8 @@ document.addEventListener("click", function(ev){
   if(a==="close-modal"){ if(ev.target===t || t.classList.contains("mclose")) closeModal(); return; }
   if(t.hasAttribute("disabled") || t.getAttribute("aria-disabled")==="true") return;
   if(a.indexOf("v-")===0){ vClick(a, v); return; }
+  if(a==="cards"){ openCardRef(); return; }
+  if(a.indexOf("cr-")===0){ crClick(a, v); return; }
   if(a.indexOf("b-")===0){ if(t.tagName==="INPUT") return; bClick(a, v, eu, t); return; }
   switch(a){
     case "home": S.view="list"; S.cur=null; S.notice=null; S.confirmDel=null; render(); window.scrollTo(0,0); break;
@@ -1252,6 +1345,7 @@ var inputTimer = null, baseTimer = null;
 document.addEventListener("input", function(ev){
   var t = ev.target, r = S.cur;
   if(t.id==="kw-q"){ filterKw(t.value); return; }
+  if(t.id==="cr-q"){ CR.q = t.value; CR.open = {}; renderCrList(); return; }
   if(!r) return;
   if(t.id==="f-name"){ r.name = t.value; commit({quiet:true}); }
   else if(t.id==="f-player"){ r.player = t.value; commit({quiet:true}); }

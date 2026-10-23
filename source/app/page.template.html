@@ -268,6 +268,12 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .kr-item.flash summary{box-shadow:inset 4px 0 0 var(--accent)}
 .kr-item .kw-body{padding:8px 12px 12px;font-size:13.5px}
 .kr-empty{padding:14px;color:var(--ink-2)}
+/* card reference */
+.cref .cr-ctl{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
+.cref .race button{font-size:14px;padding:4px 12px 4px 6px}
+.cref .race button img{width:24px;height:24px}
+.cref .subhead:first-child{margin-top:0}
+.cref .v-body .sc-card{max-width:900px}
 /* roster view */
 .vsum{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 16px}
 .vsum>div{display:flex;flex-direction:column;gap:1px}
@@ -546,6 +552,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
   <button class="brand" data-a="home" aria-label="SurgeCraft, all rosters"><img id="brand-emb" src="img/race/terran.webp" alt=""><span>Surge<b>Craft</b></span></button>
   <div class="crumb" id="crumb"></div>
   <div class="savestate" id="savestate" aria-live="polite"></div>
+  <button class="kwbtn" data-a="cards" title="Card reference" aria-label="Card reference"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.2" y="1.8" width="8" height="10.6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.6 4.4l-.9.3a1.2 1.2 0 0 0-.8 1.5l2.4 7.6a1.2 1.2 0 0 0 1.5.8l4.4-1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="ml">Cards</span></button>
   <button class="kwbtn" data-a="kw-all" title="Keyword reference" aria-label="Keyword reference"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.6c1.9-.5 3.8-.3 5.5.8v10.2c-1.7-1.1-3.6-1.3-5.5-.8zM13.5 2.6c-1.9-.5-3.8-.3-5.5.8v10.2c1.7-1.1 3.6-1.3 5.5-.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="ml">Keywords</span></button>
   <div class="modes" role="group" aria-label="Color mode" id="modes">
     <button data-a="mode" data-v="auto" aria-pressed="true" title="Match your device"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg><span class="ml">Auto</span></button>
