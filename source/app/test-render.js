@@ -75,12 +75,19 @@ require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.r
   ok("card size: an upgrade face for every unit with upgrades", backs === withUps);
   ok("card size: faces sit in fixed 162x107 mm boxes with the fit script", /\.cs-wrap\{width:162mm;height:107mm/.test(csDoc) && csDoc.indexOf("<script>") !== -1 && (csDoc.match(/class="cs-pair"/g) || []).length === 5);
   ok("card size off = no card-size markup", X.fieldManualDoc(C, r, p => p, { cardSize: false }) === man);
-  // 4 per page: same faces, no unit art, rows of two, Letter page margin
-  const q = X.fieldManualDoc(C, r, p => p, { cardSize: "quad" });
-  ok("4-up: same front and upgrade faces as official", (q.match(/sc-face-front/g) || []).length === 5 && (q.match(/sc-face-back/g) || []).length === withUps);
-  ok("4-up: no unit art on the faces", !/class="cs-wrap"><article[^>]*><div class="sc-art/.test(q));
-  ok("4-up: faces are 96 x 127 mm in rows of at most two", /\.cs-quad \.cs-wrap\{width:96mm;height:127mm\}/.test(q) && (q.match(/class="cs-row"/g) || []).every(() => true) && q.split('class="cs-row"').slice(1).every(seg => (seg.split('<div class="cs-row"')[0].match(/class="cs-wrap"/g) || []).length <= 2));
-  ok("4-up: sets a 9 mm page margin; official does not", q.indexOf("@page{margin:9mm}") !== -1 && csDoc.indexOf("@page{margin:9mm}") === -1);
+  // tactical cards at card size: art + rules face per physical copy, 63 x 88 mm, nothing lost between faces
+  const tacN = 1 + Object.keys(r.tactical).reduce((n, id) => n + r.tactical[id], 0);
+  ok("card size: an art and a rules face for every faction/tactical card copy", (csDoc.match(/sc-noart sc-tface-art"/g) || []).length === tacN && (csDoc.match(/sc-noart sc-tface-rules"/g) || []).length === tacN && (csDoc.match(/class="cs-tpair"/g) || []).length === tacN);
+  ok("card size: tactical faces are 63 x 88 mm", /\.cs-tpair>\.cs-wrap\{width:63mm;height:88mm\}/.test(csDoc));
+  const tmiss = [];
+  Object.values(C.cards).forEach(c => {
+    const one = R.tacCardHTML(C, c, p => p), two = R.tacCardHTML(C, c, p => p, 1, { face: "art" }) + R.tacCardHTML(C, c, p => p, 1, { face: "rules" });
+    c.abilities.forEach(a => { const n = R.esc(a.name.toUpperCase()); if (one.indexOf(n) !== -1 && two.indexOf(n) === -1) tmiss.push(c.name + ": " + a.name); });
+    if (c.resource && c.resource.value != null && two.indexOf(R.esc(c.resource.type) + ": " + R.esc(c.resource.value)) === -1) tmiss.push(c.name + ": resource");
+    if (two.indexOf(R.esc(R.slotsText(c.slots))) === -1) tmiss.push(c.name + ": supply");
+  });
+  ok("card size: art + rules faces carry every ability, cost and supply (" + Object.keys(C.cards).length + " cards)", tmiss.length === 0 || console.log(tmiss));
+  ok("print hides the footer in every document", /@media print\{\.foot\{display:none\}/.test(man) && /@media print\{\.rf-foot\{display:none\}/.test(X.referenceDoc(C, r, {})));
   // every ability, weapon and upgrade name on the one-face card appears across the two faces
   const all = data.units.filter(u => !u.summoned && u.compositions && u.compositions.length), miss = [];
   all.forEach(u => {

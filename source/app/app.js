@@ -9,7 +9,7 @@ var esc = Render.esc, fmt = Render.fmt;
 var S = {
   view:"list", tab:"build", rosters:[], cur:null, store:"loading", save:"idle",
   open:{}, picker:false, importOpen:false, confirmDel:null, confirmRace:null, notice:null, downloads:null, tileOpen:null,
-  exp:{ base:"", art:true, gloss:false, cardSize:"quad", preview:null, busy:null, copyText:null }
+  exp:{ base:"", art:true, gloss:false, cardSize:true, preview:null, busy:null, copyText:null }
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function $(id){ return document.getElementById(id); }
@@ -573,11 +573,7 @@ function renderExport(){
     var busy = S.exp.busy===f.id;
     h += '<div class="fmt'+(f.hero?' hero':'')+'"><div class="fh"><span class="ext">.'+f.ext.toUpperCase()+'</span><span class="fn">'+esc(f.name)+'</span></div><div class="fd">'+esc(f.desc)+'<div class="faint fname" style="margin-top:4px;font-size:12px">'+esc(fileName(f))+'</div></div>';
     if(f.gloss) h += '<label class="fo"><input type="checkbox" data-a="exp-gloss"'+(S.exp.gloss?' checked':'')+'> Add a keyword glossary at the end</label>';
-    if(f.cardSize){ var CL=Render.CARD_LAYOUTS, opt=function(v,t){ return '<option value="'+v+'"'+(S.exp.cardSize===v?' selected':'')+'>'+t+'</option>'; };
-      h += '<label class="fo" for="exp-cardsize">Unit cards <select class="input" id="exp-cardsize" data-a="exp-cardsize" style="width:auto;padding:3px 6px;margin-left:4px">'+
-        opt("quad", "4 per page, "+CL.quad.w+" × "+CL.quad.h+" mm, no art (fits US Letter)")+
-        opt("official", "Official card size, "+CL.official.w+" × "+CL.official.h+" mm, 2 per page")+
-        opt("", "Full page width")+'</select></label>'; }
+    if(f.cardSize) h += '<label class="fo"><input type="checkbox" data-a="exp-cardsize"'+(S.exp.cardSize?' checked':'')+'> Print cards at card size (unit cards '+Render.CARD_MM.w+' × '+Render.CARD_MM.h+' mm, tactical cards '+Render.TAC_MM.w+' × '+Render.TAC_MM.h+' mm)</label>';
     if(f.art) h += '<label class="fo"><input type="checkbox" data-a="exp-art"'+(S.exp.art?' checked':'')+'> Include card art and miniatures</label>';
     h += '<div class="fa"><button class="btn primary sm" data-a="exp-save" data-v="'+f.id+'"'+(!S.downloads||busy?' disabled':'')+'>'+(busy?'Preparing…':'Save to disk')+'</button>'+
       (f.id!=="zip"?'<button class="btn sm" data-a="exp-copy" data-v="'+f.id+'">Copy'+(f.ext==="html"?' HTML':'')+'</button><button class="btn ghost sm" data-a="exp-prev" data-v="'+f.id+'">'+(S.exp.preview&&S.exp.preview.id===f.id?'Hide preview':'Preview')+'</button>':'')+'</div></div>';
@@ -1191,7 +1187,7 @@ document.addEventListener("change", function(ev){
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
   if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }
-  if(a==="exp-cardsize"){ S.exp.cardSize = t.value; S.exp.preview=null; renderExport(); return; }
+  if(a==="exp-cardsize"){ S.exp.cardSize = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-art"){ S.exp.art = t.checked; S.exp.preview=null; renderExport(); return; }
   if(!a || !r) return;
   var e = entryById(t.getAttribute("data-e")), name = t.getAttribute("data-v");
