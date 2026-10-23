@@ -39,7 +39,8 @@ const zm = X.fieldManualDoc(C, z, p=>p); ok("zerg manual includes Omega Worm + R
 const KW = require("./keywords.js");
 const ref = X.referenceDoc(C, r, { kw: KW });
 ok("ref doc well-formed", ref.startsWith("<!doctype html>") && ref.trim().endsWith("</html>") && (ref.match(/<div/g)||[]).length === (ref.match(/<\/div>/g)||[]).length);
-ok("ref has A4 page rule", ref.indexOf("@page{size:A4") !== -1);
+ok("ref has Letter page rule", ref.indexOf("@page{size:letter") !== -1);
+ok("sheet and manual have Letter page rule", sheet.indexOf("@page{size:letter") !== -1 && man.indexOf("@page{size:letter") !== -1);
 ok("ref shows Haywire for Hellfire, no Hellfire row", ref.indexOf('Haywire Missiles <span class="rf-note">for Hellfire Missiles</span>') !== -1 && ref.indexOf('<td class="rf-wn">Hellfire Missiles') === -1);
 ok("ref shows specialist models", ref.indexOf('Rocket Launcher <span class="rf-note">model 2</span>') !== -1 && ref.indexOf('AGG-12 <span class="rf-note">model 3, for C-14 Rifle</span>') !== -1);
 ok("ref leaves out untaken upgrades", ref.indexOf("Slugthrower") === -1 && ref.indexOf("Combat Shield") === -1);

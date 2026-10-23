@@ -452,6 +452,7 @@
     ".doc-h{font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-weight:700;letter-spacing:.1em;font-size:15px;margin:8px 0 -6px;color:#2a3a48}" +
     ".grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}" +
     ".foot{font-size:11px;color:#5d6670;text-align:center}" +
+    "@page{size:letter;margin:0.4in}" +
     "@media (max-width:700px){.grid2{grid-template-columns:minmax(0,1fr)}}" +
     "@media print{.foot{display:none}body{background:#fff}.page{padding:0;max-width:none}.paper{box-shadow:none;padding:0}.sc-card,.sc-mission{box-shadow:none;border:1px solid #bbb}.doc-h{break-after:avoid}.brk{break-before:page}}";
   var FONT_LINK = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wdth,wght@62.5..100,400..900&family=Saira:wdth,wght@75..100,500..700&display=swap">';
@@ -529,7 +530,7 @@
     extra = extra || {};
     return "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" + esc(title) + "</title>" + FONT_LINK +
       "<style>" + DOC_CSS + "\n" + CARD_CSS + (extra.css ? "\n" + extra.css : "") + "</style></head><body><main class=\"page\">" + body + (extra.script || "") +
-      '<p class="foot">Built with SurgeCraft · Unit data from the unit cards; costs from the Unit Cost Table (September 2026) · Printing: use your browser\'s Print command.</p></main></body></html>\n';
+      '<p class="foot">Built with SurgeCraft · Unit data from the unit cards; costs from the Unit Cost Table (September 2026) · Printing: US Letter, with your browser\'s Print command.</p></main></body></html>\n';
   }
   function rosterSheetDoc(C, r, src, opts) {
     opts = opts || {};
@@ -587,7 +588,7 @@
     });
     return out;
   }
-  /* ---------- REFERENCE SHEET (compact table reference, aimed at 1–2 A4 pages) ----------
+  /* ---------- REFERENCE SHEET (compact table reference, aimed at 1–2 US Letter pages) ----------
      Every value is copied from the unit card data unchanged; only the layout is condensed.
      Ability text is left out (names, phase, type and cost only). Identical entries are merged as "2×". */
   var PHASE_ORDER = { Movement: 0, Assault: 1, Combat: 2, Any: 3 };
@@ -724,7 +725,7 @@
   }
   var REF_CSS = [
     "body{margin:0;background:#D9DDE2;color:#09202E;font-family:'Noto Sans',Arial,sans-serif;font-stretch:87.5%;font-size:8.6pt;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}",
-    ".sheet{box-sizing:border-box;width:210mm;max-width:100%;margin:16px auto;background:#fff;padding:9mm;box-shadow:0 1px 4px rgba(0,0,0,.15)}",
+    ".sheet{box-sizing:border-box;width:8.5in;max-width:100%;margin:16px auto;background:#fff;padding:9mm;box-shadow:0 1px 4px rgba(0,0,0,.15)}",
     ".rf i{font-style:normal}",
     ".rf-h{border-bottom:2px solid #09202E;padding-bottom:4px;margin-bottom:6px}",
     ".rf-ht{display:flex;align-items:baseline;gap:10px}",
@@ -765,13 +766,13 @@
     ".rf-ge{break-inside:avoid;page-break-inside:avoid;margin:0 0 4px}",
     ".rf-gh{font-size:8pt}.rf-ge p{margin:1px 0}.rf-ge ul{margin:1px 0;padding-left:14px}",
     ".rf-foot{font-size:7pt;color:#5d6670;margin-top:8px;text-align:center}",
-    "@page{size:A4;margin:9mm}",
+    "@page{size:letter;margin:9mm}",
     "@media print{.rf-foot{display:none}body{background:#fff}.sheet{width:auto;margin:0;padding:0;box-shadow:none}}",
     "@media (max-width:700px){.sheet{padding:12px;margin:0}.rf-wt{min-width:560px}.rf-u{overflow-x:auto}.rf-glc{column-count:1}}"
   ].join("\n");
   function referenceDoc(C, r, opts) {
     var body = '<div class="sheet">' + referenceSheetHTML(C, r, opts) +
-      '<p class="rf-foot">Built with SurgeCraft · Values from the unit cards; costs from the Unit Cost Table · Ability text is on the cards · Print on A4 with your browser\'s Print command.</p></div>';
+      '<p class="rf-foot">Built with SurgeCraft · Values from the unit cards; costs from the Unit Cost Table · Ability text is on the cards · Print on US Letter with your browser\'s Print command.</p></div>';
     return "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" + esc((r.name || "Roster") + " — Reference Sheet") + "</title>" + FONT_LINK +
       "<style>" + REF_CSS + "</style></head><body>" + body + "</body></html>\n";
   }

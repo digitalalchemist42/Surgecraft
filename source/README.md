@@ -34,7 +34,7 @@ python3 mk_test.py                                   # -> test.html (adds the te
 python3 build_standalone.py                          # -> out/surgecraft.html and out/surgecraft-site/ (this repo's root)
 node test-core.js && node test-render.js && node test-battle.js
 python3 -m http.server 8765 &                        # smoke tests load http://localhost:8765/test.html
-python3 smoke_view.py; python3 smoke_dep.py; python3 smoke_kw.py; python3 smoke_battle.py; python3 smoke_battle2.py
+python3 smoke_view.py; python3 smoke_dep.py; python3 smoke_kw.py; python3 smoke_battle.py; python3 smoke_battle2.py; python3 smoke_print.py   # Print / PDF: renders each export through Chromium's print pipeline and checks Letter pages (needs pypdf)
 rm -rf /tmp/pwa-site && cp -r out/surgecraft-site /tmp/pwa-site && (cd /tmp/pwa-site && python3 -m http.server 8767 &) ; python3 smoke_pwa.py   # the test edits sw.js, so it serves a copy
 ```
 
