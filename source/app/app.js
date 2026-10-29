@@ -513,7 +513,7 @@ function renderRail(){
 
 /* ------------ export ------------ */
 var FORMATS = [
-  {id:"manual", ext:"html", name:"Field manual", hero:true, art:true, cardSize:true, desc:"Roster sheet plus the full card for every unit, summoned unit, Faction, Tactical and Creep Card, and your Mission Cards. Made for the table."},
+  {id:"manual", ext:"html", name:"Field manual", hero:true, art:true, cardSize:true, desc:"Roster sheet plus the card for every unit as fielded (only the upgrades you took), every summoned unit, Faction, Tactical and Creep Card, and your Mission Cards. Made for the table."},
   {id:"sheet", ext:"html", name:"Roster sheet", art:true, desc:"The tournament roster with every Organized Play field, laid out for printing."},
   {id:"ref", ext:"html", name:"Reference sheet", suffix:"-reference", gloss:true, desc:"Every unit's stats, fielded weapon profiles, ability names and taken upgrades in compact tables, sized for one or two US Letter pages. Identical units are merged (2×). Rules text stays on the cards."},
   {id:"text", ext:"txt", name:"Plain text", desc:"The full roster as plain text: units, loadouts, cards and totals."},

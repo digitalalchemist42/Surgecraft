@@ -472,7 +472,7 @@
     ".cs-wrap{width:" + CARD_MM.w + "mm;height:" + CARD_MM.h + "mm}" +
     ".cs-wrap{box-sizing:border-box;flex:none;overflow:hidden;border-radius:3mm;position:relative;break-inside:avoid;page-break-inside:avoid;background:#EDEDED;box-shadow:0 1px 3px rgba(0,0,0,.18)}" +
     ".cs-wrap>.sc-card{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:0;box-shadow:none;border:0;grid-template-columns:minmax(0,30%) minmax(0,1fr);font-size:9.33px;line-height:1.25}" +
-    ".cs-wrap>.sc-card.sc-noart{grid-template-columns:minmax(0,1fr)}" +
+    ".cs-wrap>.sc-card.sc-noart{grid-template-columns:minmax(0,1fr)}.cs-wrap>.sc-card.sc-noart>.sc-art{display:none}" +
     K + ".sc-art{position:relative;height:auto;min-height:0}" + K + ".sc-art img{position:absolute;inset:0;width:100%;height:100%;object-position:center 30%}" +
     K + ".sc-body{gap:3px;padding:0 0 4px}" +
     K + ".sc-statrow," + K + ".sc-sec," + K + ".sc-fielded," + K + ".sc-upband," + K + ".sc-upw," + K + ".sc-foot," + K + ".sc-fine{margin-inline:6px}" +
@@ -517,7 +517,11 @@
         if (useZoom) { card.style.transform = ""; card.style.zoom = z; return card.getBoundingClientRect().height <= box.getBoundingClientRect().height + 0.5 && !wide(); }
         card.style.transform = "scale(" + z + ")"; return card.offsetHeight * z <= H + 0.5 && !wide();
       };
+      // a unit card whose face doesn't fit at full size loses its art column first (data-art="dropped"), then shrinks
+      var art = card.querySelector(":scope>.sc-art");
+      if (art && box.getAttribute("data-art") === "dropped") { card.classList.remove("sc-noart"); box.removeAttribute("data-art"); }
       var lo = 0.3, hi = 1;
+      if (!fits(1) && art) { card.classList.add("sc-noart"); box.setAttribute("data-art", "dropped"); }
       if (fits(1)) lo = 1; else { for (var k = 0; k < 14; k++) { var mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } }
       fits(lo); card.style.minHeight = (H / lo) + "px"; box.setAttribute("data-scale", lo.toFixed(3));
     }
@@ -538,7 +542,7 @@
   }
   function fieldManualDoc(C, r, src, opts) {
     opts = opts || {};
-    var cs = !!opts.cardSize; // 162 x 107 mm front and upgrade faces, 2 per page
+    var cs = !!opts.cardSize; // one 162 x 107 mm face per unit, 2 per page
     var wrapCard = function (html) { return cs ? '<div class="cs-wrap">' + html + "</div>" : html; };
     var lim = C.limits(r), side = lim.scale.side, body = '<div class="paper">' + sheetHTML(C, r, src, { art: !src || !!src(ART.race(r.race || "Terran")), checks: true }) + "</div>";
     if (r.units.length) {
@@ -547,14 +551,12 @@
       r.units.forEach(function (e) { var u = C.units[e.unitId]; if (u) items.push([u, e]); });
       // summoned units the army can bring onto the table (referenced by SUMMON or faction abilities)
       summonedFor(C, r).forEach(function (u) { items.push([u, null]); });
-      if (!cs) items.forEach(function (it) { body += unitCardHTML(C, it[0], it[1], src); });
-      else {
-        // a front face and, when the unit has upgrades, an upgrade face, kept together on one page
-        body += '<div class="cs-list">';
-        items.forEach(function (it) { var u = it[0], e = it[1];
-          body += '<div class="cs-pair">' + wrapCard(unitCardHTML(C, u, e, src, { face: "front" })) + (u.upgrades.length ? wrapCard(unitCardHTML(C, u, e, src, { face: "back" })) : "") + "</div>"; });
-        body += "</div>";
-      }
+      // each unit as fielded: the card's profile with only the upgrades taken merged in (replacement weapons swapped,
+      // upgrade abilities in their phase, SPECIALIST weapons with their model); untaken upgrades are left out.
+      // At card size that is one 162 x 107 mm face per unit; fitCards drops the art column only if the face doesn't fit.
+      var cardOf = function (it) { return unitCardHTML(C, it[0], it[1], src, { fielded: true }); };
+      if (!cs) items.forEach(function (it) { body += cardOf(it); });
+      else body += '<div class="cs-list">' + items.map(function (it) { return wrapCard(cardOf(it)); }).join("") + "</div>";
     }
     var f = C.faction(r), cardsHTML = "";
     // card size: each card as its two 63 x 88 mm faces (art over rules), one physical copy per card taken

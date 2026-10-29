@@ -23,7 +23,9 @@ const man = X.fieldManualDoc(C, r, p => p);
 ok("manual has 4 unit cards + summoned PDD", (man.match(/<article class="sc-card" data-race/g) || []).length === 5 && man.indexOf("POINT DEFENSE DRONE") !== -1);
 ok("manual has faction + 6 tactical cards", (man.match(/sc-card sc-tac/g) || []).length === 7);
 ok("manual shows 2 mission cards", (man.match(/class="sc-mission"/g) || []).length === 2);
-ok("manual marks Hellfire replaced by Haywire", /sc-struck[^>]*><td class="sc-wn">HELLFIRE MISSILES/.test(man) && man.indexOf("REPLACED BY HAYWIRE MISSILES") !== -1);
+ok("manual swaps Hellfire for Haywire on the Goliath", /<td class="sc-wn">HAYWIRE MISSILES/.test(man) && man.indexOf('<td class="sc-wn">HELLFIRE MISSILES') === -1);
+ok("manual leaves out untaken upgrades", ["COMBAT SHIELD","SLUGTHROWER","GRENADES - FRAG","SCATTER MISSILES","ARES-CLASS TARGETING SYSTEM"].every(n => man.indexOf('<span class="sc-abn">' + n + ':') === -1 && man.indexOf('<td class="sc-wn">' + n) === -1));
+ok("manual has no upgrade face or untaken TAKEN marks", !/class="sc-card[^"]*sc-face-/.test(man) && man.indexOf('class="sc-upband"') === -1 && man.indexOf("· TAKEN") === -1);
 ok("manual shows specialist model", man.indexOf("MODEL 2") !== -1);
 const imgs = R.imagesFor(C, r, "manual"); ok("manual image list", imgs.includes("img/units/point-defense-drone.webp") && imgs.includes("img/cards/raynors-raiders.webp") && imgs.includes("img/minis/marine.webp"));
 // every unit & card renders without throwing, and tag balance roughly holds
@@ -67,14 +69,13 @@ data.units.forEach(u => {
 ok("ref copies every weapon profile and stat exactly", wbad.length === 0 || console.log(wbad));
 require("fs").writeFileSync("/home/claude/app/sample_reference.html", refG);
 require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.referenceDoc(C, ter, { kw: KW, glossary: true }));
-// card-size printing: front + upgrade faces, nothing lost between them, toggle off = unchanged
+// card-size printing: one as-fielded face per unit, toggle off = unchanged
 {
   const csDoc = X.fieldManualDoc(C, r, p => p, { cardSize: true });
-  const fronts = (csDoc.match(/sc-face-front/g) || []).length, backs = (csDoc.match(/sc-face-back/g) || []).length;
-  const withUps = r.units.map(e => C.units[e.unitId]).concat(R.summonedFor(C, r)).filter(u => u.upgrades.length).length;
-  ok("card size: one front per unit card", fronts === 5);
-  ok("card size: an upgrade face for every unit with upgrades", backs === withUps);
-  ok("card size: faces sit in fixed 162x107 mm boxes with the fit script", /\.cs-wrap\{width:162mm;height:107mm/.test(csDoc) && csDoc.indexOf("<script>") !== -1 && (csDoc.match(/class="cs-pair"/g) || []).length === 5);
+  ok("card size: one face per unit card (4 units + summoned PDD)", (csDoc.match(/<div class="cs-wrap"><article class="sc-card" data-race/g) || []).length === 5);
+  ok("card size: no front/upgrade face split", !/class="sc-card[^"]*sc-face-/.test(csDoc) && csDoc.indexOf('class="cs-pair"') === -1);
+  ok("card size: faces sit in fixed 162x107 mm boxes with the fit script", /\.cs-wrap\{width:162mm;height:107mm/.test(csDoc) && csDoc.indexOf("<script>") !== -1);
+  ok("card size: fit can drop the art column", /\.cs-wrap>\.sc-card\.sc-noart>\.sc-art\{display:none\}/.test(csDoc) && csDoc.indexOf('setAttribute("data-art", "dropped")') !== -1);
   ok("card size off = no card-size markup", X.fieldManualDoc(C, r, p => p, { cardSize: false }) === man);
   // tactical cards at card size: art + rules face per physical copy, 63 x 88 mm, nothing lost between faces
   const tacN = 1 + Object.keys(r.tactical).reduce((n, id) => n + r.tactical[id], 0);
@@ -97,6 +98,18 @@ require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.r
     if (u.upgrades.length && R.unitCardHTML(C, u, null, p => p, { face: "front" }).indexOf("sc-upband") !== -1) miss.push(u.name + ": upgrades on front");
   });
   ok("card size: front + back carry every ability, weapon and upgrade (" + all.length + " units)", miss.length === 0 || console.log(miss));
+  // fielded card, each upgrade taken on its own: every ability is the card's, every weapon is the card's (a non-SPECIALIST
+  // replacement swapped in place), the taken upgrade is there and no untaken upgrade appears
+  const fmiss = [], abn = n => '<span class="sc-abn">' + R.esc(n.toUpperCase()) + ":</span>", wn = n => '<td class="sc-wn">' + R.esc(n.toUpperCase());
+  all.forEach(u => u.upgrades.forEach(x => {
+    const e = C.newEntry(u.id); e.upgrades = [x.name]; if (x.specialist) e.specialists[x.name] = 1;
+    const h = R.unitCardHTML(C, u, e, p => p, { fielded: true }), has = n => h.indexOf(abn(n)) !== -1 || h.indexOf(wn(n)) !== -1;
+    u.abilities.forEach(a => { if (!has(a.name)) fmiss.push(u.name + " + " + x.name + ": lost " + a.name); });
+    u.weapons.forEach(w => { const gone = x.kind === "weapon" && !x.specialist && x.replaces === w.name; if (has(w.name) === gone) fmiss.push(u.name + " + " + x.name + ": " + w.name + (gone ? " not replaced" : " lost")); });
+    if (!has(x.name)) fmiss.push(u.name + ": taken " + x.name + " missing");
+    u.upgrades.forEach(y => { if (y.name !== x.name && has(y.name) && !u.abilities.concat(u.weapons).some(b => b.name === y.name)) fmiss.push(u.name + " + " + x.name + ": untaken " + y.name + " shown"); });
+  }));
+  ok("fielded cards: card abilities and weapons, taken upgrade only (" + all.reduce((n, u) => n + u.upgrades.length, 0) + " unit/upgrade cases)", fmiss.length === 0 || console.log(fmiss));
 }
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 require("fs").writeFileSync("/home/claude/app/sample_manual.html", man.replace(/img\//g, "img/"));
