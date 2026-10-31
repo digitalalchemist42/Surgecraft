@@ -535,8 +535,9 @@ body.has-bdock .rail{max-height:calc(100vh - 310px)}
 /* list view */
 .listhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:22px 0 14px}
 .listhead h1{font-size:28px;text-transform:uppercase;letter-spacing:.05em}
-.listhead .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-.examples{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 16px;font-size:13px;color:var(--ink-2)}
+.listhead .actions{flex-basis:100%;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.examples{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 0 16px;font-size:13px;color:var(--ink-2)}
+.ex-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .examples button{display:inline-flex;align-items:center;gap:6px}
 .examples img{width:18px;height:18px;object-fit:contain}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}

@@ -228,7 +228,7 @@ function noticeHTML(){
 function renderList(){
   var list = S.rosters.slice().sort(function(a,b){ return (b.updatedAt||0)-(a.updatedAt||0); });
   var h = '<div class="listhead"><h1>Your rosters</h1><div class="actions">'+(APP.prompt?'<button class="btn" data-a="install">Install app</button>':'')+'<button class="btn" data-a="toggle-import">Import</button><button class="btn primary" data-a="new">New roster</button></div></div>';
-  h += '<div class="examples"><span>Example armies:</span>'+RACES.map(function(x){ return '<button class="btn sm" data-a="example" data-v="'+x+'"><img src="'+ART.race(x)+'" alt="">'+x+'</button>'; }).join("")+'</div>';
+  h += '<div class="examples"><span>Example armies</span><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="example" data-v="'+x+'"><img src="'+ART.race(x)+'" alt="">'+x+'</button>'; }).join("")+'</div></div>';
   if(APP.iosHint) h += '<div class="notice" style="margin:0 0 14px"><div class="grow">To install SurgeCraft on this iPhone or iPad: tap <b>Share</b>, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</div></div>';
   h += noticeHTML();
   if(S.importOpen){
