@@ -149,14 +149,14 @@ rf.units.pop(); B.sync(C,rf,bt); eq("unit removed from roster disappears", bt.un
 eq("state survives JSON round trip", JSON.parse(JSON.stringify(bt)).round, 2);
 
 {
-// --- opponent's list: the New Recruit list as posted (plural "Marines", odd spacing, summoned unit on its own line) ---
-const NR = "Terran - Rr (920 Minerals, 165 Gas) \n 4 Supply, 7 CP\nDeployment Maps: Breach, Meeting Engagment \n Mission Card: Fire in the Sky, Gather the Resources\n# Faction: \n Nova Covert Ops\n# Tactical: \n Academy \n Armory \n Barracks \n Barracks (Tech Lab) \n Orbital Command\n# Units: \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 2x Spec Ops Marauder (Marauder) (230, 1S)\nSabotage Drone\nCreated with newrecruit.eu v37.7";
-const pl = B.parseList(C, NR);
-eq("NR list: race, name, faction", [pl.race, pl.name, pl.factionId], ["Terran", "Rr", "nova-covert-ops"]);
-eq("NR list: units matched to cards (Marines -> Marine)", pl.units.map(u => [u.unitId, u.models]), [["marine",6],["marine",6],["marine",6],["spec-ops-marauder",2]]);
-eq("NR list: upgrades matched", pl.units[0].upgrades, ["AGG-12","Rocket Launcher","Slugthrower"]);
-eq("NR list: tactical cards", Object.keys(pl.tactical).sort(), ["academy","armory","barracks","barracks-tech-lab","orbital-command"]);
-eq("NR list: summoned unit noted, nothing unmatched", [pl.summonable, pl.unmatched.length], [["sabotage-drone"], 0]);
+// --- opponent's list: a list in the Tabletop Simulator layout as a user posted it (plural "Marines", odd spacing, summoned unit on its own line) ---
+const POSTED = "Terran - Rr (920 Minerals, 165 Gas) \n 4 Supply, 7 CP\nDeployment Maps: Breach, Meeting Engagment \n Mission Card: Fire in the Sky, Gather the Resources\n# Faction: \n Nova Covert Ops\n# Tactical: \n Academy \n Armory \n Barracks \n Barracks (Tech Lab) \n Orbital Command\n# Units: \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 2x Spec Ops Marauder (Marauder) (230, 1S)\nSabotage Drone\nCreated with another list builder";
+const pl = B.parseList(C, POSTED);
+eq("Posted list: race, name, faction", [pl.race, pl.name, pl.factionId], ["Terran", "Rr", "nova-covert-ops"]);
+eq("Posted list: units matched to cards (Marines -> Marine)", pl.units.map(u => [u.unitId, u.models]), [["marine",6],["marine",6],["marine",6],["spec-ops-marauder",2]]);
+eq("Posted list: upgrades matched", pl.units[0].upgrades, ["AGG-12","Rocket Launcher","Slugthrower"]);
+eq("Posted list: tactical cards", Object.keys(pl.tactical).sort(), ["academy","armory","barracks","barracks-tech-lab","orbital-command"]);
+eq("Posted list: summoned unit noted, nothing unmatched", [pl.summonable, pl.unmatched.length], [["sabotage-drone"], 0]);
 const ZL = "Zerg - Swarm (1000 Minerals, 100 Gas)\n# Faction:\nKerrigan's Swarm\n# Tactical:\nLair\nRoach Warren\n# Units:\n3x Roaches (170, 1S)\n12x Zerglings (150, 1S)\n1x Kerrigan (250, 1S)\n2x Hydralisks (140, 2S)\n1x Mystery Beast (10, 0S)";
 const zl = B.parseList(C, ZL);
 eq("Zerg list: plurals matched (Roaches, Zerglings, Hydralisks)", zl.units.map(u => u.unitId), ["roach","zergling","kerrigan","hydralisk"]);

@@ -111,7 +111,7 @@ require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.r
   }));
   ok("fielded cards: card abilities and weapons, taken upgrade only (" + all.reduce((n, u) => n + u.upgrades.length, 0) + " unit/upgrade cases)", fmiss.length === 0 || console.log(fmiss));
 }
-// ---- Tabletop Simulator export: the layout of a New Recruit list posted by a user, rebuilt from card data ----
+// ---- Tabletop Simulator export: the layout of a list posted by a user, rebuilt from card data ----
 {
   const t = C.newRoster(); t.name = "Rr"; t.race = "Terran"; t.factionId = "nova-covert-ops";
   ["academy","armory","barracks","barracks-tech-lab","orbital-command"].forEach(id => t.tactical[id] = 1);

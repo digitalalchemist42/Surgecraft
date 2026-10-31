@@ -1276,7 +1276,7 @@ function bGroupHTML(g, b, r, sup){
 var SWORDS = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l6.2 6.2M2 2h3M2 2v3M14 2L7.8 8.2M14 2h-3M14 2v3M5.2 9.2l1.6 1.6M10.8 9.2l-1.6 1.6M4.5 11.5l-2 2M11.5 11.5l2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 var REPORT_FMT = { id:"report", ext:"html", name:"Battle report" };
 function hasOpp(b){ return !!(b && b.opp && b.opp.order && b.opp.order.length); }
-/* A pasted list: a SurgeCraft share code / roster file, or a text list (SurgeCraft Tabletop Simulator export or New Recruit text). */
+/* A pasted list: a SurgeCraft share code / roster file, or a text list in the Tabletop Simulator export layout. */
 function readOppText(txt){
   txt = (txt||"").trim(); if(!txt) return { error:"Paste their list first." };
   if(txt.indexOf("SCM1.")===0 || txt.charAt(0)==="{"){
@@ -1290,7 +1290,7 @@ function readOppText(txt){
   return l;
 }
 function oppPasteHTML(go, cancel){
-  return '<div class="importbox" style="margin-top:8px"><div class="field"><label for="b-opptext">Their list</label><textarea class="input" id="b-opptext" rows="5" placeholder="Paste a SurgeCraft Tabletop Simulator export, a New Recruit text list, or a SurgeCraft share code"></textarea></div>'+
+  return '<div class="importbox" style="margin-top:8px"><div class="field"><label for="b-opptext">Their list</label><textarea class="input" id="b-opptext" rows="5" placeholder="Paste their list (Tabletop Simulator export layout) or a SurgeCraft share code"></textarea></div>'+
     (BS.oppErr ? '<div class="check error"><span class="mk"></span><span>'+esc(BS.oppErr)+'</span></div>' : '')+
     '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary sm" data-a="'+go+'">Read list</button><button class="btn ghost sm" data-a="'+cancel+'">Cancel</button></div></div>';
 }

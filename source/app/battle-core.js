@@ -577,7 +577,7 @@
   }
 
   /* ---------- reading an opponent's list ----------
-     Accepts SurgeCraft's Tabletop Simulator export and New Recruit's text export (same layout), tolerating extra spaces
+     Accepts text lists in the Tabletop Simulator export layout (as SurgeCraft writes it), tolerating extra spaces
      and blank lines. Names are matched to the unit cards (exact, then without "(Base unit)", then singular/plural);
      anything not matched is returned in .unmatched for the player to fix. */
   function norm(s) { return String(s || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9()]+/g, " ").replace(/\s+/g, " ").trim(); }
