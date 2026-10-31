@@ -41,7 +41,7 @@ var APP = { prompt:null, iosHint:false };
 
 /* ------------ viewer preferences (this browser only): color mode + layout ------------ */
 var PREF_KEY = "surgecraft.prefs.v1";
-var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; }catch(e){} return d; })();
+var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true, hdrOff:false}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; if(typeof v.hdrOff==="boolean") d.hdrOff=v.hdrOff; }catch(e){} return d; })();
 function savePrefs(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(P)); }catch(e){} }
 var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 function effectiveMode(){
@@ -195,10 +195,12 @@ function render(){
   applyMode();
   $("brand-emb").src = ART.race(race || "Terran");
   renderCrumb(); renderSaveState();
+  applyHdr();
   document.body.classList.remove("has-bdock");
   if(S.view==="list") renderList(); else renderBuild();
   syncWake();
 }
+function applyHdr(){ var inRoster = S.view==="build"; document.body.classList.toggle("in-roster", inRoster); document.body.classList.toggle("hdr-off", inRoster && !!P.hdrOff); }
 function renderCrumb(){
   var el = $("crumb");
   if(S.view==="list"){ el.innerHTML = '<span>/</span><span class="title">Rosters</span>'; return; }
@@ -1399,6 +1401,7 @@ document.addEventListener("click", function(ev){
     case "new": newRoster(); break;
     case "example": openExample(false, v); break;
     case "mode": P.mode = v; savePrefs(); applyMode(); break;
+    case "hdr": P.hdrOff = v==="hide"; savePrefs(); applyHdr(); var hf = $(P.hdrOff ? "hdr-show" : "hdr-hide"); if(hf) hf.focus({preventScroll:true}); break;
     case "layout": P.layout = v; savePrefs(); render(); break;
     case "tile-open": S.tileOpen = (S.tileOpen===v ? null : v); renderUnits(); var ed=$("ut-editor"); if(ed) ed.scrollIntoView({behavior:"smooth", block:"nearest"}); break;
     case "open": openRoster(t.getAttribute("data-id")); break;

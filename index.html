@@ -242,6 +242,17 @@ img{max-width:100%}
 .appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:linear-gradient(100deg,var(--hdr),var(--hdr-2));color:var(--hdr-ink);margin-inline:-16px;padding:8px 16px 10px;position:sticky}
 .appbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--stripe)}
 .appbar .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* collapsible header (one setting for every roster tab, remembered on this device) */
+.kwbtn.hdr-hide{display:none}
+body.in-roster .kwbtn.hdr-hide{display:inline-flex}
+.hdr-show{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;z-index:25;width:36px;height:36px;border-radius:50%;align-items:center;justify-content:center;padding:0;background:var(--hdr);color:var(--hdr-ink);border:2px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.3);opacity:.9}
+.hdr-show svg{width:18px;height:18px}
+.hdr-show:hover{opacity:1}
+body.hdr-off .appbar{display:none}
+body.hdr-off .hdr-show{display:inline-flex}
+body.hdr-off .strip{top:env(safe-area-inset-top,0px)}
+body.hdr-off .rail{top:calc(env(safe-area-inset-top,0px) + 90px)}
 .brand{font-family:var(--display);font-stretch:87.5%;font-weight:700;font-size:21px;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--hdr-ink)}
 .brand img{width:30px;height:30px;object-fit:contain}
 .brand span b{color:var(--accent);font-weight:700}
@@ -727,7 +738,9 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
     <button data-a="mode" data-v="light" aria-pressed="false" title="Light mode"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 .8v2.2M8 13v2.2M.8 8H3M13 8h2.2M2.9 2.9l1.6 1.6M11.5 11.5l1.6 1.6M2.9 13.1l1.6-1.6M11.5 4.5l1.6-1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="ml">Light</span></button>
     <button data-a="mode" data-v="dark" aria-pressed="false" title="Dark mode"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.2A6 6 0 0 1 5.8 2.4a6 6 0 1 0 7.8 7.8z" fill="currentColor"/></svg><span class="ml">Dark</span></button>
   </div>
+  <button class="kwbtn hdr-hide" id="hdr-hide" data-a="hdr" data-v="hide" title="Hide this header" aria-label="Hide header"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ml">Hide</span></button>
 </div></div>
+<button class="hdr-show" id="hdr-show" data-a="hdr" data-v="show" title="Show the header" aria-label="Show header"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <div id="app" class="wrap"></div>
 <div id="modal-root"></div>
 
@@ -3113,7 +3126,7 @@ var APP = { prompt:null, iosHint:false };
 
 /* ------------ viewer preferences (this browser only): color mode + layout ------------ */
 var PREF_KEY = "surgecraft.prefs.v1";
-var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; }catch(e){} return d; })();
+var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true, hdrOff:false}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; if(typeof v.hdrOff==="boolean") d.hdrOff=v.hdrOff; }catch(e){} return d; })();
 function savePrefs(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(P)); }catch(e){} }
 var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 function effectiveMode(){
@@ -3267,10 +3280,12 @@ function render(){
   applyMode();
   $("brand-emb").src = ART.race(race || "Terran");
   renderCrumb(); renderSaveState();
+  applyHdr();
   document.body.classList.remove("has-bdock");
   if(S.view==="list") renderList(); else renderBuild();
   syncWake();
 }
+function applyHdr(){ var inRoster = S.view==="build"; document.body.classList.toggle("in-roster", inRoster); document.body.classList.toggle("hdr-off", inRoster && !!P.hdrOff); }
 function renderCrumb(){
   var el = $("crumb");
   if(S.view==="list"){ el.innerHTML = '<span>/</span><span class="title">Rosters</span>'; return; }
@@ -4471,6 +4486,7 @@ document.addEventListener("click", function(ev){
     case "new": newRoster(); break;
     case "example": openExample(false, v); break;
     case "mode": P.mode = v; savePrefs(); applyMode(); break;
+    case "hdr": P.hdrOff = v==="hide"; savePrefs(); applyHdr(); var hf = $(P.hdrOff ? "hdr-show" : "hdr-hide"); if(hf) hf.focus({preventScroll:true}); break;
     case "layout": P.layout = v; savePrefs(); render(); break;
     case "tile-open": S.tileOpen = (S.tileOpen===v ? null : v); renderUnits(); var ed=$("ut-editor"); if(ed) ed.scrollIntoView({behavior:"smooth", block:"nearest"}); break;
     case "open": openRoster(t.getAttribute("data-id")); break;
