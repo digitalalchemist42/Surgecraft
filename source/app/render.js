@@ -808,6 +808,146 @@
       "<style>" + REF_CSS + "</style></head><body>" + body + "</body></html>\n";
   }
 
+  /* ---------- BATTLE REPORT (printable, US Letter) ----------
+     Built from a battle state (r.battle, or a saved copy in r.history) and the roster as it was during that battle.
+     BT is the battle engine (battle-core.js), passed in so this file stays free of it. Times are the device's local time. */
+  var REPORT_CSS = [
+    "@page{size:letter;margin:0.45in}",
+    "body{margin:0;background:#D9DDE2;color:#09202E;font-family:'Noto Sans',Arial,sans-serif;font-size:12.5px;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact}",
+    ".rp{max-width:7.6in;margin:16px auto;background:#fff;padding:26px 30px;box-shadow:0 1px 4px rgba(0,0,0,.12)}",
+    ".rp h1{font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-weight:700;font-size:26px;margin:0;letter-spacing:.02em}",
+    ".rp h2{font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;margin:18px 0 6px;padding-bottom:3px;border-bottom:2px solid #09202E;break-after:avoid}",
+    ".rp-k{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:#5d6670;text-transform:uppercase}",
+    ".rp-vs{font-size:15px;margin:2px 0 10px;color:#2a3a48}",
+    ".rp-res{display:inline-block;font-family:'Saira',sans-serif;font-weight:700;font-size:18px;letter-spacing:.06em;text-transform:uppercase;padding:2px 12px;border-radius:3px;margin-right:8px}",
+    ".rp-res.win{background:#DDF0E4;color:#1F6B41}.rp-res.loss{background:#F7DEDC;color:#A2231D}.rp-res.draw,.rp-res.live{background:#E6EAEE;color:#2a3a48}",
+    ".rp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 18px;margin:10px 0 4px}",
+    ".rp-grid div span{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;color:#5d6670;text-transform:uppercase}",
+    ".rp-grid div b{font-size:13px}",
+    ".rp table{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0}",
+    ".rp th{text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#6F6F6E;font-weight:700;padding:4px 6px}",
+    ".rp td{border-bottom:1px solid #D5D9DE;padding:4px 6px;vertical-align:top}",
+    ".rp .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}",
+    ".rp tr{break-inside:avoid}",
+    ".rp .faint{color:#5d6670}",
+    ".rp .dead{color:#A2231D;font-weight:700}",
+    ".rp-chart{display:block;width:100%;height:auto;margin:6px 0 2px}",
+    ".rp-note{margin:4px 0;padding:6px 10px;background:#F3F4F6;border-left:3px solid #005BA4;break-inside:avoid}",
+    ".rp-log{font-size:11px;columns:1}",
+    ".rp-log div{display:grid;grid-template-columns:40px 92px minmax(0,1fr);gap:6px;padding:1px 0;break-inside:avoid}",
+    ".rp-foot{margin-top:16px;font-size:10.5px;color:#5d6670;text-align:center}",
+    "@media print{body{background:#fff}.rp{box-shadow:none;margin:0;max-width:none;padding:0}}",
+    "@media (max-width:700px){.rp{padding:16px 14px;margin:0}.rp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rp table{font-size:11px}.rp-wide{overflow-x:auto}}"
+  ].join("\n");
+  var PH = [null, "Movement", "Assault", "Combat", "Scoring"];
+  function rpTime(t) { if (!t) return "—"; var d = new Date(t); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
+  function rpDate(t) { if (!t) return "—"; var d = new Date(t); return d.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" }); }
+  function rpDur(ms) { if (ms == null || ms < 0) return "—"; var m = Math.round(ms / 60000); return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + ("0" + (m % 60)).slice(-2) + " min"; }
+  /* Time spent in each Round and Phase, from the start time of every Phase (b.times). */
+  function phaseTimes(b, end) {
+    var t = (b.times || []).slice().sort(function (x, y) { return x.at - y.at; }), out = {};
+    t.forEach(function (x, i) {
+      var next = i + 1 < t.length ? t[i + 1].at : end, ms = Math.max(0, next - x.at), R = out[x.r] = out[x.r] || { start: x.at, total: 0, ph: {} };
+      if (x.at < R.start) R.start = x.at;
+      if (b.over && i === t.length - 1 && x.p === 4 && x.at >= (b.over.at || 0)) return; // the game-over mark ends the clock
+      R.ph[x.p] = (R.ph[x.p] || 0) + ms; R.total += ms;
+    });
+    return out;
+  }
+  function vpChart(b, rounds) {
+    var me = [], op = [], a = 0, c = 0;
+    for (var i = 0; i < rounds; i++) { a += Number(b.vp.me[i]) || 0; c += Number(b.vp.opp[i]) || 0; me.push(a); op.push(c); }
+    var W = 640, H = 150, L = 34, R = 14, T = 12, Bm = 26, max = Math.max(4, a, c), X = function (i) { return L + (rounds > 1 ? i * (W - L - R) / (rounds - 1) : (W - L - R) / 2); }, Y = function (v) { return T + (H - T - Bm) * (1 - v / max); };
+    var g = "", k, step = Math.max(1, Math.ceil(max / 4));
+    for (k = 0; k <= max; k += step) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(k) + '" y2="' + Y(k) + '" stroke="#E2E5E9"/><text x="' + (L - 6) + '" y="' + (Y(k) + 4) + '" text-anchor="end" font-size="10" fill="#5d6670">' + k + "</text>";
+    for (k = 0; k < rounds; k++) g += '<text x="' + X(k) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="#5d6670">R' + (k + 1) + "</text>";
+    var line = function (arr, col, dash) { var played = arr.slice(0, Math.max(1, b.vp.me.length)); return '<polyline fill="none" stroke="' + col + '" stroke-width="2.5"' + (dash ? ' stroke-dasharray="6 4"' : "") + ' points="' + played.map(function (v, i) { return X(i) + "," + Y(v); }).join(" ") + '"/>' + played.map(function (v, i) { return '<circle cx="' + X(i) + '" cy="' + Y(v) + '" r="3.5" fill="' + col + '"/>'; }).join(""); };
+    return '<svg class="rp-chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Victory Points after each Round">' + g + line(op, "#A2231D", true) + line(me, "#005BA4") +
+      '<text x="' + (L + 4) + '" y="' + (T + 10) + '" font-size="11" fill="#005BA4" font-weight="700">You</text><text x="' + (L + 34) + '" y="' + (T + 10) + '" font-size="11" fill="#A2231D" font-weight="700">Opponent</text></svg>';
+  }
+  function battleReportDoc(C, BT, r, b, opts) {
+    opts = opts || {};
+    b = JSON.parse(JSON.stringify(b)); BT.sync(C, r, b);
+    var m = C.missions[b.missionId], ms = m ? m[b.side] : null, rounds = ms ? ms.game_length : b.vp.me.length, f = C.faction(r);
+    var end = (b.over && b.over.at) || opts.endedAt || Date.now(), t = BT.totals(b), times = phaseTimes(b, end);
+    var me = BT.infos(C, r, b), opp = BT.oppInfos(C, b), kills = b.kills || [], oppName = b.opp ? (b.opp.player || b.opp.name || "Opponent") : "Opponent";
+    var nameOf = function (side, uid) { if (side === "me") { var i = me.filter(function (x) { return x.uid === uid; })[0]; return i ? i.unit.name : "a removed Unit"; } var o = opp.filter(function (x) { return x.uid === uid; })[0]; return o ? o.name : "a removed Unit"; };
+    var count = function (list, key) { var o = {}; list.forEach(function (k) { var n = key(k); if (n) o[n] = (o[n] || 0) + 1; }); return Object.keys(o).map(function (n) { return n + (o[n] > 1 ? " ×" + o[n] : ""); }).join(", "); };
+    var res = b.over ? (b.over.winner === "me" ? ["win", "Victory"] : b.over.winner === "opp" ? ["loss", "Defeat"] : ["draw", "Draw"]) : ["live", "In progress"];
+    var h = '<div class="rp"><div class="rp-k">Battle report</div><h1>' + esc(r.name || "Roster") + "</h1>" +
+      '<div class="rp-vs">' + esc((r.player ? r.player + ", " : "") + (r.race || "") + (f ? " — " + f.name : "")) + " vs " + esc(oppName + (b.opp && b.opp.race ? ", " + b.opp.race : "") + (b.opp && b.opp.factionId && C.cards[b.opp.factionId] ? " — " + C.cards[b.opp.factionId].name : "")) + "</div>" +
+      '<div><span class="rp-res ' + res[0] + '">' + res[1] + '</span><b style="font-size:16px">' + t.me + " – " + t.opp + "</b>" + (b.over ? ' <span class="faint">' + esc(b.over.reason) + "</span>" : ' <span class="faint">Round ' + b.round + ", " + esc(PH[b.phase] || "") + " Phase</span>") + "</div>" +
+      '<div class="rp-grid"><div><span>Date</span><b>' + rpDate(b.startedAt) + "</b></div><div><span>Time</span><b>" + rpTime(b.startedAt) + " – " + (b.over ? rpTime(end) : "now") + "</b></div><div><span>Game length</span><b>" + rpDur(end - (b.startedAt || end)) + "</b></div>" +
+      "<div><span>Mission</span><b>" + esc(m ? m.name : b.missionId) + "</b></div><div><span>Deployment</span><b>" + esc(b.deploymentId && C.deployments[b.deploymentId] ? C.deployments[b.deploymentId][b.side] : "—") + "</b></div>" +
+      "<div><span>Engagement</span><b>" + (b.side === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ", you were " + (b.color === "red" ? "Red" : "Blue") + "</b></div></div>";
+    // scores
+    h += "<h2>Victory Points</h2>" + vpChart(b, rounds) + '<div class="rp-wide"><table><thead><tr><th></th>';
+    for (var i = 1; i <= rounds; i++) h += '<th class="n">R' + i + "</th>";
+    h += '<th class="n">Total</th></tr></thead><tbody>';
+    [["me", "You"], ["opp", oppName]].forEach(function (w) { h += "<tr><td><b>" + esc(w[1]) + "</b></td>"; for (var i = 0; i < rounds; i++) h += '<td class="n">' + (b.vp[w[0]][i] == null ? "" : b.vp[w[0]][i]) + "</td>"; h += '<td class="n"><b>' + t[w[0]] + "</b></td></tr>"; });
+    h += "</tbody></table></div>";
+    // rounds
+    h += '<h2>Rounds</h2><div class="rp-wide"><table><thead><tr><th>Round</th><th>Started</th><th class="n">Length</th><th class="n">Move</th><th class="n">Assault</th><th class="n">Combat</th><th class="n">Scoring</th><th>First Player</th><th>Markers held</th><th class="n">Supply destroyed</th><th class="n">' + esc((BT.resource(C, r, b).type || "Resource")) + " spent</th></tr></thead><tbody>";
+    Object.keys(times).map(Number).sort(function (x, y) { return x - y; }).forEach(function (n) {
+      var T = times[n], R = (b.rounds || {})[n] || {}, mk = R.markers || {}, mine = Object.keys(mk).filter(function (k) { return mk[k] === "me"; }), theirs = Object.keys(mk).filter(function (k) { return mk[k] === "opp"; });
+      var spent = (b.spend || []).filter(function (x) { return x.r === n; }).reduce(function (s, x) { return s + (x.value || 0); }, 0);
+      h += "<tr><td><b>R" + n + "</b></td><td>" + rpTime(T.start) + '</td><td class="n">' + rpDur(T.total) + "</td>" + [1, 2, 3, 4].map(function (p) { return '<td class="n">' + (T.ph[p] != null ? rpDur(T.ph[p]) : "—") + "</td>"; }).join("") +
+        "<td>" + (R.fpm ? (R.fpm === "me" ? "You" : esc(oppName)) : "—") + "</td><td>" + (R.markers ? "You: " + (mine.join(", ") || "none") + "<br>" + esc(oppName) + ": " + (theirs.join(", ") || "none") : "—") + "</td>" +
+        '<td class="n">' + (R.markers ? "by you " + R.enemyLost + "<br>by " + esc(oppName) + " " + R.myLost : "—") + '</td><td class="n">' + spent + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+    // your army
+    h += '<h2>Your army</h2><div class="rp-wide"><table><thead><tr><th>Unit</th><th class="n">Models</th><th>Status</th><th class="n">Actions</th><th>Kills</th><th>Lost to</th><th>Abilities used</th></tr></thead><tbody>';
+    me.forEach(function (i) {
+      var acts = (b.acts || []).filter(function (a) { return a.uid === i.uid; }).length, uses = count((b.uses || []).filter(function (u) { return u.uid === i.uid; }), function (u) { return u.name; });
+      var k = count(kills.filter(function (k) { return k.by && k.by.s === "me" && k.by.uid === i.uid; }), function (k) { return nameOf("opp", k.to.uid); });
+      var lost = count(kills.filter(function (k) { return k.to.s === "me" && k.to.uid === i.uid; }), function (k) { return k.by ? nameOf("opp", k.by.uid) : "unrecorded"; });
+      h += "<tr><td><b>" + esc(i.unit.name) + "</b>" + (i.summoned ? ' <span class="faint">Summoned</span>' : "") + (i.entry.upgrades.length ? '<br><span class="faint">' + esc(i.entry.upgrades.join(", ")) + "</span>" : "") + (b.mvp === i.uid ? ' <b style="color:#946000">★ MVP</b>' : "") + "</td>" +
+        '<td class="n">' + i.start + " → " + i.models + "</td><td>" + (i.state === "dead" ? '<span class="dead">Destroyed' + (i.st.deadR ? " R" + i.st.deadR : "") + "</span>" : i.state === "res" ? "In Reserves" : "On the battlefield") + "</td>" +
+        '<td class="n">' + acts + "</td><td>" + (k ? esc(k) : '<span class="faint">—</span>') + "</td><td>" + (lost ? esc(lost) : '<span class="faint">—</span>') + "</td><td>" + (uses ? esc(uses) : '<span class="faint">—</span>') + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+    // opponent's army
+    if (opp.length) {
+      var of = b.opp.factionId && C.cards[b.opp.factionId], otac = Object.keys(b.opp.tactical || {}).filter(function (id) { return C.cards[id]; }).map(function (id) { return C.cards[id].name + (b.opp.tactical[id] > 1 ? " ×" + b.opp.tactical[id] : ""); });
+      h += "<h2>" + esc(oppName) + "'s army</h2>" + (of || otac.length ? '<p class="faint" style="margin:0 0 4px">' + esc([of ? of.name + " (Faction Card)" : "", otac.join(", "), b.opp.creepId && C.cards[b.opp.creepId] ? C.cards[b.opp.creepId].name : ""].filter(Boolean).join(" · ")) + "</p>" : "");
+      h += '<div class="rp-wide"><table><thead><tr><th>Unit</th><th class="n">Models</th><th>Status</th><th>Killed by</th><th>Its kills</th></tr></thead><tbody>';
+      opp.forEach(function (o) {
+        var by = count(kills.filter(function (k) { return k.to.s === "opp" && k.to.uid === o.uid; }), function (k) { return k.by ? nameOf("me", k.by.uid) : "unrecorded"; });
+        var its = count(kills.filter(function (k) { return k.by && k.by.s === "opp" && k.by.uid === o.uid; }), function (k) { return nameOf("me", k.to.uid); });
+        h += "<tr><td><b>" + esc(o.name) + "</b>" + (o.summoned ? ' <span class="faint">Summoned</span>' : "") + (o.upgrades.length ? '<br><span class="faint">' + esc(o.upgrades.join(", ")) + "</span>" : "") + "</td>" +
+          '<td class="n">' + o.start + " → " + o.models + "</td><td>" + (o.state === "dead" ? '<span class="dead">Destroyed' + (o.st.deadR ? " R" + o.st.deadR : "") + "</span>" : o.state === "res" ? "In Reserves" : "On the battlefield") + "</td>" +
+          "<td>" + (by ? esc(by) : '<span class="faint">—</span>') + "</td><td>" + (its ? esc(its) : '<span class="faint">—</span>') + "</td></tr>";
+      });
+      h += "</tbody></table></div>";
+    }
+    // cards
+    var spend = b.spend || [];
+    if (spend.length) {
+      h += "<h2>Cards used</h2><table><tbody>";
+      Object.keys(times).map(Number).sort(function (x, y) { return x - y; }).forEach(function (n) {
+        var s = spend.filter(function (x) { return x.r === n; }); if (!s.length) return;
+        h += '<tr><td style="width:44px"><b>R' + n + "</b></td><td>" + esc(s.map(function (x) { return x.card + " (" + PH[x.p] + ")"; }).join(", ")) + '</td><td class="n">' + s.reduce(function (a, x) { return a + (x.value || 0); }, 0) + "</td></tr>";
+      });
+      h += "</tbody></table>";
+    }
+    // notes
+    var notes = Object.keys(b.notes || {}).filter(function (n) { return String(b.notes[n] || "").trim(); }).map(Number).sort(function (x, y) { return x - y; });
+    if (notes.length || String(b.summary || "").trim() || b.mvp) {
+      h += "<h2>Notes</h2>";
+      notes.forEach(function (n) { h += '<div class="rp-note"><b>Round ' + n + ".</b> " + esc(b.notes[n]).replace(/\n/g, "<br>") + "</div>"; });
+      if (String(b.summary || "").trim()) h += '<div class="rp-note"><b>Summary.</b> ' + esc(b.summary).replace(/\n/g, "<br>") + "</div>";
+      if (b.mvp) h += '<div class="rp-note"><b>MVP:</b> ' + esc(nameOf("me", b.mvp)) + "</div>";
+    }
+    // log
+    if (opts.log !== false && b.log.length) {
+      h += '<h2>Battle log</h2><div class="rp-log">' + b.log.map(function (l) { return '<div><span class="faint">' + (l.at ? rpTime(l.at) : "") + '</span><span class="faint">R' + l.r + " · " + (PH[l.p] || "") + "</span><span>" + esc(l.t) + "</span></div>"; }).join("") + "</div>";
+    }
+    h += '<p class="rp-foot">Built with SurgeCraft · Times are this device\'s local time · Supply values from the unit cards · Print on US Letter with your browser\'s Print command.</p></div>';
+    return "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" + esc((r.name || "Roster") + " — Battle report") + "</title>" + FONT_LINK +
+      "<style>" + REPORT_CSS + "</style></head><body>" + h + "</body></html>\n";
+  }
+
   /* image paths an HTML export needs (for embedding as data URIs) */
   function imagesFor(C, r, kind) {
     var set = {};
@@ -829,7 +969,7 @@
     typePill: typePill, abilityBox: abilityBox, weaponTable: weaponTable, unitCardHTML: unitCardHTML, tacCardHTML: tacCardHTML,
     missionCardHTML: missionCardHTML, deploymentCardHTML: deploymentCardHTML, sheetHTML: sheetHTML, slotsText: slotsText, summonedFor: summonedFor, imagesFor: imagesFor,
     fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS, CARD_MM: CARD_MM, TAC_MM: TAC_MM, CARDSIZE_CSS: CARDSIZE_CSS, fitCards: fitCards,
-    exports: { textFull: textFull, textCompact: textCompact, tts: ttsText, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc }
+    exports: { textFull: textFull, textCompact: textCompact, tts: ttsText, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc, battleReport: battleReportDoc }
   };
   if (typeof module !== "undefined" && module.exports) module.exports = R; else root.Render = R;
 })(typeof window !== "undefined" ? window : this);

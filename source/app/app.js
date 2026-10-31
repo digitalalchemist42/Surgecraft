@@ -154,7 +154,7 @@ function commit(opts){
   Store.queue(r);
   if(!opts || !opts.quiet) render(); else { renderMeters(); renderRail(); renderCrumb(); }
 }
-function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
+function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; BS.ks=null; BS.modal=null; BS.oppOpen=false; BS.oppDraft=null; BS.oppErr=null; BS.hDel=null; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
 function openRoster(id){ var r = S.rosters.filter(function(x){return x.id===id;})[0]; if(!r) return; S.cur = clone(r); resetView(); render(); window.scrollTo(0,0); }
 function newRoster(){ var r = C.newRoster(); S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
 function setRace(race){
@@ -544,7 +544,7 @@ function embedResolver(r, kind){
   });
 }
 function baseName(){ var b = (S.exp.base || (S.cur && S.cur.name) || "roster").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").slice(0,60); return b || "roster"; }
-function fileName(f){ return baseName() + (f.id==="manual"?"-field-manual":f.id==="sheet"?"-roster-sheet":(f.suffix||"")) + "." + f.ext; }
+function fileName(f){ if(f.id==="report") return baseName() + "-battle-report" + (S.exp.rep && S.exp.rep.date ? "-" + S.exp.rep.date : "") + ".html"; return baseName() + (f.id==="manual"?"-field-manual":f.id==="sheet"?"-roster-sheet":(f.suffix||"")) + "." + f.ext; }
 var BLANK = function(){ return ""; };
 function build(f, forPreview){
   var r = S.cur, art = S.exp.art;
@@ -557,6 +557,7 @@ function build(f, forPreview){
     case "json": return Promise.resolve(X.json(C, r));
     case "sheet": return (forPreview ? Promise.resolve(null) : art ? embedResolver(r, "sheet") : Promise.resolve(BLANK)).then(function(res){ return X.rosterSheetDoc(C, r, res, {art: art}); });
     case "ref": return Promise.resolve(X.referenceDoc(C, r, {glossary: S.exp.gloss, kw: KW}));
+    case "report": var rp = S.exp.rep; return rp ? Promise.resolve(X.battleReport(C, BT, rp.r, rp.b, { endedAt: rp.endedAt })) : Promise.reject({code:"none"});
     case "manual": return (forPreview ? Promise.resolve(art ? null : BLANK) : art ? embedResolver(r, "manual") : Promise.resolve(BLANK)).then(function(res){ return X.fieldManualDoc(C, r, res, {cardSize: S.exp.cardSize}); });
     case "zip": return buildZip();
   }
@@ -682,7 +683,7 @@ function openDeployModal(id){
     Render.deploymentCardHTML(d, side)+
     '<details class="dm-other"><summary>Other side of this card: '+esc(d[other])+'</summary>'+Render.deploymentCardHTML(d, other)+'</details></div>');
 }
-function closeModal(){ $("modal-root").innerHTML = ""; }
+function closeModal(){ $("modal-root").innerHTML = ""; if(BS){ BS.modal = null; BS.ks = null; BS.oppDraft = null; BS.oppErr = null; if(S.cur && S.cur.battle) BS.oppOpen = false; } }
 
 /* ------------ keyword reference ------------
    Definitions are the rulebook's own text (Full Rules, Part 11), shipped in keywords.js.
@@ -992,7 +993,7 @@ function vClick(a, v){
    Rules logic lives in battle-core.js (window.Battle). State is kept on the roster as r.battle and saved with it.
    The tracker guides and warns; it never blocks a step. */
 var BT = window.Battle;
-var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false };
+var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false, ks:null, modal:null, oppOpen:false, oppDraft:null, oppErr:null, hDel:null };
 var PHASE_GUIDE = {
   1: ["Players take turns activating one Unit at a time. The holder of the First Player Marker decides who goes first.", "Each Unit performs one action: Deploy (from Reserves), Move, Disengage or Hold.", "The first player to Pass takes the First Player Marker for the Assault Phase."],
   2: ["Players take turns activating one Unit on the battlefield. Units in Reserves cannot act.", "Each Unit performs one action: Ranged Attack, Charge, Run or Hold.", "The first player to Pass takes the First Player Marker for the Combat Phase."],
@@ -1061,6 +1062,7 @@ function bSetupHTML(r){
   h += '</div><div style="margin-top:8px"><button class="btn sm" data-a="dmap" data-v="'+esc(st.deploymentId)+'">View map</button></div>';
   h += '<div class="grid2" style="margin-top:16px"><div class="field"><span class="lbl-s">Your colour</span><div class="seg"><button data-a="b-set" data-v="color:red" aria-pressed="'+(st.color==="red")+'">Red Player</button><button data-a="b-set" data-v="color:blue" aria-pressed="'+(st.color==="blue")+'">Blue Player</button></div><span class="faint" style="font-size:12px">Sets your Entry Edge and which Markers are your colour (1 and 3 Red, 2 and 4 Blue).</span></div>'+
     '<div class="field"><span class="lbl-s">First Player Marker for Round 1</span><div class="seg"><button data-a="b-set" data-v="fpm:me" aria-pressed="'+(st.fpm==="me")+'">You</button><button data-a="b-set" data-v="fpm:opp" aria-pressed="'+(st.fpm==="opp")+'">Opponent</button></div><span class="faint" style="font-size:12px">The Roll-Off winner gives it to either player (8.2.2).</span></div></div>';
+  h += bOppSetupHTML();
   h += '<div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn primary" data-a="b-start">Start battle</button><span class="faint">Every Unit starts in Reserves (8.3).</span></div></div></section>';
   return h;
 }
@@ -1077,6 +1079,9 @@ function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
 }
+function bKillBtn(i, b){ return hasOpp(b) && i.state==="fld" && !b.over ? '<button class="bu-kill" data-a="b-ks" data-e="'+esc(i.uid)+'" title="Killed a model / lost a model" aria-label="Kills and losses for '+esc(i.unit.name)+'">'+SWORDS+'</button>' : ""; }
+function bEnemyStep(b, label){ var el = BT.enemyLost(C, b); return bStepper(label, el.total, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"', el.tracked ? '<span class="faint" style="font-size:12px">from their tracked losses'+(el.adj ? (el.adj>0?" +":" ")+el.adj+" adjusted" : "")+'</span>' : ""); }
+function bNoteHTML(b){ return '<div class="field" style="margin-top:12px"><label for="b-note">Round '+b.round+' notes <span class="faint" style="text-transform:none;letter-spacing:0;font-weight:500">for the battle report</span></label><textarea class="input" id="b-note" data-a="b-note" data-v="'+b.round+'" rows="2" placeholder="Key moments this Round">'+esc((b.notes||{})[b.round]||"")+'</textarea></div>'; }
 function bUnitHTML(i, b, r, sup){ return BS.openU[i.uid] ? bUnitFull(i, b, r, sup) : bUnitCompact(i, b, r, sup); }
 /* One-line row: tap the name to open the full card. Damage and this Phase's actions stay on the row. */
 function bUnitCompact(i, b, r, sup){
@@ -1092,7 +1097,7 @@ function bUnitCompact(i, b, r, sup){
   }
   var h = '<article class="bunit cpt '+i.state+(acted?' acted':'')+(i.casualtyDue?' has-err':'')+'" id="b-'+uid+'"><div class="bu-c">'+
     '<button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+uid+'"')+' aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
-    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button></div>';
+    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button>'+bKillBtn(i, b)+'</div>';
   var row = '';
   if(i.state==="res"){
     var fits = sup.unlimited || i.poolSupply<=sup.available;
@@ -1118,7 +1123,7 @@ function bUnitFull(i, b, r, sup){
     if(i.shield) h += '<span class="chip'+(i.shielded?' slot':'')+'">'+(i.shielded?'Shielded':'Shield lost')+'</span>';
     if(st.dis) h += '<span class="pill warn">Disengaged</span>';
   }
-  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+cardBtn+'</span></div>';
+  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+bKillBtn(i, b)+cardBtn+'</span></div>';
   if(i.state==="dead") return h+'<div class="bu-row"><button class="btn sm" data-a="b-state" data-e="'+uid+'" data-v="fld">Restore</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+uid+'">Remove</button>':'')+'</div></article>';
   if(i.state==="res"){
     var fits = sup.unlimited || i.poolSupply<=sup.available;
@@ -1152,13 +1157,13 @@ function bScoringHTML(b, r){
   if(b.scored){
     h += '<div class="notice" style="margin-top:0"><div class="grow"><b>Round '+b.round+' scored:</b> you '+(b.vp.me[b.round-1]||0)+', opponent '+(b.vp.opp[b.round-1]||0)+'. Total '+t.me+' to '+t.opp+'.</div></div>'+
       (P.guides?'<ol class="bsteps"><li>Resolve End of the Round abilities. The First Player Marker holder goes first (8.9.4).</li><li>Cleanup: remove Tokens and Markers except those with STAY IN PLAY, Damage Markers, Mission Markers and Faction Indicators showing Control. Refresh every Exhausted card (8.9.5).</li><li>The First Player Marker goes to the player with fewer Victory Points. Roll-Off if tied (8.9.6).</li></ol>':'')+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-a="b-next">Start Round '+(b.round+1)+'</button></div>';
+      bNoteHTML(b)+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-a="b-next">Start Round '+(b.round+1)+'</button></div>';
     return h;
   }
   h += '<div class="subhead" style="margin-top:0">1 · Mission Marker Control <span class="aside">8.9.1</span></div>'+bMarkersHTML(b)+
     (P.guides?'<div class="faint" style="font-size:12px;margin-top:4px">A Unit contests a Marker if it is on the battlefield, In Coherency, and has a model Within 3" with Line of Sight on the same elevation. Higher total Supply Controls it; a tie changes nothing. Flying and Burrowed Units cannot contest.</div>':'');
   h += '<div class="subhead">2 · This Round</div><div class="binputs">'+
-    bStepper("Enemy Supply destroyed", b.si.enemyLost, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"');
+    bEnemyStep(b, "Enemy Supply destroyed");
   if(id==="gather-the-resources") h += bStepper("Your Gather Actions", b.si.gatherMe, 'data-a="b-inp" data-v="gatherMe:-1"', 'data-a="b-inp" data-v="gatherMe:1"')+bStepper("Opponent's Gather Actions", b.si.gatherOpp, 'data-a="b-inp" data-v="gatherOpp:-1"', 'data-a="b-inp" data-v="gatherOpp:1"');
   if(id==="fire-in-the-sky") h += bLevelsHTML(b);
   if(id==="divide-and-conquer") h += bStepper("Quarters you win", b.si.quartersMe, 'data-a="b-inp" data-v="quartersMe:-1"', 'data-a="b-inp" data-v="quartersMe:1"')+bStepper("Quarters the opponent wins", b.si.quartersOpp, 'data-a="b-inp" data-v="quartersOpp:-1"', 'data-a="b-inp" data-v="quartersOpp:1"');
@@ -1174,7 +1179,7 @@ function bScoringHTML(b, r){
     h += '<div class="bs-tot">'+bStepper("This Round", tot, 'data-a="b-adj" data-v="'+w+':-1"', 'data-a="b-adj" data-v="'+w+':1"', BS.adj[w]?'<span class="faint" style="font-size:12px">suggested '+sg[w].total+'</span>':'')+'</div></div>';
   });
   h += '</div><details class="dm-other" style="margin-top:10px"><summary>Scoring Conditions on the Mission Card</summary><div class="sc-mission" style="padding:8px 12px">'+m.scoring.concat(m.additional||[]).map(function(x){return '<p>'+Render.richText(x)+'</p>';}).join("")+
-    (m.special_win_lead?'<p>The game ends immediately if a Player leads by '+m.special_win_lead+'+ VPs.</p>':'')+'</div></details>';
+    (m.special_win_lead?'<p>The game ends immediately if a Player leads by '+m.special_win_lead+'+ VPs.</p>':'')+'</div></details>'+bNoteHTML(b);
   h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" data-a="b-confirm">Confirm Round '+b.round+' scores</button><button class="btn" data-a="b-back">Back to Combat Phase</button></div>';
   return h;
 }
@@ -1185,7 +1190,10 @@ function bPhaseHTML(b, r){
   if(b.over){
     var t = BT.totals(b);
     h += '<div class="bresult"><div class="br-w">'+(b.over.winner==="me"?"Victory":b.over.winner==="opp"?"Defeat":"Draw")+'</div><div class="br-s num">'+t.me+' <small>you</small> · '+t.opp+' <small>opponent</small></div><div class="muted">'+esc(b.over.reason)+'</div></div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" data-a="b-quit-yes">Finish and clear this battle</button><button class="btn" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button></div>';
+      '<div class="grid2" style="margin-top:14px"><div class="field"><label for="b-summary">Summary <span class="faint" style="text-transform:none;letter-spacing:0;font-weight:500">for the battle report</span></label><textarea class="input" id="b-summary" data-a="b-summary" rows="3" placeholder="How the game went">'+esc(b.summary||"")+'</textarea></div>'+
+      '<div class="field"><label for="b-mvp">MVP</label><select class="input" id="b-mvp" data-a="b-mvp"><option value="">None</option>'+BT.infos(C, r, b).map(function(i){ return '<option value="'+esc(i.uid)+'"'+(b.mvp===i.uid?' selected':'')+'>'+esc(i.unit.name+" ("+i.start+")")+'</option>'; }).join("")+'</select></div></div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+bReportBtns("cur")+'</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" data-a="b-quit-yes">Finish: keep it under Past battles</button><button class="btn" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button></div>';
     return h+'</div></section>';
   }
   if(b.rollOff) h += '<div class="notice" style="margin:10px 0 0"><div class="grow">Victory Points are tied. Roll-Off (2D6 each): who takes the First Player Marker?</div><button class="btn sm" data-a="b-fpm" data-v="me">You</button><button class="btn sm" data-a="b-fpm" data-v="opp">Opponent</button></div>';
@@ -1211,7 +1219,7 @@ function bRailHTML(b, r){
   for(var n=1;n<=m.game_length;n++) h += '<th'+(n===b.round?' class="cur"':'')+'>R'+n+'</th>';
   h += '<th>Total</th></tr></thead><tbody>';
   ["me","opp"].forEach(function(w){ h += '<tr><th>'+(w==="me"?"You":"Opp.")+'</th>'; for(var n=1;n<=m.game_length;n++) h += '<td'+(n===b.round?' class="cur"':'')+'>'+(b.vp[w][n-1]==null?'':b.vp[w][n-1])+'</td>'; h += '<td><b>'+t[w]+'</b></td></tr>'; });
-  h += '</tbody></table>'+(b.over||b.phase===4?'':'<div style="margin-top:10px">'+bStepper("Enemy Supply destroyed this Round", b.si.enemyLost, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"')+'</div>')+'</div></div>';
+  h += '</tbody></table>'+(b.over||b.phase===4?'':'<div style="margin-top:10px">'+bEnemyStep(b, "Enemy Supply destroyed this Round")+'</div>')+'</div></div>';
   if(b.phase!==4 || b.scored || b.over) h += '<div class="panel'+btc("markers")+'" id="b-markers"><h3>Mission Markers</h3><div class="pb">'+bMarkersHTML(b)+'</div></div>';
   else h += '<div class="panel bt-phone'+btc("markers")+'"><h3>Mission Markers</h3><div class="pb"><p class="faint" style="margin:0 0 8px">Marker Control is set as step 1 of Scoring.</p><button class="btn sm" data-a="b-goscore">Go to Scoring</button></div></div>';
   h += '<div class="panel'+btc("cards")+'" id="b-cards"><h3>Cards · '+res.ready+' of '+res.total+' '+esc(res.type)+' Ready</h3><div class="pb bcards">';
@@ -1220,6 +1228,7 @@ function bRailHTML(b, r){
       '<button class="btn sm'+(c.exhausted?'':' primary')+'" data-a="b-card" data-v="'+esc(c.key)+'" aria-pressed="'+c.exhausted+'">'+(c.exhausted?'Exhausted':'Ready')+'</button></div>';
   });
   h += (P.guides?'<div class="faint" style="font-size:12px">Exhaust a card to use its ability or to pay a cost. Cards refresh in Cleanup (10.5).</div>':'')+'</div></div>';
+  h += bOppPanelHTML(b) + bReportPanelHTML();
   h += '<div class="panel'+btc("more")+'"><h3>Play options</h3><div class="pb bopts">'+
     '<div class="bopt"><button class="bchip" data-a="b-guides" aria-pressed="'+P.guides+'">Phase guides</button><span class="faint">Rules steps and help text for each Phase.</span></div>'+
     '<div class="bopt"><button class="bchip" data-a="b-wake" aria-pressed="'+P.wake+'">Keep screen awake</button><span class="faint" id="b-wake-st">'+esc(wakeText())+'</span></div></div></div>';
@@ -1263,11 +1272,202 @@ function bGroupHTML(g, b, r, sup){
   if(g.hidden) h += g.hidden;
   return h;
 }
+/* ------------ opponent's list, kills, battle report, past battles ------------ */
+var SWORDS = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l6.2 6.2M2 2h3M2 2v3M14 2L7.8 8.2M14 2h-3M14 2v3M5.2 9.2l1.6 1.6M10.8 9.2l-1.6 1.6M4.5 11.5l-2 2M11.5 11.5l2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+var REPORT_FMT = { id:"report", ext:"html", name:"Battle report" };
+function hasOpp(b){ return !!(b && b.opp && b.opp.order && b.opp.order.length); }
+/* A pasted list: a SurgeCraft share code / roster file, or a text list (SurgeCraft Tabletop Simulator export or New Recruit text). */
+function readOppText(txt){
+  txt = (txt||"").trim(); if(!txt) return { error:"Paste their list first." };
+  if(txt.indexOf("SCM1.")===0 || txt.charAt(0)==="{"){
+    var obj = null; try{ obj = txt.indexOf("SCM1.")===0 ? JSON.parse(unb64u(txt.slice(5))) : JSON.parse(txt); }catch(e){ obj = null; }
+    var res = obj ? C.normalize(obj) : null;
+    if(!res || !res.roster) return { error:"That isn't a SurgeCraft share code or roster file. Share codes start with SCM1." };
+    return BT.listFromRoster(C, res.roster);
+  }
+  var l = BT.parseList(C, txt);
+  if(!l.units.length && !l.unmatched.length) return { error:"No units found. Paste the whole list, including the lines that start with a model count such as \"6x\"." };
+  return l;
+}
+function oppPasteHTML(go, cancel){
+  return '<div class="importbox" style="margin-top:8px"><div class="field"><label for="b-opptext">Their list</label><textarea class="input" id="b-opptext" rows="5" placeholder="Paste a SurgeCraft Tabletop Simulator export, a New Recruit text list, or a SurgeCraft share code"></textarea></div>'+
+    (BS.oppErr ? '<div class="check error"><span class="mk"></span><span>'+esc(BS.oppErr)+'</span></div>' : '')+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary sm" data-a="'+go+'">Read list</button><button class="btn ghost sm" data-a="'+cancel+'">Cancel</button></div></div>';
+}
+/* What was read from a pasted list, with a picker for each unit line that didn't match a card. */
+function oppDraftHTML(l, where){
+  var f = l.factionId && C.cards[l.factionId], models = l.units.reduce(function(n,u){ return n+u.models; }, 0);
+  var h = '<div class="oppsum"><div><b>'+esc([l.race, f ? f.name : ""].filter(Boolean).join(" — ") || "Opponent")+'</b> <span class="faint">'+l.units.length+' Unit'+(l.units.length===1?'':'s')+' · '+models+' models</span></div>'+
+    '<div class="oppchips">'+l.units.map(function(u){ return '<span class="chip">'+u.models+'× '+esc(C.units[u.unitId].name)+'</span>'; }).join("")+'</div>';
+  var pool = C.data.units.filter(function(u){ return !u.summoned && (!l.race || u.race===l.race); });
+  l.unmatched.forEach(function(x, k){
+    if(x.card) h += '<div class="check warn"><span class="mk"></span><span>Not recognised as a '+x.card+' Card, left out: '+esc(x.line)+'</span></div>';
+    else h += '<div class="oppfix"><span class="faint">Not recognised: <b>'+esc(x.line)+'</b></span><select class="input" data-a="b-oppfix" data-v="'+k+'" data-w="'+where+'"><option value="">Choose the unit, or leave it out</option>'+pool.map(function(u){ return '<option value="'+esc(u.id)+'">'+esc(u.name)+'</option>'; }).join("")+'</select></div>';
+  });
+  if(l.ignoredUpgrades && l.ignoredUpgrades.length) h += '<div class="faint" style="font-size:12px">Upgrades not on the cards, left out: '+esc(l.ignoredUpgrades.join("; "))+'</div>';
+  return h+'</div>';
+}
+function bOppSetupHTML(){
+  var st = BS.set, l = st.opp;
+  var h = '<div class="subhead">Opponent <span class="aside">optional</span></div><div class="field" style="max-width:420px"><label for="b-oppname">Their name</label><input class="input" id="b-oppname" data-a="b-oppname" maxlength="40" value="'+esc(st.oppName||"")+'" placeholder="For the battle report"></div>';
+  if(l) h += oppDraftHTML(l, "set")+'<div style="display:flex;gap:8px;margin-top:6px"><button class="btn ghost sm" data-a="b-oppclear">Remove their list</button></div>';
+  else if(BS.oppOpen) h += oppPasteHTML("b-oppread", "b-oppcancel");
+  else h += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-a="b-oppopen">Add their list</button><span class="faint" style="font-size:12px">Track their losses during the game and fill in Enemy Supply destroyed.</span></div>';
+  return h;
+}
+/* Pop-up from a Unit's swords button: record a model it killed, or a model it lost to an enemy Unit. */
+function killSheetHTML(){
+  var r = S.cur, b = r && r.battle, k = BS.ks; if(!b || !k) return "";
+  var i = BT.info(C, r, b, k.uid); if(!i) return "";
+  var dealt = k.mode!=="taken", opp = BT.oppInfos(C, b), alive = opp.filter(function(o){ return o.state!=="dead"; }), gone = opp.length - alive.length, uid = esc(i.uid);
+  var h = '<div class="ksheet"><div class="ks-h"><h2>'+esc(i.unit.name)+'</h2><span class="faint">'+i.models+' of '+i.start+' models</span></div>'+
+    '<div class="seg ks-mode" role="group" aria-label="What happened"><button data-a="b-ksmode" data-v="dealt" aria-pressed="'+dealt+'">Killed an enemy model</button><button data-a="b-ksmode" data-v="taken" aria-pressed="'+(!dealt)+'">Lost a model to…</button></div>'+
+    '<p class="faint ks-help">'+(dealt ? 'Tap the enemy Unit that lost a model. Each tap removes one.' : 'Tap the enemy Unit that killed one of your models. Each tap removes one of yours'+(i.casualtyDue?', starting with the casualty your Damage has reached':'')+'.')+'</p>';
+  if(k.last) h += '<div class="ks-last"><span>'+esc(k.last)+'</span><button class="btn ghost sm" data-a="b-ksundo">Undo</button></div>';
+  if(!dealt && i.models<=0) h += '<div class="empty">'+esc(i.unit.name)+' has no models left.</div>';
+  else {
+    h += '<div class="ks-list">'+alive.map(function(o){
+      return '<button class="ks-row" data-a="b-kill" data-v="'+esc(o.uid)+'"><span class="ks-n">'+esc(o.name)+(o.summoned?' <span class="chip">Summoned</span>':'')+(o.state==="res"?' <span class="chip">Reserves</span>':'')+'</span><span class="ks-m num">'+o.models+'/'+o.start+'</span><span class="ks-s">Supply '+o.supplyNow+'</span><span class="ks-go">'+(dealt?'−1':'Pick')+'</span></button>';
+    }).join("")+(alive.length?'':'<div class="empty">No enemy models left.</div>')+'</div>';
+    if(!dealt) h += '<button class="btn ghost sm" data-a="b-ksnone" style="margin-top:6px">Lost a model to something else</button>';
+  }
+  if(gone) h += '<div class="faint" style="font-size:12px;margin-top:6px">'+gone+' enemy Unit'+(gone>1?'s':'')+' Destroyed.</div>';
+  return h+'<div class="ks-f"><span class="faint">Enemy Supply destroyed this Round: <b>'+BT.enemyLost(C, b).total+'</b></span><button class="btn primary" data-a="close-modal">Done</button></div></div>';
+}
+/* Pop-up for the whole opponent list: models, Battlefield / Reserves / Destroyed, add or remove Units, replace the list. */
+function oppModalHTML(){
+  var r = S.cur, b = r && r.battle; if(!b) return "";
+  var h = '<div class="ksheet"><div class="ks-h"><h2>Opponent</h2></div><div class="field" style="max-width:420px"><label for="b-oppname2">Their name</label><input class="input" id="b-oppname2" data-a="b-oppname" maxlength="40" value="'+esc(b.opp && b.opp.player || "")+'" placeholder="For the battle report"></div>';
+  if(BS.oppDraft) return h+oppDraftHTML(BS.oppDraft, "draft")+'<div class="ks-f"><button class="btn ghost" data-a="b-oppdrop">Cancel</button><button class="btn primary" data-a="b-oppuse">Use this list</button></div>'+(hasOpp(b)?'<p class="faint" style="font-size:12px">This replaces their current list; models already removed are not carried over.</p>':'')+'</div>';
+  if(BS.oppOpen || !hasOpp(b)) return h+oppPasteHTML("b-oppread", hasOpp(b) ? "b-oppcancel" : "close-modal")+'</div>';
+  h += '<div class="opp-list">'+BT.oppInfos(C, b).map(function(o){
+    var id = esc(o.uid);
+    return '<div class="opp-row'+(o.state==="dead"?' dead':'')+'"><div class="opp-t"><b>'+esc(o.name)+'</b>'+(o.summoned?' <span class="chip">Summoned</span>':'')+'<span class="faint"> Supply '+o.supplyNow+(o.upgrades.length?' · '+esc(o.upgrades.join(", ")):'')+'</span></div>'+
+      '<div class="opp-c">'+bStepper("Models", o.models+' <small>/ '+o.start+'</small>', 'data-a="b-oppm" data-v="'+id+':-1"', 'data-a="b-oppm" data-v="'+id+':1"')+
+      '<span class="seg opp-st">'+[["fld","Battlefield"],["res","Reserves"],["dead","Destroyed"]].map(function(s){ return '<button data-a="b-oppst" data-v="'+id+':'+s[0]+'" aria-pressed="'+(o.state===s[0])+'">'+s[1]+'</button>'; }).join("")+'</span>'+
+      '<button class="btn ghost sm danger" data-a="b-opprm" data-v="'+id+'" aria-label="Remove '+esc(o.name)+' from the list">Remove</button></div></div>';
+  }).join("")+'</div>';
+  var race = b.opp.race, sum = (b.opp.summonable||[]).filter(function(id){ return C.units[id]; });
+  var pool = C.data.units.filter(function(u){ return !race || u.race===race; }).sort(function(a, c){ return (sum.indexOf(c.id)!==-1) - (sum.indexOf(a.id)!==-1) || (a.summoned - c.summoned) || a.name.localeCompare(c.name); });
+  h += '<div class="field" style="margin-top:10px;max-width:420px"><label for="b-oppadd">Add a Unit they Summoned or the list missed</label><select class="input" id="b-oppadd" data-a="b-oppadd"><option value="">Choose a unit…</option>'+pool.map(function(u){ return '<option value="'+esc(u.id)+'">'+esc(u.name)+(u.summoned?' (Summoned)':'')+'</option>'; }).join("")+'</select></div>';
+  return h+'<div class="ks-f"><button class="btn ghost sm" data-a="b-oppopen">Replace their list</button><button class="btn primary" data-a="close-modal">Done</button></div></div>';
+}
+/* Re-draw an open pop-up in place, keeping its scroll position. */
+function bModal(){
+  var html = BS.modal==="kill" ? killSheetHTML() : BS.modal==="opp" ? oppModalHTML() : "";
+  if(!html){ closeModal(); return; }
+  var sc = document.querySelector("#modal-root .scrim"), m = document.querySelector("#modal-root .modal");
+  if(sc && m){ var y = sc.scrollTop; m.innerHTML = '<button class="mclose" data-a="close-modal" aria-label="Close">×</button>'+html; sc.scrollTop = y; }
+  else openModal(html);
+}
+function bOppPanelHTML(b){
+  var h = '<div class="panel'+btc("more")+'" id="b-opp"><h3>Opponent</h3><div class="pb">';
+  if(!hasOpp(b)) return h+'<p class="faint" style="margin:0 0 8px">'+(b.opp && b.opp.player ? esc(b.opp.player)+'. ' : '')+'Add their list to track their losses and fill in Enemy Supply destroyed.</p><button class="btn sm" data-a="b-oppedit">Add their list</button></div></div>';
+  var list = BT.oppInfos(C, b), left = list.filter(function(o){ return o.state!=="dead"; }).length, el = BT.enemyLost(C, b);
+  return h+'<div><b>'+esc(b.opp.player || "Opponent")+'</b> <span class="faint">'+esc(b.opp.race||"")+'</span></div><div class="faint" style="font-size:12.5px;margin:4px 0 8px">'+left+' of '+list.length+' Units left · Enemy Supply destroyed this Round: '+el.total+'</div><button class="btn sm" data-a="b-oppedit">Edit their list</button></div></div>';
+}
+function bReportBtns(which){
+  return '<button class="btn sm" data-a="b-rep" data-v="save:'+which+'"'+(S.downloads?'':' disabled')+'>Save battle report</button>'+(STANDALONE?'<button class="btn sm" data-a="b-rep" data-v="print:'+which+'">Print / PDF</button>':'');
+}
+function bReportPanelHTML(){
+  return '<div class="panel'+btc("more")+'"><h3>Battle report</h3><div class="pb"><p class="faint" style="margin:0 0 8px;font-size:12.5px">Times, scores, both armies\' losses and kills, cards used, notes and the battle log. Finished battles are kept under Past battles on the setup screen.</p><div style="display:flex;gap:6px;flex-wrap:wrap">'+bReportBtns("cur")+'</div>'+
+    (S.downloads||STANDALONE?'':'<p class="faint" style="font-size:12px;margin:6px 0 0">Saving files isn\'t available in this view.</p>')+'</div></div>';
+}
+function bHistoryHTML(r){
+  var hs = r.history || []; if(!hs.length) return "";
+  var h = '<section class="section" style="margin-top:18px"><header><span class="step">REPORTS</span><h2>Past battles</h2><span class="aside">'+hs.length+' kept, newest first</span></header><div class="sbody"><div class="hist">';
+  hs.forEach(function(e){
+    var b = e.battle, t = BT.totals(b), m = C.missions[b.missionId], who = b.opp && b.opp.player ? b.opp.player : "Opponent";
+    var res = b.over ? (b.over.winner==="me" ? ["ok","Victory"] : b.over.winner==="opp" ? ["err","Defeat"] : ["neutral","Draw"]) : ["neutral","Ended in Round "+b.round];
+    var d = new Date(b.startedAt || e.endedAt);
+    h += '<div class="hrow"><div class="h-t"><b>'+esc(m ? m.name : b.missionId)+'</b> <span class="pill '+res[0]+'">'+res[1]+'</span><div class="faint" style="font-size:12.5px">'+esc(d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}))+' · You '+t.me+' – '+t.opp+' '+esc(who)+'</div></div><div class="h-a">'+
+      (BS.hDel===e.id ? '<span class="muted">Delete this battle?</span><button class="btn danger sm" data-a="b-hdel-yes" data-v="'+esc(e.id)+'">Delete</button><button class="btn sm" data-a="b-hdel-no">Keep</button>'
+        : bReportBtns(e.id)+'<button class="btn ghost sm danger" data-a="b-hdel" data-v="'+esc(e.id)+'">Delete</button>')+'</div></div>';
+  });
+  return h+'</div></div></section>';
+}
+/* Battle report for the current battle ("cur") or a saved one (history id), then Save or Print / PDF like the other exports. */
+function bReport(how, which){
+  var r = S.cur, src = which==="cur" ? (r.battle ? { r:r, b:r.battle } : null) : (r.history||[]).filter(function(e){ return e.id===which; }).map(function(e){ return { r:e.roster, b:e.battle, endedAt:e.endedAt }; })[0];
+  if(!src) return;
+  var d = new Date(src.b.startedAt || Date.now());
+  S.exp.rep = { r:src.r, b:src.b, endedAt:src.endedAt, date: d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2) };
+  if(how==="print") printFile(REPORT_FMT); else saveFile(REPORT_FMT);
+}
+/* Finished (or ended) battles are kept on the roster for their report; the 10 most recent. */
+function bArchive(r){
+  var b = r.battle; if(!b || !b.log || b.log.length<2) return;
+  r.history = [BT.historyEntry(C, r, b)].concat(r.history||[]).slice(0, 10);
+}
+function bChange(a, t){
+  var r = S.cur, b = r && r.battle, v = t.getAttribute("data-v");
+  if(a==="b-oppname"){ if(!b){ if(BS.set) BS.set.oppName = t.value.trim(); return true; } bMut(function(){ if(!b.opp) b.opp = BT.oppFrom(C, {}); b.opp.player = t.value.trim(); }); bModal(); return true; }
+  if(a==="b-oppfix"){
+    var l = t.getAttribute("data-w")==="set" ? BS.set && BS.set.opp : BS.oppDraft, k = Number(v), x = l && l.unmatched[k]; if(!x || !t.value) return true;
+    var u = C.units[t.value]; l.units.push({ unitId:u.id, models:x.models, upgrades:(x.upgrades||[]).filter(function(n){ return u.upgrades.some(function(y){ return y.name.toLowerCase()===String(n).toLowerCase(); }); }) });
+    l.unmatched.splice(k, 1); if(!l.race) l.race = u.race;
+    if(b) bModal(); else renderBattle(); return true;
+  }
+  if(!b) return false;
+  if(a==="b-oppadd"){ if(t.value){ var id = t.value; bMut(function(){ BT.oppAdd(C, b, id); }); bModal(); } return true; }
+  if(a==="b-note"){ var n = Number(v), txt = t.value; bMut(function(){ b.notes[n] = txt; }); return true; }
+  if(a==="b-summary"){ var s2 = t.value; bMut(function(){ b.summary = s2; }); return true; }
+  if(a==="b-mvp"){ var mv = t.value || null; bMut(function(){ b.mvp = mv; }); return true; }
+  return false;
+}
+/* Clicks that work before a battle starts (setup screen, past battles). */
+function bSetupClick(a, v){
+  var r = S.cur;
+  switch(a){
+    case "b-oppopen": if(r.battle){ BS.oppOpen = true; BS.oppErr = null; BS.modal = "opp"; bModal(); return true; } BS.oppOpen = true; BS.oppErr = null; renderBattle(); var ta = $("b-opptext"); if(ta) ta.focus(); return true;
+    case "b-oppcancel": BS.oppOpen = false; BS.oppErr = null; if(r.battle) bModal(); else renderBattle(); return true;
+    case "b-oppread":
+      var ta2 = $("b-opptext"), l = readOppText(ta2 ? ta2.value : "");
+      if(l.error){ BS.oppErr = l.error; if(r.battle) bModal(); else { renderBattle(); var t3 = $("b-opptext"); if(t3 && ta2) t3.value = ta2.value; } return true; }
+      BS.oppErr = null; BS.oppOpen = false;
+      if(r.battle){ BS.oppDraft = l; bModal(); } else { if(l.player && !BS.set.oppName) BS.set.oppName = l.player; BS.set.opp = l; renderBattle(); }
+      return true;
+    case "b-oppclear": if(BS.set) BS.set.opp = null; renderBattle(); return true;
+    case "b-rep": var q = v.split(":"); bReport(q[0], q.slice(1).join(":")); return true;
+    case "b-hdel": BS.hDel = v; renderBattle(); return true;
+    case "b-hdel-no": BS.hDel = null; renderBattle(); return true;
+    case "b-hdel-yes": BS.hDel = null; r.history = (r.history||[]).filter(function(e){ return e.id!==v; }); Store.queue(r); renderBattle(); return true;
+  }
+  return false;
+}
+/* Clicks during a battle: the kill sheet and the opponent editor. */
+function bOppClick(a, v, eu){
+  var r = S.cur, b = r.battle, msg;
+  switch(a){
+    case "b-ks": BS.ks = { uid:eu, mode:"dealt", last:"" }; BS.modal = "kill"; bModal(); return true;
+    case "b-ksmode": if(BS.ks){ BS.ks.mode = v; BS.ks.last = ""; } bModal(); return true;
+    case "b-kill":
+      var k = BS.ks; if(!k) return true;
+      var o0 = BT.oppInfo(C, b, v), m0 = BT.info(C, r, b, k.uid);
+      bMut(function(){ return BT.kill(C, r, b, k.uid, v, k.mode); });
+      var o1 = BT.oppInfo(C, b, v), m1 = BT.info(C, r, b, k.uid);
+      k.last = k.mode==="taken" ? m1.unit.name+" lost a model to "+o1.name+": "+m0.models+" → "+m1.models+" left."
+        : o1.name+": "+o0.models+" → "+o1.models+(o1.models ? (o1.models===1 ? " model left." : " models left.") : ". Destroyed.");
+      bModal(); return true;
+    case "b-ksnone":
+      var k2 = BS.ks; if(!k2) return true; var n0 = BT.info(C, r, b, k2.uid).models;
+      bMut(function(){ return BT.kill(C, r, b, k2.uid, null, "taken"); });
+      k2.last = BT.info(C, r, b, k2.uid).unit.name+" lost a model: "+n0+" → "+BT.info(C, r, b, k2.uid).models+" left."; bModal(); return true;
+    case "b-ksundo": var prev = BS.undo.pop(); if(prev){ r.battle = JSON.parse(prev); BS.warn = []; bCommit(); } if(BS.ks) BS.ks.last = ""; bModal(); return true;
+    case "b-oppedit": BS.modal = "opp"; BS.oppOpen = !hasOpp(b); BS.oppErr = null; bModal(); return true;
+    case "b-oppuse": var d = BS.oppDraft; if(!d) return true; var nm = b.opp && b.opp.player; BS.oppDraft = null; bMut(function(){ BT.setOpp(C, b, d); if(nm && !b.opp.player) b.opp.player = nm; }); bModal(); return true;
+    case "b-oppdrop": BS.oppDraft = null; bModal(); return true;
+    case "b-oppm": var p = v.split(":"); bMut(function(){ BT.oppChange(C, b, p[0], Number(p[1])); }); bModal(); return true;
+    case "b-oppst": var p2 = v.split(":"); bMut(function(){ BT.oppSetState(C, b, p2[0], p2[1]); }); bModal(); return true;
+    case "b-opprm": bMut(function(){ BT.oppRemove(C, b, v); }); bModal(); return true;
+  }
+  return false;
+}
 function renderBattle(){
   var el = $("battle"); if(!el) return;
   var r = S.cur, b = r.battle;
   document.body.classList.remove("has-bdock");
-  if(!BT || !b || !C.missions[b.missionId]){ if(b) delete r.battle; renderMeters(); el.innerHTML = bSetupHTML(r); syncWake(); return; }
+  if(!BT || !b || !C.missions[b.missionId]){ if(b) delete r.battle; renderMeters(); el.innerHTML = bSetupHTML(r) + bHistoryHTML(r); syncWake(); return; }
   BT.sync(C, r, b);
   var strip = $("meters"); if(strip) strip.innerHTML = bStripHTML(b, r);
   var list = BT.infos(C, r, b), p = b.phase, live = p<=3 && !b.over, sup = BT.supply(C, r, b), fld = [], res = [], dead = [];
@@ -1331,15 +1531,18 @@ function syncWake(){
 document.addEventListener("visibilitychange", syncWake);
 function bClick(a, v, eu, t){
   var r = S.cur, b = r && r.battle;
+  if(bSetupClick(a, v)) return true;
   switch(a){
     case "b-set": var kv = v.split(":"); BS.set[kv[0]] = kv.slice(1).join(":"); renderBattle(); return true;
     case "b-mcard": var mm = C.missions[v]; if(mm) openModal(Render.missionCardHTML(mm, BT.side(C, r))); return true;
     case "b-start":
-      var nb = BT.create(C, r, BS.set); if(!nb) return true;
+      if(BS.set.opp || BS.set.oppName){ var ol = BS.set.opp || { units:[] }; ol.player = BS.set.oppName || ol.player || ""; BS.set.opp = ol; }
+      var nb = BT.create(C, r, BS.set); if(!nb) return true; BS.oppOpen = false;
       r.battle = nb; BS.undo = []; BS.warn = []; BS.pass = false; BS.quit = false; BS.adj = {me:0, opp:0}; BS.openAb = {}; BS.openU = {}; BS.grp = {}; BS.tab = "play"; BS.showAll = false;
       bCommit(); window.scrollTo(0,0); return true;
   }
   if(!b) return false;
+  if(bOppClick(a, v, eu)) return true;
   switch(a){
     case "b-act": bMut(function(){ return BT.act(C, r, b, eu, v); }); return true;
     case "b-unact": bMut(function(){ BT.clearAct(C, r, b, eu); }); return true;
@@ -1356,7 +1559,7 @@ function bClick(a, v, eu, t){
     case "b-mk": bMut(function(){ BT.cycleMarker(C, b, Number(v)); }); return true;
     case "b-lvl": var lq = v.split(":"); bMut(function(){ BT.setLevel(C, b, Number(lq[0]), Number(lq[1])); }); return true;
     case "b-mkon": bMut(function(){ var due = BT.activationDue(C, b); if(!due) return; var n = v==="random" ? due.pool[Math.floor(Math.random()*due.pool.length)] : Number(v); BT.activateMarker(C, b, n); return v==="random" ? {warnings:["Mission Marker "+n+" was picked at random and is now Activated."]} : null; }); return true;
-    case "b-inp": var f = v.split(":"), cap = /quarters/.test(f[0]) ? 4 : 99; bMut(function(){ b.si[f[0]] = Math.max(0, Math.min(cap, (b.si[f[0]]||0)+Number(f[1]))); }); return true;
+    case "b-inp": var f = v.split(":"), cap = /quarters/.test(f[0]) ? 4 : 99, lo = f[0]==="enemyLost" ? -BT.enemyLost(C, b).auto : 0; bMut(function(){ b.si[f[0]] = Math.max(lo, Math.min(cap, (b.si[f[0]]||0)+Number(f[1]))); }); return true;
     case "b-adj": var g = v.split(":"); BS.adj[g[0]] += Number(g[1]); renderBattle(); return true;
     case "b-end": BS.pass = true; renderBattle(); return true;
     case "b-open": BS.openU[eu] = !BS.openU[eu]; renderBattle(); return true;
@@ -1368,13 +1571,13 @@ function bClick(a, v, eu, t){
     case "b-wake": P.wake = !P.wake; savePrefs(); WAKE.state = "off"; renderBattle(); return true;
     case "b-pass": BS.pass = false; if(v==="cancel"){ renderBattle(); return true; } bMut(function(){ BT.advance(C, r, b, v); }); var p2 = BS.tab==="play" && $("b-phase"); if(p2) p2.scrollIntoView({block:"start"}); return true;
     case "b-back": bMut(function(){ BT.back(C, r, b); }); return true;
-    case "b-fpm": bMut(function(){ b.fpm = v; b.rollOff = false; }); return true;
+    case "b-fpm": bMut(function(){ BT.setFpm(C, b, v); }); return true;
     case "b-confirm": bMut(function(){ var sg = BT.suggestion(C, r, b); BT.confirmScores(C, r, b, Math.max(0, sg.me.total+BS.adj.me), Math.max(0, sg.opp.total+BS.adj.opp)); BS.adj = {me:0, opp:0}; }); var p3 = $("b-phase"); if(p3) p3.scrollIntoView({block:"start"}); return true;
     case "b-next": bMut(function(){ BT.nextRound(C, r, b); }); window.scrollTo(0,0); return true;
     case "b-undo": var prev = BS.undo.pop(); if(prev){ r.battle = JSON.parse(prev); BS.warn = []; BS.pass = false; bCommit(); } return true;
     case "b-quit": BS.quit = true; renderBattle(); return true;
     case "b-quit-no": BS.quit = false; renderBattle(); return true;
-    case "b-quit-yes": delete r.battle; BS.quit = false; BS.undo = []; BS.set = null; BS.warn = []; bCommit(); window.scrollTo(0,0); return true;
+    case "b-quit-yes": bArchive(r); delete r.battle; BS.quit = false; BS.undo = []; BS.set = null; BS.warn = []; bCommit(); window.scrollTo(0,0); return true;
     case "b-sumpick": BS.sumPick = !BS.sumPick; renderBattle(); return true;
     case "b-summon": BS.sumPick = false; bMut(function(){ BT.addSummoned(C, r, b, v); }); return true;
     case "b-unsummon": bMut(function(){ BT.removeSummoned(C, r, b, eu); }); return true;
@@ -1407,7 +1610,7 @@ document.addEventListener("click", function(ev){
     case "tile-open": S.tileOpen = (S.tileOpen===v ? null : v); renderUnits(); var ed=$("ut-editor"); if(ed) ed.scrollIntoView({behavior:"smooth", block:"nearest"}); break;
     case "open": openRoster(t.getAttribute("data-id")); break;
     case "open-export": openRoster(t.getAttribute("data-id")); S.tab="export"; render(); break;
-    case "dup": var src = S.rosters.filter(function(x){return x.id===t.getAttribute("data-id");})[0]; if(src){ var d = clone(src); d.id="r_"+RosterCore.uid(); d.name=(src.name||"Roster")+" (copy)"; d.createdAt=Date.now(); delete d.battle; Store.queue(d); render(); } break;
+    case "dup": var src = S.rosters.filter(function(x){return x.id===t.getAttribute("data-id");})[0]; if(src){ var d = clone(src); d.id="r_"+RosterCore.uid(); d.name=(src.name||"Roster")+" (copy)"; d.createdAt=Date.now(); delete d.battle; delete d.history; Store.queue(d); render(); } break;
     case "del": S.confirmDel = t.getAttribute("data-id"); render(); break;
     case "del-no": S.confirmDel = null; render(); break;
     case "del-yes": Store.remove(t.getAttribute("data-id")); S.confirmDel=null; render(); break;
@@ -1461,6 +1664,7 @@ document.addEventListener("change", function(ev){
   var t = ev.target, a = t.getAttribute && t.getAttribute("data-a"), r = S.cur;
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
+  if(a && a.indexOf("b-")===0 && r && bChange(a, t)) return;
   if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-cardsize"){ S.exp.cardSize = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-art"){ S.exp.art = t.checked; S.exp.preview=null; renderExport(); return; }

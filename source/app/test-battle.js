@@ -147,4 +147,54 @@ const bt = B.create(C, rf, { missionId: "frontlines", color: "red", fpm: "opp" }
 const e3 = C.newEntry("goliath"); rf.units.push(e3); B.sync(C,rf,bt); eq("unit added to roster mid-battle appears in Reserves", bt.units[e3.uid].st, "res");
 rf.units.pop(); B.sync(C,rf,bt); eq("unit removed from roster disappears", bt.units[e3.uid], undefined);
 eq("state survives JSON round trip", JSON.parse(JSON.stringify(bt)).round, 2);
+
+{
+// --- opponent's list: the New Recruit list as posted (plural "Marines", odd spacing, summoned unit on its own line) ---
+const NR = "Terran - Rr (920 Minerals, 165 Gas) \n 4 Supply, 7 CP\nDeployment Maps: Breach, Meeting Engagment \n Mission Card: Fire in the Sky, Gather the Resources\n# Faction: \n Nova Covert Ops\n# Tactical: \n Academy \n Armory \n Barracks \n Barracks (Tech Lab) \n Orbital Command\n# Units: \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marines (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 2x Spec Ops Marauder (Marauder) (230, 1S)\nSabotage Drone\nCreated with newrecruit.eu v37.7";
+const pl = B.parseList(C, NR);
+eq("NR list: race, name, faction", [pl.race, pl.name, pl.factionId], ["Terran", "Rr", "nova-covert-ops"]);
+eq("NR list: units matched to cards (Marines -> Marine)", pl.units.map(u => [u.unitId, u.models]), [["marine",6],["marine",6],["marine",6],["spec-ops-marauder",2]]);
+eq("NR list: upgrades matched", pl.units[0].upgrades, ["AGG-12","Rocket Launcher","Slugthrower"]);
+eq("NR list: tactical cards", Object.keys(pl.tactical).sort(), ["academy","armory","barracks","barracks-tech-lab","orbital-command"]);
+eq("NR list: summoned unit noted, nothing unmatched", [pl.summonable, pl.unmatched.length], [["sabotage-drone"], 0]);
+const ZL = "Zerg - Swarm (1000 Minerals, 100 Gas)\n# Faction:\nKerrigan's Swarm\n# Tactical:\nLair\nRoach Warren\n# Units:\n3x Roaches (170, 1S)\n12x Zerglings (150, 1S)\n1x Kerrigan (250, 1S)\n2x Hydralisks (140, 2S)\n1x Mystery Beast (10, 0S)";
+const zl = B.parseList(C, ZL);
+eq("Zerg list: plurals matched (Roaches, Zerglings, Hydralisks)", zl.units.map(u => u.unitId), ["roach","zergling","kerrigan","hydralisk"]);
+eq("Zerg list: unknown unit reported, not guessed", zl.unmatched.map(x => [x.name, x.models]), [["Mystery Beast", 1]]);
+
+// --- battle with the opponent tracked: kills both ways, automatic Enemy Supply destroyed ---
+const rk = mk("Terran", "terran-armed-forces", ["barracks"], [["marine", 9], ["marauder", 2]]);
+const bk = B.create(C, rk, { missionId: "hold-position", color: "red", fpm: "me", opp: zl });
+const myM = rk.units[0].uid, oppIds = bk.opp.order, roachId = oppIds[0], lingId = oppIds[1], hydraId = oppIds[3];
+B.act(C, rk, bk, myM, "deploy");
+eq("opponent units start on the battlefield with card Supply", B.oppInfos(C, bk).map(o => [o.name, o.models, o.supplyNow]), [["Roach",3,1],["Zergling",12,1],["Kerrigan",1,1],["Hydralisk",2,2]]);
+B.kill(C, rk, bk, myM, roachId, "dealt"); B.kill(C, rk, bk, myM, roachId, "dealt");
+eq("2 Roaches killed: 1 left, Supply 1 -> 0", [B.oppInfo(C, bk, roachId).models, B.oppInfo(C, bk, roachId).supplyNow], [1, 0]);
+eq("Enemy Supply destroyed is 1 (tracked)", B.enemyLost(C, bk).total, 1);
+for (let k = 0; k < 6; k++) B.kill(C, rk, bk, myM, lingId, "dealt");
+eq("6 Zerglings killed: 6 left, Supply 1 -> 0, total 2", [B.oppInfo(C, bk, lingId).models, B.enemyLost(C, bk).total], [6, 2]);
+bk.si.enemyLost = 1; eq("manual adjustment adds to the tracked figure", B.enemyLost(C, bk).total, 3); bk.si.enemyLost = 0;
+eq("scoring suggestion uses it", B.suggestion(C, rk, bk).me.lines[0].vp, 2);
+B.kill(C, rk, bk, myM, hydraId, "taken");
+eq("loss to an enemy Unit removes your model and is credited", [B.info(C, rk, bk, myM).models, bk.kills[bk.kills.length-1].by.uid], [8, hydraId]);
+eq("kills recorded with Round, Phase and time", bk.kills.every(k => k.r === 1 && k.p === 1 && typeof k.at === "number"), true);
+eq("log lines carry time stamps", bk.log.every(l => typeof l.at === "number"), true);
+B.advance(C, rk, bk, "me"); B.advance(C, rk, bk, "opp"); B.advance(C, rk, bk);
+eq("a start time for every Phase", bk.times.map(t => t.p), [1,2,3,4]);
+B.confirmScores(C, rk, bk, 2, 1);
+eq("Round snapshot for the report", [bk.rounds[1].vp, bk.rounds[1].enemyLost], [[2,1], 2]);
+B.nextRound(C, rk, bk);
+eq("new Round: opponent Supply snapshot reset, nothing destroyed yet", B.enemyLost(C, bk).total, 0);
+B.oppChange(C, bk, roachId, -1);
+eq("last Roach removed: Unit Destroyed in Round 2", [B.oppInfo(C, bk, roachId).state, bk.opp.units[roachId].deadR], ["dead", 2]);
+const sid = B.oppAdd(C, bk, "roachling");
+B.oppChange(C, bk, sid, -1);
+eq("opponent's Summoned Units don't count towards Enemy Supply destroyed (9.1.9)", B.enemyLost(C, bk).auto, 0);
+bk.round = 5; B.oppSetState(C, bk, hydraId, "res");
+eq("final Round: opponent Units left in Reserves count as Destroyed (8.10)", B.enemyLost(C, bk).reserves, 2);
+const he = B.historyEntry(C, rk, bk);
+eq("history entry keeps the battle and the roster as it was (unit ids intact)", [he.battle.opp.order.length, he.roster.units.map(e => e.uid).join() === rk.units.map(e => e.uid).join(), he.roster.battle, he.roster.history], [5, true, undefined, undefined]);
+const old = JSON.parse(JSON.stringify(bk)); delete old.kills; delete old.times; delete old.opp; B.sync(C, rk, old);
+eq("older saved battles gain the new fields", [Array.isArray(old.kills), Array.isArray(old.times), old.opp], [true, true, null]);
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");

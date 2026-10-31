@@ -52,7 +52,9 @@
   function myColor(b) { return b.color; }
   function colorOf(b, who) { return who === "me" ? b.color : (b.color === "red" ? "blue" : "red"); }
 
-  function log(b, text) { b.log.push({ r: b.round, p: b.phase, t: text }); if (b.log.length > 300) b.log.splice(0, b.log.length - 300); }
+  function log(b, text) { b.log.push({ r: b.round, p: b.phase, t: text, at: Date.now() }); if (b.log.length > 400) b.log.splice(0, b.log.length - 400); }
+  /* Start time of every Round and Phase, for game length and the battle report. */
+  function mark(b) { (b.times = b.times || []).push({ r: b.round, p: b.phase, at: Date.now() }); }
 
   /* ---------- unit state ---------- */
   function newUnitState(models) {
@@ -63,7 +65,14 @@
     (b.summoned || []).forEach(function (s) { list.push({ uid: s.uid, entry: { uid: s.uid, unitId: s.unitId, models: s.start, upgrades: [], specialists: {} }, summoned: true }); });
     return list;
   }
+  function upgrade(b) {
+    if (!b.kills) b.kills = []; if (!b.times) b.times = [{ r: b.round, p: b.phase, at: b.startedAt || Date.now() }];
+    if (!b.rounds) b.rounds = {}; if (!b.notes) b.notes = {}; if (!b.spend) b.spend = []; if (!b.acts) b.acts = []; if (!b.uses) b.uses = [];
+    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
+    return b;
+  }
   function sync(C, r, b) {
+    upgrade(b);
     var seen = {};
     entryList(r, b).forEach(function (x) {
       seen[x.uid] = true;
@@ -84,7 +93,8 @@
       v: 1, missionId: opts.missionId, deploymentId: opts.deploymentId || null, side: sd,
       color: opts.color === "blue" ? "blue" : "red", round: 1, phase: 1, fpm: opts.fpm === "opp" ? "opp" : "me",
       units: {}, summoned: [], cards: {}, markers: {}, vp: { me: [], opp: [] },
-      si: freshInputs(), over: null, rollOff: false, log: [], startedAt: Date.now()
+      si: freshInputs(), over: null, rollOff: false, log: [], startedAt: Date.now(),
+      opp: opts.opp ? oppFrom(C, opts.opp) : null, kills: [], times: [], rounds: {}, notes: {}, summary: "", mvp: null, spend: [], acts: [], uses: []
     };
     var allOn = opts.missionId !== "supply-drop";
     markerIds(sd).forEach(function (n) {
@@ -93,7 +103,8 @@
     });
     sync(C, r, b);
     startRound(C, r, b);
-    log(b, "Battle started: " + m.name + ", " + (sd === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ". You are the " + (b.color === "red" ? "Red" : "Blue") + " Player.");
+    mark(b);
+    log(b, "Battle started: " + m.name + ", " + (sd === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ". You are the " + (b.color === "red" ? "Red" : "Blue") + " Player." + (b.opp ? " Opponent: " + (b.opp.player || b.opp.name || "list imported") + ", " + b.opp.order.length + " Units." : ""));
     return b;
   }
   function freshInputs() { return { enemyLost: 0, gatherMe: 0, gatherOpp: 0, quartersMe: 0, quartersOpp: 0, claimMe: 0, claimOpp: 0, safeMe: 0, safeOpp: 0, oppWiped: false }; }
@@ -145,6 +156,8 @@
       if (st.stat.burrowed) st.stat.hidden = true;               // Part 11 BURROWED
       st.s0 = st.st === "dead" ? 0 : i.supplyNow;
     });
+    oppInfos(C, b).forEach(function (o) { o.st.s0 = o.st.st === "dead" ? 0 : o.supplyNow; });
+    b.fpmStart = b.fpm;
     Object.keys(b.cards).forEach(function (k) { delete b.cards[k]; }); // 8.9.5: Exhausted cards refresh
     Object.keys(b.markers).forEach(function (n) { b.markers[n].prev = b.markers[n].own; });
     b.si = freshInputs();
@@ -226,6 +239,7 @@
       if (st.stat.burrowed) { delete st.stat.burrowed; delete st.stat.hidden; warn.push(name + " is no longer Burrowed: " + a.label + " removes the status (Part 11)."); }
     }
     st.act[idx] = true; st.an[idx] = action;
+    (b.acts = b.acts || []).push({ r: b.round, p: b.phase, uid: uid, a: action });
     log(b, name + ": " + a.label + (action === "gather" ? " (+1 VP)" : "") + ".");
     return { warnings: warn, done: true };
   }
@@ -236,15 +250,16 @@
     if (was === "deploy") st.st = "res";
     if (was === "disengage") st.dis = false;
     st.act[idx] = false; st.an[idx] = null;
+    for (var k = (b.acts || []).length - 1; k >= 0; k--) if (b.acts[k].uid === uid && b.acts[k].r === b.round && b.acts[k].p === b.phase) { b.acts.splice(k, 1); break; }
   }
 
   /* ---------- damage and casualties (8.7.4 step 5) ---------- */
   function setState(C, r, b, uid, state) {
     var i = info(C, r, b, uid); if (!i) return;
     var st = i.st;
-    if (state === "dead") { st.st = "dead"; st.m = 0; st.d = 0; st.eng = false; st.first = true; log(b, i.unit.name + " Destroyed."); }
+    if (state === "dead") { st.st = "dead"; st.m = 0; st.d = 0; st.eng = false; st.first = true; st.deadR = b.round; log(b, i.unit.name + " Destroyed."); }
     else if (state === "res") { st.st = "res"; st.eng = false; if (st.stat.siege) delete st.stat.siege; log(b, i.unit.name + " returned to Reserves."); }
-    else { st.st = "fld"; if (st.m <= 0) st.m = 1; }
+    else { st.st = "fld"; if (st.m <= 0) st.m = 1; delete st.deadR; }
   }
   function changeModels(C, r, b, uid, delta) {
     var i = info(C, r, b, uid); if (!i) return;
@@ -301,10 +316,14 @@
     if (a.cost > res.ready) warn.push(name + " costs " + a.cost + " " + res.type + " but your Ready cards only provide " + res.ready + " (10.5.1).");
     else if (a.cost > 0) warn.push("Pay " + a.cost + " " + res.type + ": Exhaust a Ready card below (10.5.1).");
     if (a.oncePerGame) i.st.usedGame[name] = true; else if (!a.repeatable) i.st.used[name] = true;
+    (b.uses = b.uses || []).push({ r: b.round, p: b.phase, uid: uid, name: name, cost: a.cost });
     log(b, i.unit.name + " used " + name + (a.ability.cost ? " (" + a.ability.cost + ")" : "") + ".");
     return { warnings: warn, cost: a.cost };
   }
-  function unuseAbility(C, r, b, uid, name) { var st = b.units[uid]; if (st) { delete st.used[name]; delete st.usedGame[name]; } }
+  function unuseAbility(C, r, b, uid, name) {
+    var st = b.units[uid]; if (st) { delete st.used[name]; delete st.usedGame[name]; }
+    for (var k = (b.uses || []).length - 1; k >= 0; k--) if (b.uses[k].uid === uid && b.uses[k].name === name && b.uses[k].r === b.round) { b.uses.splice(k, 1); break; }
+  }
 
   /* ---------- Faction and Tactical Cards (10.5) ---------- */
   function cardList(C, r, b) {
@@ -326,7 +345,10 @@
   }
   function toggleCard(C, r, b, key) {
     var x = cardList(C, r, b).filter(function (c) { return c.key === key; })[0]; if (!x) return;
-    if (b.cards[key]) delete b.cards[key]; else { b.cards[key] = true; log(b, x.card.name + " Exhausted."); }
+    if (b.cards[key]) {
+      delete b.cards[key];
+      for (var k = (b.spend || []).length - 1; k >= 0; k--) if (b.spend[k].key === key && b.spend[k].r === b.round) { b.spend.splice(k, 1); break; }
+    } else { b.cards[key] = true; (b.spend = b.spend || []).push({ r: b.round, p: b.phase, key: key, card: x.card.name, value: x.value, at: Date.now() }); log(b, x.card.name + " Exhausted."); }
   }
 
   /* ---------- markers (8.9.1) ---------- */
@@ -397,7 +419,8 @@
   }
   function suggestion(C, r, b) {
     var lost = lostThisRound(C, r, b), out = { me: { lines: [] }, opp: { lines: [] } };
-    if (b.si.enemyLost) out.me.lines.push({ label: "Enemy Supply destroyed this Round", vp: b.si.enemyLost });
+    var el = enemyLost(C, b);
+    if (el.total) out.me.lines.push({ label: "Enemy Supply destroyed this Round" + (el.tracked ? " (tracked " + el.auto + (el.reserves ? ", incl. " + el.reserves + " in Reserves" : "") + (el.adj ? (el.adj > 0 ? ", +" : ", ") + el.adj + " adjusted" : "") + ")" : ""), vp: el.total });
     if (lost.lost) out.opp.lines.push({ label: "Your Supply destroyed this Round", vp: lost.lost });
     if (lost.reserves) out.opp.lines.push({ label: "Your Units still in Reserves count as Destroyed (8.10)", vp: lost.reserves });
     out.me.lines = out.me.lines.concat(markerLines(C, b, "me"));
@@ -414,6 +437,9 @@
     var m = mission(C, b), sg = suggestion(C, r, b);
     me = Math.max(0, Math.floor(Number(me) || 0)); opp = Math.max(0, Math.floor(Number(opp) || 0));
     b.vp.me[b.round - 1] = me; b.vp.opp[b.round - 1] = opp; b.scored = true;
+    var mk = {}; Object.keys(b.markers).forEach(function (n) { mk[n] = b.markers[n].gone ? "gone" : b.markers[n].own; });
+    b.rounds[b.round] = { at: Date.now(), vp: [me, opp], markers: mk, enemyLost: enemyLost(C, b).total, myLost: lostThisRound(C, r, b).total, fpm: b.fpmStart,
+      spent: sum((b.spend || []).filter(function (x) { return x.r === b.round; }).map(function (x) { return x.value; })) };
     if (b.missionId === "supply-drop") sg.me.lines.concat(sg.opp.lines).forEach(function (l) { if (l.remove && b.markers[l.remove]) { b.markers[l.remove].gone = true; b.markers[l.remove].on = false; b.markers[l.remove].own = null; } });
     var t = totals(b);
     log(b, "Round " + b.round + " scored: you " + me + ", opponent " + opp + ". Total " + t.me + " to " + t.opp + ".");
@@ -422,6 +448,7 @@
     if (m.special_win_lead && lead >= m.special_win_lead) b.over = { reason: "Special Winning Condition: a lead of " + m.special_win_lead + " or more VPs.", winner: t.me > t.opp ? "me" : "opp" };
     else if (wiped) b.over = { reason: "A player has no models on the battlefield and no Units in Reserves (8.9.3).", winner: t.me > t.opp ? "me" : t.opp > t.me ? "opp" : "draw" };
     else if (final) b.over = { reason: "Round " + b.round + " was the final Round (8.10).", winner: t.me > t.opp ? "me" : t.opp > t.me ? "opp" : "draw" };
+    if (b.over) { b.over.at = Date.now(); mark(b); }
     if (b.over) log(b, "Game over. " + (b.over.winner === "me" ? "You win" : b.over.winner === "opp" ? "The opponent wins" : "Draw") + " " + t.me + " to " + t.opp + ".");
     return b.over;
   }
@@ -433,6 +460,7 @@
     if (!b.rollOff) b.fpm = t.me < t.opp ? "me" : "opp";
     b.round++;
     startRound(C, r, b);
+    mark(b);
     log(b, "Round " + b.round + " begins. " + (b.rollOff ? "VPs are tied: Roll-Off for the First Player Marker." : (b.fpm === "me" ? "You hold" : "The opponent holds") + " the First Player Marker (fewer VPs)."));
   }
   /* Units Engaged in the Combat Phase must activate (8.8). */
@@ -447,9 +475,12 @@
     if (b.phase <= 2 && (passedFirst === "me" || passedFirst === "opp")) { b.fpm = passedFirst; log(b, (passedFirst === "me" ? "You" : "The opponent") + " passed first and took the First Player Marker (8.2.1)."); }
     b.phase++;
     b.rollOff = false;
+    mark(b);
     log(b, PHASES[b.phase] + " Phase.");
   }
-  function back(C, r, b) { if (b.phase > 1 && !b.over) b.phase--; }
+  function back(C, r, b) { if (b.phase > 1 && !b.over) { b.phase--; mark(b); } }
+  /* Roll-Off result for the First Player Marker (8.9.6). */
+  function setFpm(C, b, who) { b.fpm = who === "opp" ? "opp" : "me"; b.rollOff = false; if (b.phase === 1) b.fpmStart = b.fpm; log(b, (b.fpm === "me" ? "You take" : "The opponent takes") + " the First Player Marker (Roll-Off)."); }
 
   /* ---------- summoned units (9.1.9) ---------- */
   function summonable(C, r) {
@@ -466,6 +497,158 @@
   }
   function removeSummoned(C, r, b, uid) { b.summoned = b.summoned.filter(function (s) { return s.uid !== uid; }); delete b.units[uid]; }
 
+  /* ---------- the opponent's army (tracked from your side) ----------
+     A list (pasted text or a SurgeCraft share code) becomes b.opp: one entry per Unit with its starting and current model count.
+     Supply comes from each Unit's printed supply profile, the same way as your own Units. */
+  function ouid() { return "o_" + Math.random().toString(36).slice(2, 9); }
+  function oppFrom(C, list) {
+    var o = { name: list.name || "", player: list.player || "", race: list.race || null, factionId: list.factionId || null,
+      tactical: list.tactical || {}, creepId: list.creepId || null, units: {}, order: [], summonable: (list.summonable || []).slice() };
+    (list.units || []).forEach(function (x) {
+      var u = C.units[x.unitId]; if (!u) return;
+      var n = Math.max(1, Math.floor(Number(x.models) || 1)), id = ouid();
+      o.units[id] = { uid: id, unitId: x.unitId, start: n, m: n, st: "fld", upgrades: (x.upgrades || []).slice(), s0: supplyFor(u, n), summoned: !!u.summoned };
+      o.order.push(id);
+    });
+    if (!o.race && o.order.length) o.race = C.units[o.units[o.order[0]].unitId].race;
+    return o;
+  }
+  function oppInfo(C, b, uid) {
+    var o = b.opp && b.opp.units[uid]; if (!o) return null;
+    var u = C.units[o.unitId]; if (!u) return null;
+    var models = o.st === "dead" ? 0 : o.m;
+    return { uid: uid, unit: u, name: u.name, st: o, state: o.st, models: models, start: o.start, supplyNow: supplyFor(u, models), s0: o.s0, summoned: o.summoned, upgrades: o.upgrades };
+  }
+  function oppInfos(C, b) { return b.opp ? b.opp.order.map(function (id) { return oppInfo(C, b, id); }).filter(Boolean) : []; }
+  function setOpp(C, b, list) { b.opp = list ? oppFrom(C, list) : null; if (b.opp) oppInfos(C, b).forEach(function (o) { o.st.s0 = o.supplyNow; }); log(b, b.opp ? "Opponent's list added: " + b.opp.order.length + " Units." : "Opponent's list removed."); }
+  function oppChange(C, b, uid, delta) {
+    var i = oppInfo(C, b, uid); if (!i) return;
+    var cap = i.summoned ? Math.max(i.start, maxModels(i.unit)) : i.start, o = i.st;
+    var n = Math.max(0, Math.min(cap, i.models + delta));
+    if (n === 0) { o.st = "dead"; o.m = 0; o.deadR = b.round; log(b, "Opponent's " + i.name + " Destroyed."); return; }
+    if (o.st === "dead") { o.st = "fld"; delete o.deadR; }
+    o.m = n; if (delta < 0) log(b, "Opponent's " + i.name + ": " + n + " of " + i.start + " models left.");
+  }
+  function oppSetState(C, b, uid, state) {
+    var i = oppInfo(C, b, uid); if (!i) return; var o = i.st;
+    if (state === "dead") { o.st = "dead"; o.m = 0; o.deadR = b.round; log(b, "Opponent's " + i.name + " Destroyed."); }
+    else if (state === "res") { o.st = "res"; if (o.m <= 0) o.m = o.start; delete o.deadR; }
+    else { o.st = "fld"; if (o.m <= 0) o.m = 1; delete o.deadR; }
+  }
+  /* A Unit the list missed, or one the opponent Summoned during the game. */
+  function oppAdd(C, b, unitId, models) {
+    var u = C.units[unitId]; if (!u) return null;
+    if (!b.opp) b.opp = { name: "", player: "", race: u.race, factionId: null, tactical: {}, creepId: null, units: {}, order: [], summonable: [] };
+    var n = Math.max(1, Math.floor(Number(models) || (u.summoned ? maxModels(u) : 1))), id = ouid();
+    b.opp.units[id] = { uid: id, unitId: unitId, start: n, m: n, st: "fld", upgrades: [], s0: supplyFor(u, n), summoned: !!u.summoned, added: b.round };
+    b.opp.order.push(id);
+    log(b, "Opponent's " + u.name + (u.summoned ? " Summoned." : " added to the tracked list."));
+    return id;
+  }
+  function oppRemove(C, b, uid) { if (!b.opp || !b.opp.units[uid]) return; delete b.opp.units[uid]; b.opp.order = b.opp.order.filter(function (x) { return x !== uid; }); }
+  /* Enemy Supply destroyed this Round: the opponent's tracked losses by the same rule as yours (lostThisRound),
+     plus any manual adjustment in b.si.enemyLost. Without a tracked list, the manual figure is the whole value. */
+  function enemyLost(C, b) {
+    var m = mission(C, b), final = m && b.round >= m.game_length, list = oppInfos(C, b), auto = 0, reserves = 0;
+    list.forEach(function (o) {
+      if (o.summoned) return;
+      if (final && o.state === "res") { reserves += o.s0; return; }
+      auto += Math.max(0, o.s0 - (o.state === "dead" ? 0 : o.supplyNow));
+    });
+    var tracked = list.length > 0, adj = Number(b.si.enemyLost) || 0, base = tracked ? auto + reserves : 0;
+    return { tracked: tracked, auto: auto + reserves, reserves: reserves, adj: adj, total: Math.max(0, base + adj) };
+  }
+  /* "Killed a model": dir "dealt" = your Unit removed a model from an enemy Unit; dir "taken" = an enemy Unit removed one of yours. */
+  function kill(C, r, b, myUid, oppUid, dir) {
+    var me = info(C, r, b, myUid), op = oppUid ? oppInfo(C, b, oppUid) : null, at = Date.now();
+    if (!me || (dir === "dealt" && !op)) return { warnings: [] };
+    if (dir === "dealt") {
+      if (op.models <= 0) return { warnings: ["That enemy Unit has no models left."] };
+      b.kills.push({ r: b.round, p: b.phase, at: at, by: { s: "me", uid: myUid }, to: { s: "opp", uid: oppUid } });
+      log(b, me.unit.name + " killed a model from the opponent's " + op.name + ".");
+      oppChange(C, b, oppUid, -1);
+    } else {
+      if (me.models <= 0) return { warnings: [me.unit.name + " has no models left."] };
+      b.kills.push({ r: b.round, p: b.phase, at: at, by: op ? { s: "opp", uid: oppUid } : null, to: { s: "me", uid: myUid } });
+      log(b, (op ? "The opponent's " + op.name : "The opponent") + " killed a model from " + me.unit.name + ".");
+      if (me.casualtyDue) removeCasualty(C, r, b, myUid); else changeModels(C, r, b, myUid, -1);
+    }
+    return { warnings: [] };
+  }
+
+  /* ---------- reading an opponent's list ----------
+     Accepts SurgeCraft's Tabletop Simulator export and New Recruit's text export (same layout), tolerating extra spaces
+     and blank lines. Names are matched to the unit cards (exact, then without "(Base unit)", then singular/plural);
+     anything not matched is returned in .unmatched for the player to fix. */
+  function norm(s) { return String(s || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9()]+/g, " ").replace(/\s+/g, " ").trim(); }
+  function bare(s) { return norm(String(s || "").replace(/\([^)]*\)/g, " ")); }
+  function forms(s) { var a = [s]; if (/ies$/.test(s)) a.push(s.slice(0, -3) + "y"); if (/es$/.test(s)) a.push(s.slice(0, -2)); if (/s$/.test(s)) a.push(s.slice(0, -1)); return a; }
+  function matchUnit(C, name, race) {
+    var pool = C.data.units.filter(function (u) { return !race || u.race === race; });
+    var n = norm(name), nb = bare(name), hit;
+    hit = pool.filter(function (u) { return norm(u.name) === n; }); if (hit.length) return hit[0];
+    var fs = forms(n).concat(forms(nb)), k;
+    for (k = 0; k < fs.length; k++) { hit = pool.filter(function (u) { return norm(u.name) === fs[k]; }); if (hit.length === 1) return hit[0]; }
+    for (k = 0; k < fs.length; k++) { hit = pool.filter(function (u) { return bare(u.name) === fs[k]; }); if (hit.length === 1) return hit[0]; }
+    return null;
+  }
+  function matchCard(C, name, kind, race) {
+    var n = norm(name);
+    return C.data.cards.filter(function (c) { return (!kind || c.kind === kind) && (!race || c.race === race) && norm(c.name) === n; })[0] || null;
+  }
+  function matchUpgrade(u, name) { var n = norm(name); return (u.upgrades || []).filter(function (x) { return norm(x.name) === n; })[0] || null; }
+  function parseList(C, text) {
+    var out = { name: "", player: "", race: null, factionId: null, tactical: {}, creepId: null, units: [], unmatched: [], summonable: [], ignoredUpgrades: [] };
+    var lines = String(text || "").split(/\r?\n/).map(function (l) { return l.replace(/\s+/g, " ").trim(); }).filter(Boolean);
+    var sec = null, last = null;
+    lines.forEach(function (line) {
+      var h;
+      if (/^created with/i.test(line)) return;
+      if ((h = /^(Terran|Protoss|Zerg)\s*-\s*(.*?)\s*\(\s*[\d,]+\s*Minerals/i.exec(line))) { out.race = h[1][0].toUpperCase() + h[1].slice(1).toLowerCase(); out.name = h[2]; return; }
+      if (/^\d+\s*Supply\b/i.test(line) || /^Deployment Maps?\s*:/i.test(line) || /^Mission Cards?\s*:/i.test(line)) return;
+      if ((h = /^#\s*([^:]+?)\s*(?::\s*(.*))?$/.exec(line))) {
+        var k = h[1].toLowerCase(); h[2] = h[2] || ""; sec = /faction/.test(k) ? "faction" : /tactic/.test(k) ? "tactical" : /creep/.test(k) ? "creep" : /unit/.test(k) ? "units" : null;
+        line = h[2]; if (!line) return;
+      }
+      var um = /^(\d+)\s*x\s+(.+)$/i.exec(line);
+      if (um || sec === "units") {
+        var models = um ? Number(um[1]) : 1, rest = um ? um[2] : line, nm = rest, ups = [];
+        var cm = /^(.*?)\s*\(\s*[\d,]+\s*,\s*\d+\s*S\s*\)\s*(?::\s*(.*))?$/i.exec(rest);
+        if (cm) { nm = cm[1]; ups = cm[2] ? cm[2].split(/\s*,\s*/).filter(Boolean) : []; }
+        else if (rest.indexOf(":") !== -1) { nm = rest.slice(0, rest.indexOf(":")); ups = rest.slice(rest.indexOf(":") + 1).split(/\s*,\s*/).filter(Boolean); }
+        var u = matchUnit(C, nm, out.race);
+        if (u && u.summoned && !um) { if (out.summonable.indexOf(u.id) === -1) out.summonable.push(u.id); return; }
+        if (!um && last && !u) { var up0 = matchUpgrade(C.units[last.unitId], line); if (up0) { last.upgrades.push(up0.name); return; } }
+        if (!u) { out.unmatched.push({ line: line, name: nm.trim(), models: models, upgrades: ups }); return; }
+        if (!out.race) out.race = u.race;
+        var e = { unitId: u.id, models: models, upgrades: [], line: line };
+        ups.forEach(function (x) { var up = matchUpgrade(u, x); if (up) e.upgrades.push(up.name); else out.ignoredUpgrades.push(u.name + ": " + x); });
+        out.units.push(e); last = e; return;
+      }
+      if (sec === "faction") { var f = matchCard(C, line, "Faction"); if (f) { out.factionId = f.id; if (!out.race) out.race = f.race; } else out.unmatched.push({ line: line, card: "Faction" }); return; }
+      if (sec === "tactical" || sec === "creep") {
+        var cn = line.replace(/\s*[x×]\s*(\d+)$/i, ""), cnt = Number((/[x×]\s*(\d+)$/i.exec(line) || [0, 1])[1]);
+        var c = matchCard(C, cn, sec === "creep" ? "Creep" : null);
+        if (c && c.kind === "Creep") out.creepId = c.id; else if (c) out.tactical[c.id] = (out.tactical[c.id] || 0) + cnt; else out.unmatched.push({ line: line, card: sec === "creep" ? "Creep" : "Tactical" });
+        return;
+      }
+    });
+    return out;
+  }
+  /* A roster from a SurgeCraft share code or roster file (already normalised by RosterCore) as an opponent list. */
+  function listFromRoster(C, r) {
+    var summonable = [];
+    return { name: r.name || "", player: r.player || "", race: r.race || null, factionId: r.factionId || null, tactical: r.tactical || {}, creepId: r.creepId || null,
+      units: (r.units || []).map(function (e) { return { unitId: e.unitId, models: e.models, upgrades: (e.upgrades || []).slice() }; }), unmatched: [], summonable: summonable, ignoredUpgrades: [] };
+  }
+
+  /* ---------- finished battles ----------
+     A copy of the battle with the roster as it was, kept on the roster (r.history, newest first) for the battle report. */
+  function historyEntry(C, r, b) {
+    var roster = clone(r); delete roster.history; delete roster.battle; // keeps unit ids, which the battle state is keyed by
+    return { id: "h_" + Math.random().toString(36).slice(2, 9), endedAt: Date.now(), battle: clone(b), roster: roster };
+  }
+
   var Battle = {
     PHASES: PHASES, ACTIONS: ACTIONS, STATUS: STATUS, clone: clone, affinity: affinity, markerIds: markerIds, supplyFor: supplyFor, maxModels: maxModels,
     side: side, mission: mission, colorOf: colorOf, create: create, sync: sync, info: info, infos: infos, supply: supply, lostThisRound: lostThisRound,
@@ -473,7 +656,9 @@
     setState: setState, changeModels: changeModels, changeDamage: changeDamage, removeCasualty: removeCasualty, toggleStatus: toggleStatus, toggleEngaged: toggleEngaged,
     statusKeys: statusKeys, abilitiesFor: abilitiesFor, useAbility: useAbility, unuseAbility: unuseAbility, cardList: cardList, resource: resource, toggleCard: toggleCard,
     cycleMarker: cycleMarker, setMarker: setMarker, setLevel: setLevel, suggestion: suggestion, totals: totals, confirmScores: confirmScores, nextRound: nextRound,
-    phaseWarnings: phaseWarnings, advance: advance, back: back, summonable: summonable, addSummoned: addSummoned, removeSummoned: removeSummoned, hasAssaultWeapon: hasAssaultWeapon
+    phaseWarnings: phaseWarnings, advance: advance, back: back, summonable: summonable, addSummoned: addSummoned, removeSummoned: removeSummoned, hasAssaultWeapon: hasAssaultWeapon,
+    upgrade: upgrade, setFpm: setFpm, oppFrom: oppFrom, oppInfo: oppInfo, oppInfos: oppInfos, setOpp: setOpp, oppChange: oppChange, oppSetState: oppSetState, oppAdd: oppAdd, oppRemove: oppRemove,
+    enemyLost: enemyLost, kill: kill, parseList: parseList, listFromRoster: listFromRoster, matchUnit: matchUnit, historyEntry: historyEntry
   };
   if (typeof module !== "undefined" && module.exports) module.exports = Battle; else root.Battle = Battle;
 })(this);

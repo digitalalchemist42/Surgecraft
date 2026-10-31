@@ -378,6 +378,43 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 #b-rail .panel{scroll-margin-top:12px}
 .bjump{display:none;gap:6px;flex-wrap:wrap;align-items:center}
 @media (max-width:1020px){.bjump{display:flex}}
+/* battle: kills / opponent / past battles */
+.bu-kill{flex:none;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);background:var(--panel);color:var(--ink-2)}
+.bu-kill svg{width:18px;height:18px}
+.bu-kill:hover{border-color:var(--accent);color:var(--accent)}
+.ksheet{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;gap:10px;max-width:640px;margin:0 auto}
+.ks-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-right:34px}
+.ks-h h2{font-size:22px;text-transform:uppercase}
+.ks-mode{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ks-mode button{padding:8px 10px}
+.ks-help{margin:0;font-size:12.5px}
+.ks-last{display:flex;align-items:center;gap:8px;background:var(--ok-soft);color:var(--ok);border-radius:var(--r);padding:6px 10px;font-weight:700;font-size:13px}
+.ks-last span{flex:1}
+.ks-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.ks-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto 52px;gap:10px;align-items:center;text-align:left;background:var(--panel);border:0;border-top:1px solid var(--line-2);padding:10px 12px;min-height:48px;color:inherit}
+.ks-row:first-child{border-top:0}
+.ks-row:hover{background:var(--accent-soft)}
+.ks-n{font-weight:800;min-width:0}
+.ks-m{font-weight:700}
+.ks-s{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.ks-go{justify-self:end;background:var(--accent);color:var(--accent-ink);font-weight:800;border-radius:var(--r);padding:4px 10px;font-size:13px}
+.ks-f{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line-2);padding-top:10px}
+.opp-list{display:flex;flex-direction:column;gap:6px}
+.opp-row{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.opp-row.dead{opacity:.6}
+.opp-t{font-size:13.5px}
+.opp-c{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.opp-st button{padding:3px 8px;font-size:12px}
+.oppsum{display:flex;flex-direction:column;gap:8px;margin-top:8px;border:1px solid var(--line);border-radius:var(--r);padding:10px;background:var(--panel-2)}
+.oppchips{display:flex;flex-wrap:wrap;gap:4px}
+.oppchips .chip{text-transform:none;letter-spacing:0;font-size:12px}
+.oppfix{display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.hist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line-2)}
+.hrow:first-child{border-top:0}
+.h-t{flex:1;min-width:200px}
+.h-a{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+@media (max-width:680px){.ks-row{grid-template-columns:minmax(0,1fr) auto 48px}.ks-s{display:none}.ks-mode button{font-size:12.5px;padding:8px 6px}}
 /* battle: compact rows, groups, bottom bar, phone tabs */
 .bunit.cpt{padding:6px 8px;gap:6px}
 .bu-c{display:flex;align-items:center;gap:8px;min-width:0}
