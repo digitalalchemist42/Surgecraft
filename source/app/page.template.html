@@ -128,13 +128,12 @@ img{max-width:100%}
 .appbar .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
 /* collapsible header (one setting for every roster tab, remembered on this device) */
-.kwbtn.hdr-hide{display:none}
-body.in-roster .kwbtn.hdr-hide{display:inline-flex}
-.hdr-show{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;z-index:25;width:36px;height:36px;border-radius:50%;align-items:center;justify-content:center;padding:0;background:var(--hdr);color:var(--hdr-ink);border:2px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.3);opacity:.9}
-.hdr-show svg{width:18px;height:18px}
-.hdr-show:hover{opacity:1}
+.hdr-tgl{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;z-index:25;width:36px;height:36px;border-radius:50%;align-items:center;justify-content:center;padding:0;background:var(--hdr);color:var(--hdr-ink);border:2px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.hdr-tgl svg{width:18px;height:18px;transition:transform .15s}
+body.in-roster .hdr-tgl{display:inline-flex}
+body.in-roster .appbar .wrap{padding-right:44px}
+body.hdr-off .hdr-tgl svg{transform:rotate(180deg)}
 body.hdr-off .appbar{display:none}
-body.hdr-off .hdr-show{display:inline-flex}
 body.hdr-off .strip{top:env(safe-area-inset-top,0px)}
 body.hdr-off .rail{top:calc(env(safe-area-inset-top,0px) + 90px)}
 .brand{font-family:var(--display);font-stretch:87.5%;font-weight:700;font-size:21px;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--hdr-ink)}
@@ -621,9 +620,8 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
     <button data-a="mode" data-v="light" aria-pressed="false" title="Light mode"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 .8v2.2M8 13v2.2M.8 8H3M13 8h2.2M2.9 2.9l1.6 1.6M11.5 11.5l1.6 1.6M2.9 13.1l1.6-1.6M11.5 4.5l1.6-1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="ml">Light</span></button>
     <button data-a="mode" data-v="dark" aria-pressed="false" title="Dark mode"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.2A6 6 0 0 1 5.8 2.4a6 6 0 1 0 7.8 7.8z" fill="currentColor"/></svg><span class="ml">Dark</span></button>
   </div>
-  <button class="kwbtn hdr-hide" id="hdr-hide" data-a="hdr" data-v="hide" title="Hide this header" aria-label="Hide header"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ml">Hide</span></button>
 </div></div>
-<button class="hdr-show" id="hdr-show" data-a="hdr" data-v="show" title="Show the header" aria-label="Show header"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5 4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<button class="hdr-tgl" id="hdr-tgl" data-a="hdr" title="Hide the header" aria-label="Hide header" aria-expanded="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <div id="app" class="wrap"></div>
 <div id="modal-root"></div>
 

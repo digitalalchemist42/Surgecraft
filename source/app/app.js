@@ -200,7 +200,8 @@ function render(){
   if(S.view==="list") renderList(); else renderBuild();
   syncWake();
 }
-function applyHdr(){ var inRoster = S.view==="build"; document.body.classList.toggle("in-roster", inRoster); document.body.classList.toggle("hdr-off", inRoster && !!P.hdrOff); }
+function applyHdr(){ var inRoster = S.view==="build", off = inRoster && !!P.hdrOff, b = $("hdr-tgl"); document.body.classList.toggle("in-roster", inRoster); document.body.classList.toggle("hdr-off", off);
+  if(b){ b.setAttribute("aria-label", off ? "Show header" : "Hide header"); b.title = off ? "Show the header" : "Hide the header"; b.setAttribute("aria-expanded", String(!off)); } }
 function renderCrumb(){
   var el = $("crumb");
   if(S.view==="list"){ el.innerHTML = '<span>/</span><span class="title">Rosters</span>'; return; }
@@ -1401,7 +1402,7 @@ document.addEventListener("click", function(ev){
     case "new": newRoster(); break;
     case "example": openExample(false, v); break;
     case "mode": P.mode = v; savePrefs(); applyMode(); break;
-    case "hdr": P.hdrOff = v==="hide"; savePrefs(); applyHdr(); var hf = $(P.hdrOff ? "hdr-show" : "hdr-hide"); if(hf) hf.focus({preventScroll:true}); break;
+    case "hdr": P.hdrOff = !P.hdrOff; savePrefs(); applyHdr(); break;
     case "layout": P.layout = v; savePrefs(); render(); break;
     case "tile-open": S.tileOpen = (S.tileOpen===v ? null : v); renderUnits(); var ed=$("ut-editor"); if(ed) ed.scrollIntoView({behavior:"smooth", block:"nearest"}); break;
     case "open": openRoster(t.getAttribute("data-id")); break;
