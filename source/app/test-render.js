@@ -77,18 +77,21 @@ require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.r
   ok("card size: faces sit in fixed 162x107 mm boxes with the fit script", /\.cs-wrap\{width:162mm;height:107mm/.test(csDoc) && csDoc.indexOf("<script>") !== -1);
   ok("card size: fit can drop the art column", /\.cs-wrap>\.sc-card\.sc-noart>\.sc-art\{display:none\}/.test(csDoc) && csDoc.indexOf('setAttribute("data-art", "dropped")') !== -1);
   ok("card size off = no card-size markup", X.fieldManualDoc(C, r, p => p, { cardSize: false }) === man);
-  // tactical cards at card size: art + rules face per physical copy, 63 x 88 mm, nothing lost between faces
+  // tactical cards at card size: one 63 x 88 mm card per physical copy, carrying everything on the full card
   const tacN = 1 + Object.keys(r.tactical).reduce((n, id) => n + r.tactical[id], 0);
-  ok("card size: an art and a rules face for every faction/tactical card copy", (csDoc.match(/sc-noart sc-tface-art"/g) || []).length === tacN && (csDoc.match(/sc-noart sc-tface-rules"/g) || []).length === tacN && (csDoc.match(/class="cs-tpair"/g) || []).length === tacN);
-  ok("card size: tactical faces are 63 x 88 mm", /\.cs-tpair>\.cs-wrap\{width:63mm;height:88mm\}/.test(csDoc));
+  ok("card size: one card for every faction/tactical card copy, no art/rules split", (csDoc.match(/sc-tface-one"/g) || []).length === tacN && csDoc.indexOf("cs-tpair") === -1 && !/sc-tface-(art|rules)/.test(csDoc));
+  ok("card size: tactical cards are 63 x 88 mm", /\.cs-tacs>\.cs-wrap\{width:63mm;height:88mm\}/.test(csDoc));
+  ok("card size: fit can drop a tactical card's art panel", /\.cs-wrap\[data-art=\"dropped\"\] \.sc-tfart\{display:none\}/.test(csDoc) && csDoc.indexOf('card.querySelector(".sc-tfart")') !== -1);
   const tmiss = [];
   Object.values(C.cards).forEach(c => {
-    const one = R.tacCardHTML(C, c, p => p), two = R.tacCardHTML(C, c, p => p, 1, { face: "art" }) + R.tacCardHTML(C, c, p => p, 1, { face: "rules" });
-    c.abilities.forEach(a => { const n = R.esc(a.name.toUpperCase()); if (one.indexOf(n) !== -1 && two.indexOf(n) === -1) tmiss.push(c.name + ": " + a.name); });
-    if (c.resource && c.resource.value != null && two.indexOf(R.esc(c.resource.type) + ": " + R.esc(c.resource.value)) === -1) tmiss.push(c.name + ": resource");
-    if (two.indexOf(R.esc(R.slotsText(c.slots))) === -1) tmiss.push(c.name + ": supply");
+    const full = R.tacCardHTML(C, c, p => p), one = R.tacCardHTML(C, c, p => p, 1, { face: "card" });
+    c.abilities.forEach(a => { const n = R.esc(a.name.toUpperCase()); if (full.indexOf(n) !== -1 && one.indexOf(n) === -1) tmiss.push(c.name + ": " + a.name); });
+    if (c.resource && c.resource.value != null && one.indexOf(R.esc(c.resource.type) + ": " + R.esc(c.resource.value)) === -1) tmiss.push(c.name + ": resource");
+    if (one.indexOf(R.esc(R.slotsText(c.slots))) === -1) tmiss.push(c.name + ": supply");
+    if (one.indexOf('class="sc-tfart"') === -1) tmiss.push(c.name + ": art");
+    if (c.gas_cost != null && c.kind !== "Faction" && one.indexOf(c.gas_cost + " VESPENE GAS") === -1) tmiss.push(c.name + ": gas");
   });
-  ok("card size: art + rules faces carry every ability, cost and supply (" + Object.keys(C.cards).length + " cards)", tmiss.length === 0 || console.log(tmiss));
+  ok("card size: the single card carries every ability, cost, gas, supply and the art (" + Object.keys(C.cards).length + " cards)", tmiss.length === 0 || console.log(tmiss));
   ok("print hides the footer in every document", /@media print\{\.foot\{display:none\}/.test(man) && /@media print\{\.rf-foot\{display:none\}/.test(X.referenceDoc(C, r, {})));
   // every ability, weapon and upgrade name on the one-face card appears across the two faces
   const all = data.units.filter(u => !u.summoned && u.compositions && u.compositions.length), miss = [];

@@ -173,34 +173,32 @@
     var k = Object.keys(slots);
     return k.length ? k.map(function (s) { return slots[s] + " × " + s.toUpperCase(); }).join(", ") : "-";
   }
-  function tacFaceHTML(C, c, src, face) {
-    var art = face === "art", artSrc = art ? src(ART.card(c.id)) : "";
-    var h = '<article class="sc-card sc-tac sc-noart sc-tface-' + face + '" data-race="' + esc(c.race) + '"><div class="sc-body">' +
-      '<header class="sc-title"><div class="sc-tl"><h3>' + esc(c.name.toUpperCase()) + "</h3>";
-    if (art) h += '<div class="sc-meta"><span><em>' + esc(c.kind.toUpperCase()) + " CARD</em></span>" + (c.unique ? '<span class="sc-uq">UNIQUE</span>' : "") +
-      (c.gas_cost != null && c.kind !== "Faction" ? '<span class="sc-gas">' + c.gas_cost + " VESPENE GAS</span>" : "") + "</div>";
-    h += "</div>" + (!art && c.resource && c.resource.value != null ? '<span class="sc-res">' + esc(c.resource.type) + ": " + esc(c.resource.value) + "</span>" : "") + "</header>";
-    if (art) {
-      h += '<div class="sc-tfart">' + (artSrc ? '<img src="' + esc(artSrc) + '" alt="" loading="lazy">' : "") + "</div>";
-      h += '<footer class="sc-foot"><span><em>SUPPLY:</em> ' + esc(slotsText(c.slots)) + '</span><span class="sc-ftags">' + c.faction_tags.map(function (t) { return "<i>" + esc(t.toUpperCase()) + "</i>"; }).join("") + "</span></footer>";
-    } else {
-      PHASES.forEach(function (p) {
-        var ab = c.abilities.filter(function (a) { return a.phase === p; });
-        if (ab.length) h += '<section class="sc-sec">' + phaseHead(p) + ab.map(function (a) { return abilityBox(a); }).join("") + "</section>";
-      });
-      var fine = []; if (c.card_version) fine.push("Card " + c.card_version);
-      (c.corrections || []).forEach(function (x) { fine.push("Corrected: " + x); });
-      (c.notes || []).forEach(function (x) { fine.push("Note: " + x); });
-      if (fine.length) h += '<div class="sc-fine">' + fine.map(esc).join("<br>") + "</div>";
-    }
+  /* One 63 x 88 mm card for card-size printing: name, card type, gas and resource, art, abilities by Phase,
+     army-slot supply and faction. The art panel takes whatever space is left and is dropped first if the card doesn't fit (fitCards). */
+  function tacFaceHTML(C, c, src) {
+    var artSrc = src(ART.card(c.id));
+    var h = '<article class="sc-card sc-tac sc-tface-one" data-race="' + esc(c.race) + '"><div class="sc-body">' +
+      '<header class="sc-title"><div class="sc-tl"><h3>' + esc(c.name.toUpperCase()) + "</h3>" +
+      '<div class="sc-meta"><span><em>' + esc(c.kind.toUpperCase()) + " CARD</em></span>" + (c.unique ? '<span class="sc-uq">UNIQUE</span>' : "") +
+      (c.gas_cost != null && c.kind !== "Faction" ? '<span class="sc-gas">' + c.gas_cost + " VESPENE GAS</span>" : "") + "</div></div>" +
+      (c.resource && c.resource.value != null ? '<span class="sc-res">' + esc(c.resource.type) + ": " + esc(c.resource.value) + "</span>" : "") + "</header>";
+    if (artSrc) h += '<div class="sc-tfart"><img src="' + esc(artSrc) + '" alt="" loading="lazy"></div>';
+    PHASES.forEach(function (p) {
+      var ab = c.abilities.filter(function (a) { return a.phase === p; });
+      if (ab.length) h += '<section class="sc-sec">' + phaseHead(p) + ab.map(function (a) { return abilityBox(a); }).join("") + "</section>";
+    });
+    h += '<footer class="sc-foot"><span><em>SUPPLY:</em> ' + esc(slotsText(c.slots)) + '</span><span class="sc-ftags">' + c.faction_tags.map(function (t) { return "<i>" + esc(t.toUpperCase()) + "</i>"; }).join("") + "</span></footer>";
+    var fine = []; if (c.card_version) fine.push("Card " + c.card_version);
+    (c.corrections || []).forEach(function (x) { fine.push("Corrected: " + x); });
+    (c.notes || []).forEach(function (x) { fine.push("Note: " + x); });
+    if (fine.length) h += '<div class="sc-fine">' + fine.map(esc).join("<br>") + "</div>";
     return h + "</div></article>";
   }
 
-  /* opts.face (card-size printing, like the official folded card): "art" = name, card type, art, army-slot supply and
-     faction; "rules" = name, resource cost (CP/BM/PE), abilities and fine print. Omitted = the whole card on one face. */
+  /* opts.face (card-size printing): the whole card on one 63 x 88 mm face (tacFaceHTML). Omitted = the full-width card. */
   function tacCardHTML(C, c, src, count, opts) {
     src = src || identity; opts = opts || {};
-    if (opts.face) return tacFaceHTML(C, c, src, opts.face);
+    if (opts.face) return tacFaceHTML(C, c, src);
     var artSrc = src(ART.card(c.id));
     var h = '<article class="sc-card sc-tac' + (artSrc ? "" : " sc-noart") + '" data-race="' + esc(c.race) + '">';
     if (artSrc) h += '<div class="sc-art sc-tacart"><img src="' + esc(artSrc) + '" alt="" loading="lazy"></div>';
@@ -522,11 +520,10 @@
     K + ".sc-foot{font-size:8px;padding:2px 6px;gap:3px 8px}" + K + ".sc-ftags i{font-size:7.5px;padding:0 5px}" +
     K + ".sc-fine{font-size:6.7px;line-height:1.3}" +
     ".cs-tacs{display:flex;flex-wrap:wrap;justify-content:center;gap:4mm 2.5mm}" +
-    ".cs-tpair{display:flex;flex-direction:column;break-inside:avoid;page-break-inside:avoid}" +
-    ".cs-tpair>.cs-wrap{width:" + TAC_MM.w + "mm;height:" + TAC_MM.h + "mm}" +
-    ".cs-tpair>.cs-wrap:first-child{border-bottom-left-radius:0;border-bottom-right-radius:0}.cs-tpair>.cs-wrap+.cs-wrap{border-top-left-radius:0;border-top-right-radius:0}" +
-    ".cs-wrap>.sc-card.sc-tface-art{display:flex;flex-direction:column}" + K + ".sc-tface-art .sc-body{flex:1 1 auto}" + K + ".sc-res{font-size:9px;padding:2px 5px}" +
-    K + ".sc-tfart{position:relative;flex:1 1 auto;min-height:24mm;margin-inline:6px;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--race-2),var(--race-3))}" +
+    ".cs-tacs>.cs-wrap{width:" + TAC_MM.w + "mm;height:" + TAC_MM.h + "mm}" +
+    ".cs-wrap>.sc-card.sc-tface-one{display:flex;flex-direction:column}" + K + ".sc-tface-one .sc-body{flex:1 1 auto}" + K + ".sc-res{font-size:9px;padding:2px 5px}" +
+    K + ".sc-tfart{position:relative;flex:1 1 auto;min-height:18mm;margin-inline:6px;border-radius:2px;background:radial-gradient(circle at 50% 42%,var(--race-2),var(--race-3))}" +
+    ".cs-wrap[data-art=\"dropped\"] .sc-tfart{display:none}" +
     K + ".sc-tfart img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.45))}" +
     "@media print{.cs-tacs{gap:3mm 2.5mm}.cs-list{gap:5mm}.cs-wrap{box-shadow:none;border:.3mm solid #999}.cs-wrap>.sc-card{border:0}}";
   /* Shrinks a card face's content only if it doesn't fit at the official type sizes (too tall, or a weapon table too wide). The card is laid out wider (W / z) and
@@ -546,8 +543,8 @@
         if (useZoom) { card.style.transform = ""; card.style.zoom = z; return card.getBoundingClientRect().height <= box.getBoundingClientRect().height + 0.5 && !wide(); }
         card.style.transform = "scale(" + z + ")"; return card.offsetHeight * z <= H + 0.5 && !wide();
       };
-      // a unit card whose face doesn't fit at full size loses its art column first (data-art="dropped"), then shrinks
-      var art = card.querySelector(":scope>.sc-art");
+      // a card that doesn't fit at full size loses its art first (a unit card's art column, a Tactical Card's art panel; data-art="dropped"), then shrinks
+      var art = card.querySelector(":scope>.sc-art") || card.querySelector(".sc-tfart");
       if (art && box.getAttribute("data-art") === "dropped") { card.classList.remove("sc-noart"); box.removeAttribute("data-art"); }
       var lo = 0.3, hi = 1;
       if (!fits(1) && art) { card.classList.add("sc-noart"); box.setAttribute("data-art", "dropped"); }
@@ -588,10 +585,10 @@
       else body += '<div class="cs-list">' + items.map(function (it) { return wrapCard(cardOf(it)); }).join("") + "</div>";
     }
     var f = C.faction(r), cardsHTML = "";
-    // card size: each card as its two 63 x 88 mm faces (art over rules), one physical copy per card taken
+    // card size: one 63 x 88 mm card per physical copy taken
     var tac = function (c, n) {
       if (!cs) return tacCardHTML(C, c, src, n);
-      var one = '<div class="cs-tpair">' + wrapCard(tacCardHTML(C, c, src, 1, { face: "art" })) + wrapCard(tacCardHTML(C, c, src, 1, { face: "rules" })) + "</div>";
+      var one = wrapCard(tacCardHTML(C, c, src, 1, { face: "card" }));
       return new Array((n || 1) + 1).join(one);
     };
     if (f) cardsHTML += tac(f);
