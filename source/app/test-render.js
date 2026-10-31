@@ -111,5 +111,20 @@ require("fs").writeFileSync("/home/claude/app/sample_reference_terran.html", X.r
   }));
   ok("fielded cards: card abilities and weapons, taken upgrade only (" + all.reduce((n, u) => n + u.upgrades.length, 0) + " unit/upgrade cases)", fmiss.length === 0 || console.log(fmiss));
 }
+// ---- Tabletop Simulator export: the layout of a New Recruit list posted by a user, rebuilt from card data ----
+{
+  const t = C.newRoster(); t.name = "Rr"; t.race = "Terran"; t.factionId = "nova-covert-ops";
+  ["academy","armory","barracks","barracks-tech-lab","orbital-command"].forEach(id => t.tactical[id] = 1);
+  for (let k = 0; k < 3; k++) { const e = C.newEntry("marine"); e.models = 6; e.upgrades = ["AGG-12","Rocket Launcher","Slugthrower"]; t.units.push(e); }
+  t.units.push(C.newEntry("spec-ops-marauder"));
+  t.missions = ["fire-in-the-sky","gather-the-resources"]; t.deployments = ["breach","meeting-engagement"];
+  // printed card names ("Marine", "Meeting Engagement") and a SurgeCraft footer, by the user's choice; everything else as posted
+  const want = "Terran - Rr (920 Minerals, 165 Gas) \n 4 Supply, 7 CP\nDeployment Maps: Breach, Meeting Engagement \n Mission Card: Fire in the Sky, Gather the Resources\n" +
+    "# Faction: \n Nova Covert Ops\n# Tactical: \n Academy \n Armory \n Barracks \n Barracks (Tech Lab) \n Orbital Command\n" +
+    "# Units: \n 6x Marine (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marine (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 6x Marine (230, 1S): AGG-12, Rocket Launcher, Slugthrower \n 2x Spec Ops Marauder (Marauder) (230, 1S)\n" +
+    "Sabotage Drone\nCreated with SurgeCraft\n";
+  const got = X.tts(C, t);
+  ok("Tabletop Simulator export matches the posted list (card names, SurgeCraft footer)", got === want || console.log(JSON.stringify(got)));
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 require("fs").writeFileSync("/home/claude/app/sample_manual.html", man.replace(/img\//g, "img/"));

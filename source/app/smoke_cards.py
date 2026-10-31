@@ -6,7 +6,7 @@ D = json.load(open("/home/claude/sc_data/starcraft_tmg_data.json"))
 def run(p, label, ctxargs, tap=False):
     errs = []; out = {}
     b = p.chromium.launch(); pg = b.new_context(**ctxargs).new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
     go = (lambda loc: loc.tap()) if tap else (lambda loc: loc.click())
     go(pg.locator('.kwbtn[data-a="cards"]')); pg.wait_for_timeout(300)
     out["opened_with_race"] = pg.locator('#cref').get_attribute("data-skin")

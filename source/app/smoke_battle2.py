@@ -3,7 +3,7 @@ out = {}; errs = []
 with sync_playwright() as p:
     b = p.chromium.launch(); pg = b.new_context(viewport={"width":1280,"height":900}).new_page()
     pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
     B = lambda expr: pg.evaluate("(()=>{const b=__muster.S.cur.battle; return %s})()" % expr)
     pg.click('[data-a="mode"][data-v="dark"]'); pg.click('[data-a="home"] >> nth=0'); pg.wait_for_timeout(200); pg.click('[data-a="example"][data-v="Zerg"]'); pg.wait_for_timeout(500)
     pg.click('[data-a="scale"][data-v="skirmish:1000"]'); pg.wait_for_timeout(300)

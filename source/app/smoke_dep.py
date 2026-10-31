@@ -4,6 +4,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(); ctx = b.new_context(viewport={"width": 1280, "height": 900})
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
     pg.goto("http://localhost:8765/test.html"); pg.wait_for_timeout(13000)
+    pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_timeout(300)  # the page opens on the roster list; load the example army
     pg.click('[data-a="mode"][data-v="light"]')
     pg.evaluate("document.getElementById('sec-scenario').scrollIntoView()"); pg.wait_for_timeout(1200)
     out["map_imgs_loaded"] = pg.evaluate("Array.from(document.querySelectorAll('.dtile img')).filter(i=>i.complete&&i.naturalWidth>0).length+'/'+document.querySelectorAll('.dtile img').length")

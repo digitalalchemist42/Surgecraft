@@ -41,7 +41,7 @@ var APP = { prompt:null, iosHint:false };
 
 /* ------------ viewer preferences (this browser only): color mode + layout ------------ */
 var PREF_KEY = "surgecraft.prefs.v1";
-var P = (function(){ var d = {mode:"auto", layout:"list"}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; }catch(e){} return d; })();
+var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; }catch(e){} return d; })();
 function savePrefs(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(P)); }catch(e){} }
 var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 function effectiveMode(){
@@ -132,7 +132,7 @@ var Store = {
 };
 function upsertList(r){ var i = S.rosters.findIndex(function(x){return x.id===r.id;}); var c = clone(r); if(i===-1) S.rosters.push(c); else S.rosters[i]=c; }
 function setSave(s){ S.save = s; renderSaveState(); }
-function afterLoad(){ if(S.view==="list" && !S.rosters.length && !S.cur){ openExample(true); return; } render(); }
+function afterLoad(){ render(); } // example armies open only from the Example buttons, never on their own
 
 /* ------------ example armies ------------ */
 function openExample(auto, race){
@@ -154,7 +154,7 @@ function commit(opts){
   Store.queue(r);
   if(!opts || !opts.quiet) render(); else { renderMeters(); renderRail(); renderCrumb(); }
 }
-function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
+function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
 function openRoster(id){ var r = S.rosters.filter(function(x){return x.id===id;})[0]; if(!r) return; S.cur = clone(r); resetView(); render(); window.scrollTo(0,0); }
 function newRoster(){ var r = C.newRoster(); S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
 function setRace(race){
@@ -195,7 +195,9 @@ function render(){
   applyMode();
   $("brand-emb").src = ART.race(race || "Terran");
   renderCrumb(); renderSaveState();
+  document.body.classList.remove("has-bdock");
   if(S.view==="list") renderList(); else renderBuild();
+  syncWake();
 }
 function renderCrumb(){
   var el = $("crumb");
@@ -518,6 +520,7 @@ var FORMATS = [
   {id:"ref", ext:"html", name:"Reference sheet", suffix:"-reference", gloss:true, desc:"Every unit's stats, fielded weapon profiles, ability names and taken upgrades in compact tables, sized for one or two US Letter pages. Identical units are merged (2×). Rules text stays on the cards."},
   {id:"text", ext:"txt", name:"Plain text", desc:"The full roster as plain text: units, loadouts, cards and totals."},
   {id:"compact", ext:"txt", name:"Compact list", suffix:"-list", desc:"A short list for messages and forum posts, one line per unit."},
+  {id:"tts", ext:"txt", name:"Tabletop Simulator export", suffix:"-tts", desc:"A plain-text army list for importing into Tabletop Simulator. Names and costs are the printed card data."},
   {id:"md", ext:"md", name:"Markdown", desc:"Tables for Discord, Reddit, GitHub or notes apps."},
   {id:"csv", ext:"csv", name:"Spreadsheet", desc:"One row per unit and card with the cost breakdown. Opens in Excel, Numbers or Google Sheets."},
   {id:"json", ext:"json", name:"Roster file", desc:"Brings this roster back into SurgeCraft later through Import, on any device."},
@@ -545,6 +548,7 @@ function build(f, forPreview){
   switch(f.id){
     case "text": return Promise.resolve(X.textFull(C, r));
     case "compact": return Promise.resolve(X.textCompact(C, r));
+    case "tts": return Promise.resolve(X.tts(C, r));
     case "md": return Promise.resolve(X.markdown(C, r));
     case "csv": return Promise.resolve(X.csv(C, r));
     case "json": return Promise.resolve(X.json(C, r));
@@ -985,7 +989,7 @@ function vClick(a, v){
    Rules logic lives in battle-core.js (window.Battle). State is kept on the roster as r.battle and saved with it.
    The tracker guides and warns; it never blocks a step. */
 var BT = window.Battle;
-var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{} };
+var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false };
 var PHASE_GUIDE = {
   1: ["Players take turns activating one Unit at a time. The holder of the First Player Marker decides who goes first.", "Each Unit performs one action: Deploy (from Reserves), Move, Disengage or Hold.", "The first player to Pass takes the First Player Marker for the Assault Phase."],
   2: ["Players take turns activating one Unit on the battlefield. Units in Reserves cannot act.", "Each Unit performs one action: Ranged Attack, Charge, Run or Hold.", "The first player to Pass takes the First Player Marker for the Combat Phase."],
@@ -1024,7 +1028,7 @@ function bMarkersHTML(b){
       (b.missionId==="supply-drop" && !mk.gone ? '<span class="mk-s">'+(mk.on?"Activated R"+mk.ar:"Deactivated")+'</span>' : '')+
       (mk.lvl!=null ? '<span class="mk-s">Sabotage '+mk.lvl+'</span>' : '')+'</button>';
   });
-  return h+'</div><div class="faint" style="font-size:12px">Tap a Marker to change who Controls it. Ring colour: red Markers 1 and 3, blue 2 and 4, green 5 is Neutral. You are '+(b.color==="red"?"Red":"Blue")+'.</div>';
+  return h+'</div>'+(P.guides?'<div class="faint" style="font-size:12px">Tap a Marker to change who Controls it. Ring colour: red Markers 1 and 3, blue 2 and 4, green 5 is Neutral. You are '+(b.color==="red"?"Red":"Blue")+'.</div>':'<div class="faint" style="font-size:12px">You are '+(b.color==="red"?"Red":"Blue")+'.</div>');
 }
 function bStripHTML(b, r){
   var m = BT.mission(C, b), s = BT.supply(C, r, b), t = BT.totals(b), res = BT.resource(C, r, b);
@@ -1057,11 +1061,53 @@ function bSetupHTML(r){
   h += '<div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn primary" data-a="b-start">Start battle</button><span class="faint">Every Unit starts in Reserves (8.3).</span></div></div></section>';
   return h;
 }
-function bUnitHTML(i, b, r){
-  var st = i.st, u = i.unit, p = b.phase, idx = p-1, acted = p<=3 && st.act[idx];
-  var acts = BT.actionsFor(C, r, b, i.uid), cardBtn = '<button class="btn ghost sm" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+esc(i.uid)+'"')+'>Card</button>';
-  var h = '<article class="bunit '+i.state+(acted?' acted':'')+(i.casualtyDue?' has-err':'')+'" id="b-'+esc(i.uid)+'"><div class="bu-h"><button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+esc(i.uid)+'"')+' aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
-    '<div class="bu-t"><div class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</div><div class="bu-meta">';
+/* This Phase's action buttons for a Unit, or what it already did. Shared by the compact row and the open card. */
+function bActsHTML(i, b, r){
+  var st = i.st, p = b.phase, idx = p-1, uid = esc(i.uid);
+  if(p>3 || b.over) return '';
+  if(st.act[idx]) return '<span class="pill ok">'+esc(st.an[idx]==="summoned"?"Summoned this Phase":(BT.ACTIONS[st.an[idx]]||{label:"Activated"}).label)+'</span><button class="btn ghost sm" data-a="b-unact" data-e="'+uid+'">Undo</button>';
+  var acts = BT.actionsFor(C, r, b, i.uid);
+  if(!acts.length) return '<span class="faint">'+(p===3?"Not Engaged: no action in the Combat Phase.":"No action available.")+'</span>';
+  return acts.map(function(a){ return '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="'+a+'">'+esc(BT.ACTIONS[a].label)+(a==="gather"?" +1 VP":"")+'</button>'; }).join("");
+}
+function bCasHTML(i){
+  var st = i.st;
+  return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
+}
+function bUnitHTML(i, b, r, sup){ return BS.openU[i.uid] ? bUnitFull(i, b, r, sup) : bUnitCompact(i, b, r, sup); }
+/* One-line row: tap the name to open the full card. Damage and this Phase's actions stay on the row. */
+function bUnitCompact(i, b, r, sup){
+  var st = i.st, u = i.unit, p = b.phase, acted = p<=3 && st.act[p-1], uid = esc(i.uid), sum = [];
+  if(i.state==="dead") sum.push("Destroyed");
+  else if(i.state==="res"){ sum.push(i.models+" model"+(i.models>1?"s":"")); sum.push("needs "+i.poolSupply+" Supply"); }
+  else {
+    sum.push(i.models+"/"+i.start+" models"); sum.push("Supply "+i.supplyNow);
+    if(st.eng) sum.push("Engaged");
+    if(st.dis) sum.push("Disengaged");
+    BT.statusKeys(C, r, i).forEach(function(k){ if(st.stat[k]) sum.push(BT.STATUS[k]); });
+    if(i.shield) sum.push(i.shielded?"Shielded":"Shield lost");
+  }
+  var h = '<article class="bunit cpt '+i.state+(acted?' acted':'')+(i.casualtyDue?' has-err':'')+'" id="b-'+uid+'"><div class="bu-c">'+
+    '<button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+uid+'"')+' aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
+    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button></div>';
+  var row = '';
+  if(i.state==="res"){
+    var fits = sup.unlimited || i.poolSupply<=sup.available;
+    if(!fits) row += '<span class="pill err">Only '+Math.max(0,sup.available)+' Supply available</span>';
+    if(p===1 && !b.over) row += '<span class="grow"></span>'+(acted ? bActsHTML(i, b, r) : '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="deploy">Deploy</button>');
+  } else if(i.state==="fld"){
+    row += bStepper("Damage", st.d+' <small>/ '+i.threshold+'</small>', 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"');
+    var acts = bActsHTML(i, b, r); if(acts) row += '<span class="grow"></span><span class="bu-q">'+acts+'</span>';
+  }
+  if(row) h += '<div class="bu-c2">'+row+'</div>';
+  if(i.state==="fld" && i.casualtyDue) h += bCasHTML(i);
+  return h+'</article>';
+}
+function bUnitFull(i, b, r, sup){
+  var st = i.st, u = i.unit, p = b.phase, idx = p-1, acted = p<=3 && st.act[idx], uid = esc(i.uid);
+  var cardBtn = '<button class="btn ghost sm" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+uid+'"')+'>Card</button>';
+  var h = '<article class="bunit open '+i.state+(acted?' acted':'')+(i.casualtyDue?' has-err':'')+'" id="b-'+uid+'"><div class="bu-h"><button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+uid+'"')+' aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
+    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="true"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-meta">';
   if(i.state==="dead") h += '<span class="pill err">Destroyed</span>';
   else {
     h += '<span class="chip slot">Supply '+i.supplyNow+(i.zeroPool?' · 0 for the pool':'')+'</span>';
@@ -1069,38 +1115,32 @@ function bUnitHTML(i, b, r){
     if(i.shield) h += '<span class="chip'+(i.shielded?' slot':'')+'">'+(i.shielded?'Shielded':'Shield lost')+'</span>';
     if(st.dis) h += '<span class="pill warn">Disengaged</span>';
   }
-  h += '</div></div><span class="bu-r">'+cardBtn+'</span></div>';
-  if(i.state==="dead") return h+'<div class="bu-row"><button class="btn sm" data-a="b-state" data-e="'+esc(i.uid)+'" data-v="fld">Restore</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+esc(i.uid)+'">Remove</button>':'')+'</div></article>';
+  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+cardBtn+'</span></div>';
+  if(i.state==="dead") return h+'<div class="bu-row"><button class="btn sm" data-a="b-state" data-e="'+uid+'" data-v="fld">Restore</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+uid+'">Remove</button>':'')+'</div></article>';
   if(i.state==="res"){
-    var s = BT.supply(C, r, b), fits = s.unlimited || i.poolSupply<=s.available;
-    h += '<div class="bu-row"><span class="muted">'+i.models+' model'+(i.models>1?'s':'')+' · needs '+i.poolSupply+' Supply'+(fits?'':' <b style="color:var(--err)">(only '+Math.max(0,s.available)+' available)</b>')+'</span><span class="grow"></span>'+
-      (p===1 && !b.over ? '<button class="btn sm '+(acted?'':'primary')+'" data-a="b-act" data-e="'+esc(i.uid)+'" data-v="deploy">Deploy</button>' : '<button class="btn sm" data-a="b-state" data-e="'+esc(i.uid)+'" data-v="fld">Put on battlefield</button>')+'</div>';
+    var fits = sup.unlimited || i.poolSupply<=sup.available;
+    h += '<div class="bu-row"><span class="muted">'+i.models+' model'+(i.models>1?'s':'')+' · needs '+i.poolSupply+' Supply'+(fits?'':' <b style="color:var(--err)">(only '+Math.max(0,sup.available)+' available)</b>')+'</span><span class="grow"></span>'+
+      (p===1 && !b.over ? (acted ? bActsHTML(i, b, r) : '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="deploy">Deploy</button>') : '<button class="btn sm" data-a="b-state" data-e="'+uid+'" data-v="fld">Put on battlefield</button>')+'</div>';
     return h+'</article>';
   }
-  h += '<div class="bu-row">'+bStepper("Models", i.models+' <small>/ '+i.start+'</small>', 'data-a="b-m" data-e="'+esc(i.uid)+'" data-v="-1"', 'data-a="b-m" data-e="'+esc(i.uid)+'" data-v="1"')+
-    bStepper("Damage", st.d+' <small>/ HP '+i.threshold+'</small>', 'data-a="b-d" data-e="'+esc(i.uid)+'" data-v="-1"', 'data-a="b-d" data-e="'+esc(i.uid)+'" data-v="1"')+'</div>';
-  if(i.casualtyDue) h += '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
-  h += '<div class="bu-row chips"><button class="bchip" data-a="b-eng" data-e="'+esc(i.uid)+'" aria-pressed="'+(!!st.eng)+'">Engaged</button>';
-  BT.statusKeys(C, r, i).forEach(function(k){ h += '<button class="bchip" data-a="b-stat" data-e="'+esc(i.uid)+'" data-v="'+k+'" aria-pressed="'+(!!st.stat[k])+'">'+esc(BT.STATUS[k])+'</button>'; });
+  h += '<div class="bu-row">'+bStepper("Models", i.models+' <small>/ '+i.start+'</small>', 'data-a="b-m" data-e="'+uid+'" data-v="-1"', 'data-a="b-m" data-e="'+uid+'" data-v="1"')+
+    bStepper("Damage", st.d+' <small>/ HP '+i.threshold+'</small>', 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"')+'</div>';
+  if(i.casualtyDue) h += bCasHTML(i);
+  h += '<div class="bu-row chips"><button class="bchip" data-a="b-eng" data-e="'+uid+'" aria-pressed="'+(!!st.eng)+'">Engaged</button>';
+  BT.statusKeys(C, r, i).forEach(function(k){ h += '<button class="bchip" data-a="b-stat" data-e="'+uid+'" data-v="'+k+'" aria-pressed="'+(!!st.stat[k])+'">'+esc(BT.STATUS[k])+'</button>'; });
   h += '</div>';
-  if(p<=3 && !b.over){
-    h += '<div class="bu-row acts">';
-    if(acted) h += '<span class="pill ok">'+esc(st.an[idx]==="summoned"?"Summoned this Phase":(BT.ACTIONS[st.an[idx]]||{label:"Activated"}).label)+'</span><button class="btn ghost sm" data-a="b-unact" data-e="'+esc(i.uid)+'">Undo</button>';
-    else if(acts.length) acts.forEach(function(a){ h += '<button class="btn sm primary" data-a="b-act" data-e="'+esc(i.uid)+'" data-v="'+a+'">'+esc(BT.ACTIONS[a].label)+(a==="gather"?" +1 VP":"")+'</button>'; });
-    else h += '<span class="faint">'+(p===3?"Not Engaged: no action in the Combat Phase.":"No action available.")+'</span>';
-    h += '</div>';
-  }
+  var acts = bActsHTML(i, b, r); if(acts) h += '<div class="bu-row acts">'+acts+'</div>';
   var abs = BT.abilitiesFor(C, r, b, i.uid);
   if(abs.length && p<=3){
     var open = !!BS.openAb[i.uid];
-    h += '<div class="bu-ab"><button class="btn ghost sm" data-a="b-ab" data-e="'+esc(i.uid)+'" aria-expanded="'+open+'">'+(open?'Hide':'Show')+' abilities for this Phase ('+abs.length+')</button>';
+    h += '<div class="bu-ab"><button class="btn ghost sm" data-a="b-ab" data-e="'+uid+'" aria-expanded="'+open+'">'+(open?'Hide':'Show')+' abilities for this Phase ('+abs.length+')</button>';
     if(open) abs.forEach(function(a){
       h += '<div class="ab'+(a.used?' used':'')+'"><div class="ab-h"><b>'+esc(a.ability.name)+'</b> '+tp(a.ability.type)+(a.ability.cost?' <span class="faint">'+esc(a.ability.cost)+'</span>':'')+'<span class="grow"></span>'+
-        (a.usable ? (a.used && !a.repeatable ? '<span class="pill neutral">Used</span><button class="btn ghost sm" data-a="b-unuse" data-e="'+esc(i.uid)+'" data-v="'+esc(a.ability.name)+'">Undo</button>' : '<button class="btn sm" data-a="b-use" data-e="'+esc(i.uid)+'" data-v="'+esc(a.ability.name)+'">Use</button>') : '')+'</div><div class="u-desc">'+Render.richText(a.ability.text)+'</div></div>';
+        (a.usable ? (a.used && !a.repeatable ? '<span class="pill neutral">Used</span><button class="btn ghost sm" data-a="b-unuse" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Undo</button>' : '<button class="btn sm" data-a="b-use" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Use</button>') : '')+'</div><div class="u-desc">'+Render.richText(a.ability.text)+'</div></div>';
     });
     h += '</div>';
   }
-  h += '<div class="bu-row foot"><button class="btn ghost sm" data-a="b-state" data-e="'+esc(i.uid)+'" data-v="res">Return to Reserves</button><button class="btn ghost sm danger" data-a="b-state" data-e="'+esc(i.uid)+'" data-v="dead">Destroyed</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+esc(i.uid)+'">Remove</button>':'')+'</div>';
+  h += '<div class="bu-row foot"><button class="btn ghost sm" data-a="b-state" data-e="'+uid+'" data-v="res">Return to Reserves</button><button class="btn ghost sm danger" data-a="b-state" data-e="'+uid+'" data-v="dead">Destroyed</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+uid+'">Remove</button>':'')+'</div>';
   return h+'</article>';
 }
 function bScoringHTML(b, r){
@@ -1108,12 +1148,12 @@ function bScoringHTML(b, r){
   var h = '';
   if(b.scored){
     h += '<div class="notice" style="margin-top:0"><div class="grow"><b>Round '+b.round+' scored:</b> you '+(b.vp.me[b.round-1]||0)+', opponent '+(b.vp.opp[b.round-1]||0)+'. Total '+t.me+' to '+t.opp+'.</div></div>'+
-      '<ol class="bsteps"><li>Resolve End of the Round abilities. The First Player Marker holder goes first (8.9.4).</li><li>Cleanup: remove Tokens and Markers except those with STAY IN PLAY, Damage Markers, Mission Markers and Faction Indicators showing Control. Refresh every Exhausted card (8.9.5).</li><li>The First Player Marker goes to the player with fewer Victory Points. Roll-Off if tied (8.9.6).</li></ol>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" data-a="b-next">Start Round '+(b.round+1)+'</button></div>';
+      (P.guides?'<ol class="bsteps"><li>Resolve End of the Round abilities. The First Player Marker holder goes first (8.9.4).</li><li>Cleanup: remove Tokens and Markers except those with STAY IN PLAY, Damage Markers, Mission Markers and Faction Indicators showing Control. Refresh every Exhausted card (8.9.5).</li><li>The First Player Marker goes to the player with fewer Victory Points. Roll-Off if tied (8.9.6).</li></ol>':'')+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-a="b-next">Start Round '+(b.round+1)+'</button></div>';
     return h;
   }
   h += '<div class="subhead" style="margin-top:0">1 · Mission Marker Control <span class="aside">8.9.1</span></div>'+bMarkersHTML(b)+
-    '<div class="faint" style="font-size:12px;margin-top:4px">A Unit contests a Marker if it is on the battlefield, In Coherency, and has a model Within 3" with Line of Sight on the same elevation. Higher total Supply Controls it; a tie changes nothing. Flying and Burrowed Units cannot contest.</div>';
+    (P.guides?'<div class="faint" style="font-size:12px;margin-top:4px">A Unit contests a Marker if it is on the battlefield, In Coherency, and has a model Within 3" with Line of Sight on the same elevation. Higher total Supply Controls it; a tie changes nothing. Flying and Burrowed Units cannot contest.</div>':'');
   h += '<div class="subhead">2 · This Round</div><div class="binputs">'+
     bStepper("Enemy Supply destroyed", b.si.enemyLost, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"');
   if(id==="gather-the-resources") h += bStepper("Your Gather Actions", b.si.gatherMe, 'data-a="b-inp" data-v="gatherMe:-1"', 'data-a="b-inp" data-v="gatherMe:1"')+bStepper("Opponent's Gather Actions", b.si.gatherOpp, 'data-a="b-inp" data-v="gatherOpp:-1"', 'data-a="b-inp" data-v="gatherOpp:1"');
@@ -1137,8 +1177,8 @@ function bScoringHTML(b, r){
 }
 function bPhaseHTML(b, r){
   var m = BT.mission(C, b), p = b.phase, h = '<section class="section" id="b-phase"><header><span class="step">ROUND '+b.round+' OF '+m.game_length+'</span><h2>'+(b.over?"Game over":esc(BT.PHASES[p])+(p===4?" &amp; Cleanup":"")+" Phase")+'</h2><span class="aside">First Player Marker: <b>'+bWho(b.fpm)+'</b></span></header><div class="sbody">';
-  h += '<div class="bphases" role="list">'+[1,2,3,4].map(function(n){ return '<span role="listitem" class="bph'+(n===p && !b.over?' on':'')+(n<p||b.over?' done':'')+'"><b>'+n+'</b> '+esc(BT.PHASES[n])+'</span>'; }).join("")+'</div>';
-  if(BS.warn.length) h += '<div class="checks" style="margin:10px 0">'+BS.warn.map(function(w){ return '<div class="check '+(/^(Pay |Mission Marker )/.test(w)?'info':'warn')+'"><span class="mk"></span><span>'+esc(w)+'</span></div>'; }).join("")+'</div>';
+  h += '<div class="bph-row"><div class="bphases" role="list">'+[1,2,3,4].map(function(n){ return '<span role="listitem" class="bph'+(n===p && !b.over?' on':'')+(n<p||b.over?' done':'')+'"><b>'+n+'</b> '+esc(BT.PHASES[n])+'</span>'; }).join("")+'</div>'+
+    '<button class="btn ghost sm" data-a="b-guides" aria-pressed="'+P.guides+'">'+(P.guides?'Hide guides':'Show guides')+'</button></div>';
   if(b.over){
     var t = BT.totals(b);
     h += '<div class="bresult"><div class="br-w">'+(b.over.winner==="me"?"Victory":b.over.winner==="opp"?"Defeat":"Draw")+'</div><div class="br-s num">'+t.me+' <small>you</small> · '+t.opp+' <small>opponent</small></div><div class="muted">'+esc(b.over.reason)+'</div></div>'+
@@ -1151,60 +1191,141 @@ function bPhaseHTML(b, r){
     if(due) h += '<div class="notice" style="margin:10px 0 0"><div class="grow"><b>Supply Drop:</b> '+(due.auto?'Mission Marker 5 is automatically Activated this Round.':'randomly flip one Deactivated Mission Marker to its Activated side.')+'</div>'+
       (due.auto?'<button class="btn sm primary" data-a="b-mkon" data-v="5">Activate Marker 5</button>':'<button class="btn sm primary" data-a="b-mkon" data-v="random">Pick at random</button>'+due.pool.map(function(n){ return '<button class="btn sm" data-a="b-mkon" data-v="'+n+'">'+n+'</button>'; }).join(""))+'</div>';
     var anyAct = BT.infos(C, r, b).some(function(i){ return i.st.act[0] && i.st.an[0]!=="summoned"; });
-    if(!anyAct) h += '<div class="subhead">Start of the Round</div><ul class="bsteps">'+BT.startNotes(C, r, b).map(function(n){ return '<li>'+esc(n)+'</li>'; }).join("")+'</ul>';
+    if(!anyAct && P.guides) h += '<div class="subhead">Start of the Round</div><ul class="bsteps">'+BT.startNotes(C, r, b).map(function(n){ return '<li>'+esc(n)+'</li>'; }).join("")+'</ul>';
   }
   if(p===4) return h+'<div style="margin-top:12px">'+bScoringHTML(b, r)+'</div></div></section>';
-  h += '<ul class="bsteps" style="margin-top:10px">'+PHASE_GUIDE[p].map(function(g){ return '<li>'+esc(g)+'</li>'; }).join("")+'</ul>';
+  if(P.guides) h += '<ul class="bsteps" style="margin-top:10px">'+PHASE_GUIDE[p].map(function(g){ return '<li>'+esc(g)+'</li>'; }).join("")+'</ul>';
   if(b.missionId==="gather-the-resources" && p===2) h += '<div style="margin-top:6px">'+bStepper("Opponent's Gather Actions this Round", b.si.gatherOpp, 'data-a="b-inp" data-v="gatherOpp:-1"', 'data-a="b-inp" data-v="gatherOpp:1"')+'</div>';
-  if(b.missionId==="fire-in-the-sky" && p===2) h += '<div class="subhead">Sabotage Levels <span class="aside">Mission Card</span></div><div class="binputs">'+bLevelsHTML(b)+'</div><div class="faint" style="font-size:12px;margin-top:4px">Each Sabotage Action, yours or the opponent\'s, raises or lowers one Controlled Marker by 1 (minimum 1, maximum 3).</div>';
-  var pw = BT.phaseWarnings(C, r, b);
-  if(BS.pass){
-    if(pw.length) h += '<div class="checks" style="margin-top:10px">'+pw.map(function(w){ return '<div class="check warn"><span class="mk"></span><span>'+esc(w)+'</span></div>'; }).join("")+'</div>';
-    h += p<=2 ? '<div class="notice" style="margin-top:10px"><div class="grow">Who Passed first this Phase? They take the First Player Marker for the '+esc(BT.PHASES[p+1])+' Phase (8.2.1).</div><button class="btn sm primary" data-a="b-pass" data-v="me">You</button><button class="btn sm primary" data-a="b-pass" data-v="opp">Opponent</button><button class="btn ghost sm" data-a="b-pass" data-v="cancel">Cancel</button></div>'
-      : '<div class="notice" style="margin-top:10px"><div class="grow">End the Combat Phase and go to Scoring?</div><button class="btn sm primary" data-a="b-pass" data-v="go">Go to Scoring</button><button class="btn ghost sm" data-a="b-pass" data-v="cancel">Cancel</button></div>';
-  } else h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" data-a="b-end">End '+esc(BT.PHASES[p])+' Phase</button>'+(p>1?'<button class="btn" data-a="b-back">Back</button>':'')+'</div>';
+  if(b.missionId==="fire-in-the-sky" && p===2) h += '<div class="subhead">Sabotage Levels <span class="aside">Mission Card</span></div><div class="binputs">'+bLevelsHTML(b)+'</div>'+(P.guides?'<div class="faint" style="font-size:12px;margin-top:4px">Each Sabotage Action, yours or the opponent\'s, raises or lowers one Controlled Marker by 1 (minimum 1, maximum 3).</div>':'');
+  if(p>1) h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn sm" data-a="b-back">Back to the '+esc(BT.PHASES[p-1])+' Phase</button></div>';
   return h+'</div></section>';
 }
+/* On phones the battle splits into tabs; panels outside the current tab get .bt-hide (only applied below 1021px). */
+function btc(tab){ return BS.tab===tab ? '' : ' bt-hide'; }
 function bRailHTML(b, r){
   var m = BT.mission(C, b), t = BT.totals(b), res = BT.resource(C, r, b), h = '';
-  h += '<div class="panel" id="b-score"><h3>Score</h3><div class="pb"><table class="bvp"><thead><tr><th></th>';
+  h += '<div class="panel'+btc("score")+'" id="b-score"><h3>Score</h3><div class="pb"><table class="bvp"><thead><tr><th></th>';
   for(var n=1;n<=m.game_length;n++) h += '<th'+(n===b.round?' class="cur"':'')+'>R'+n+'</th>';
   h += '<th>Total</th></tr></thead><tbody>';
   ["me","opp"].forEach(function(w){ h += '<tr><th>'+(w==="me"?"You":"Opp.")+'</th>'; for(var n=1;n<=m.game_length;n++) h += '<td'+(n===b.round?' class="cur"':'')+'>'+(b.vp[w][n-1]==null?'':b.vp[w][n-1])+'</td>'; h += '<td><b>'+t[w]+'</b></td></tr>'; });
   h += '</tbody></table>'+(b.over||b.phase===4?'':'<div style="margin-top:10px">'+bStepper("Enemy Supply destroyed this Round", b.si.enemyLost, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"')+'</div>')+'</div></div>';
-  if(b.phase!==4 || b.scored || b.over) h += '<div class="panel" id="b-markers"><h3>Mission Markers</h3><div class="pb">'+bMarkersHTML(b)+'</div></div>';
-  h += '<div class="panel" id="b-cards"><h3>Cards · '+res.ready+' of '+res.total+' '+esc(res.type)+' Ready</h3><div class="pb bcards">';
+  if(b.phase!==4 || b.scored || b.over) h += '<div class="panel'+btc("markers")+'" id="b-markers"><h3>Mission Markers</h3><div class="pb">'+bMarkersHTML(b)+'</div></div>';
+  else h += '<div class="panel bt-phone'+btc("markers")+'"><h3>Mission Markers</h3><div class="pb"><p class="faint" style="margin:0 0 8px">Marker Control is set as step 1 of Scoring.</p><button class="btn sm" data-a="b-goscore">Go to Scoring</button></div></div>';
+  h += '<div class="panel'+btc("cards")+'" id="b-cards"><h3>Cards · '+res.ready+' of '+res.total+' '+esc(res.type)+' Ready</h3><div class="pb bcards">';
   BT.cardList(C, r, b).forEach(function(c){
     h += '<div class="bcard'+(c.exhausted?' ex':'')+'"><button class="thumb" data-a="tcard" data-v="'+esc(c.card.id)+'" aria-label="View '+esc(c.card.name)+' card"><img src="'+ART.card(c.card.id)+'" alt="" loading="lazy"></button><div class="bc-t"><b>'+esc(c.card.name)+(c.copy?' '+c.copy:'')+'</b><span class="faint">'+(c.value?c.value+' '+esc(c.card.resource.type):'no resource value')+'</span></div>'+
       '<button class="btn sm'+(c.exhausted?'':' primary')+'" data-a="b-card" data-v="'+esc(c.key)+'" aria-pressed="'+c.exhausted+'">'+(c.exhausted?'Exhausted':'Ready')+'</button></div>';
   });
-  h += '<div class="faint" style="font-size:12px">Exhaust a card to use its ability or to pay a cost. Cards refresh in Cleanup (10.5).</div></div></div>';
-  h += '<div class="panel"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
-  h += '<div class="panel"><h3>Battle</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="btn sm" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button>'+
+  h += (P.guides?'<div class="faint" style="font-size:12px">Exhaust a card to use its ability or to pay a cost. Cards refresh in Cleanup (10.5).</div>':'')+'</div></div>';
+  h += '<div class="panel'+btc("more")+'"><h3>Play options</h3><div class="pb bopts">'+
+    '<div class="bopt"><button class="bchip" data-a="b-guides" aria-pressed="'+P.guides+'">Phase guides</button><span class="faint">Rules steps and help text for each Phase.</span></div>'+
+    '<div class="bopt"><button class="bchip" data-a="b-wake" aria-pressed="'+P.wake+'">Keep screen awake</button><span class="faint" id="b-wake-st">'+esc(wakeText())+'</span></div></div></div>';
+  h += '<div class="panel'+btc("more")+'"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
+  h += '<div class="panel'+btc("more")+'"><h3>Battle</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="btn sm" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button>'+
     (BS.quit?'<span class="muted">End this battle and clear its tracking?</span><button class="btn danger sm" data-a="b-quit-yes">End battle</button><button class="btn sm" data-a="b-quit-no">Keep</button>':'<button class="btn ghost sm danger" data-a="b-quit">End battle</button>')+'</div></div>';
-  if(b.log.length) h += '<details class="panel blog"><summary><h3>Battle log ('+b.log.length+')</h3></summary><div class="pb">'+b.log.slice(-60).reverse().map(function(l){ return '<div class="bl"><span class="faint num">R'+l.r+' P'+l.p+'</span> '+esc(l.t)+'</div>'; }).join("")+'</div></details>';
+  if(b.log.length) h += '<details class="panel blog'+btc("more")+'"><summary><h3>Battle log ('+b.log.length+')</h3></summary><div class="pb">'+b.log.slice(-60).reverse().map(function(l){ return '<div class="bl"><span class="faint num">R'+l.r+' P'+l.p+'</span> '+esc(l.t)+'</div>'; }).join("")+'</div></details>';
+  return h;
+}
+/* Fixed bar at the bottom of the screen: where the battle stands, Undo and the next step, plus the phone tabs. */
+function bDockHTML(b, r){
+  var m = BT.mission(C, b), t = BT.totals(b), p = b.phase, h = '<div class="bdock" role="region" aria-label="Battle controls"><div class="wrap">';
+  var warn = function(list, info){ return '<div class="bd-warn">'+list.map(function(w){ return '<div class="check '+(info && /^(Pay |Mission Marker )/.test(w)?'info':'warn')+'"><span class="mk"></span><span>'+esc(w)+'</span></div>'; }).join("")+'</div>'; };
+  if(BS.warn.length) h += warn(BS.warn, true);
+  if(BS.pass && p<=3 && !b.over){
+    var pw = BT.phaseWarnings(C, r, b);
+    if(pw.length) h += warn(pw, false);
+    h += '<div class="bd-row bd-ask">'+(p<=2
+      ? '<span class="bd-q">Who Passed first? They take the First Player Marker for the '+esc(BT.PHASES[p+1])+' Phase.</span><span class="bd-btns"><button class="btn primary" data-a="b-pass" data-v="me">You</button><button class="btn primary" data-a="b-pass" data-v="opp">Opponent</button><button class="btn ghost" data-a="b-pass" data-v="cancel">Cancel</button></span>'
+      : '<span class="bd-q">End the Combat Phase and go to Scoring?</span><span class="bd-btns"><button class="btn primary" data-a="b-pass" data-v="go">Go to Scoring</button><button class="btn ghost" data-a="b-pass" data-v="cancel">Cancel</button></span>')+'</div>';
+  } else {
+    var next = b.over ? '' : p<=3 ? '<button class="btn primary" data-a="b-end">End '+esc(BT.PHASES[p])+'</button>'
+      : b.scored ? '<button class="btn primary" data-a="b-next">Start Round '+(b.round+1)+'</button>' : '<button class="btn primary" data-a="b-goscore">Scoring</button>';
+    h += '<div class="bd-row"><div class="bd-st"><b>'+(b.over?"Game over":"R"+b.round+"/"+m.game_length+" · "+esc(BT.PHASES[p]))+'</b><span class="num">VP '+t.me+'–'+t.opp+' · First: '+bWho(b.fpm)+'</span></div>'+
+      '<button class="btn" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo</button>'+next+'</div>';
+  }
+  h += '<nav class="bd-tabs" aria-label="Battle sections">'+[["play","Play"],["score","Score"],["markers","Markers"],["cards","Cards"],["more","More"]].map(function(x){
+    return '<button data-a="b-tab" data-v="'+x[0]+'" aria-pressed="'+(BS.tab===x[0])+'">'+x[1]+'</button>'; }).join("")+'</nav>';
+  return h+'</div></div>';
+}
+function bGroupHTML(g, b, r, sup){
+  if(g.coll && !g.items.length) return '';
+  var h = '';
+  if(g.coll){
+    var open = !!BS.grp[g.key];
+    h += '<button class="bgrp" data-a="b-grp" data-v="'+g.key+'" aria-expanded="'+open+'"><span>'+g.title+'</span><span class="aside">'+g.items.length+'</span><span class="v-chev" aria-hidden="true"></span></button>';
+    if(!open) return h;
+  } else h += '<div class="subhead">'+g.title+' <span class="aside">'+g.items.length+'</span></div>';
+  if(g.items.length) h += '<div class="bunits">'+g.items.map(function(i){ return bUnitHTML(i, b, r, sup); }).join("")+'</div>';
+  else if(g.empty) h += '<div class="empty">'+g.empty+'</div>';
+  if(g.hidden) h += g.hidden;
   return h;
 }
 function renderBattle(){
   var el = $("battle"); if(!el) return;
   var r = S.cur, b = r.battle;
-  if(!BT || !b || !C.missions[b.missionId]){ if(b) delete r.battle; renderMeters(); el.innerHTML = bSetupHTML(r); return; }
+  document.body.classList.remove("has-bdock");
+  if(!BT || !b || !C.missions[b.missionId]){ if(b) delete r.battle; renderMeters(); el.innerHTML = bSetupHTML(r); syncWake(); return; }
   BT.sync(C, r, b);
   var strip = $("meters"); if(strip) strip.innerHTML = bStripHTML(b, r);
-  var list = BT.infos(C, r, b), groups = {fld:[], res:[], dead:[]};
-  list.forEach(function(i){ groups[i.state].push(i); });
-  var jump = '<nav class="bjump" aria-label="Jump to"><span class="faint">Jump to</span><button class="btn sm" data-a="goto" data-v="b-units">Units</button><button class="btn sm" data-a="goto" data-v="b-markers">Markers</button><button class="btn sm" data-a="goto" data-v="b-cards">Cards</button><button class="btn sm" data-a="goto" data-v="b-score">Score</button></nav>';
-  var h = '<div class="layout"><div class="main">'+bPhaseHTML(b, r)+jump+'<section class="section" id="b-units"><header><span class="step">ARMY</span><h2>Units</h2><span class="aside">'+groups.fld.length+' on the battlefield · '+groups.res.length+' in Reserves</span></header><div class="sbody">';
-  [["fld","On the battlefield"],["res","Reserves"],["dead","Destroyed"]].forEach(function(g){
-    if(!groups[g[0]].length && g[0]!=="fld") return;
-    h += '<div class="subhead"'+(g[0]==="fld"?' style="margin-top:0"':'')+'>'+g[1]+' <span class="aside">'+groups[g[0]].length+'</span></div>';
-    h += groups[g[0]].length ? '<div class="bunits">'+groups[g[0]].map(function(i){ return bUnitHTML(i, b, r); }).join("")+'</div>' : '<div class="empty">No Units on the battlefield yet. Deploy from Reserves in the Movement Phase.</div>';
-  });
+  var list = BT.infos(C, r, b), p = b.phase, live = p<=3 && !b.over, sup = BT.supply(C, r, b), fld = [], res = [], dead = [];
+  list.forEach(function(i){ (i.state==="fld"?fld:i.state==="res"?res:dead).push(i); });
+  var did = function(i){ return live && i.st.act[p-1]; };
+  var groups = [];
+  if(live){
+    var todo = fld.filter(function(i){ return !did(i); }), done = fld.filter(did), hidden = '';
+    if(p===3){
+      var notEng = todo.filter(function(i){ return !i.st.eng; });
+      if(!BS.showAll){ todo = todo.filter(function(i){ return i.st.eng; }); if(notEng.length) hidden = '<div class="bnote"><span>'+notEng.length+' Unit'+(notEng.length>1?'s':'')+' not Engaged '+(notEng.length>1?'are':'is')+' hidden.</span><button class="btn ghost sm" data-a="b-all">Show all</button></div>'; }
+      else hidden = '<div class="bnote"><span>Showing every Unit.</span><button class="btn ghost sm" data-a="b-all">Engaged only</button></div>';
+    }
+    if(p===1) groups.push({key:"res", title:"Reserves", items:res.filter(function(i){ return !did(i); }).concat(res.filter(did)), empty:"No Units in Reserves."});
+    groups.push({key:"todo", title:p===1?"On the battlefield · to act":"To act", items:todo, hidden:hidden,
+      empty: fld.length ? (p===3 && !BS.showAll ? "No Engaged Units left to activate." : "Every Unit has acted this Phase. End the Phase from the bar below.") : "No Units on the battlefield yet."+(p===1?" Deploy from Reserves above.":"")});
+    groups.push({key:"done", title:"Done this Phase", items:done, coll:true});
+    if(p!==1) groups.push({key:"res", title:"Reserves", items:res, coll:true});
+  } else {
+    groups.push({key:"fld", title:"On the battlefield", items:fld, empty:"No Units on the battlefield."});
+    groups.push({key:"res", title:"Reserves", items:res, coll:true});
+  }
+  groups.push({key:"dead", title:"Destroyed", items:dead, coll:true});
+  var h = '<div class="layout btl"><div class="main'+btc("play")+'">'+bPhaseHTML(b, r)+'<section class="section" id="b-units"><header><span class="step">ARMY</span><h2>Units</h2><span class="aside">'+fld.length+' on the battlefield · '+res.length+' in Reserves</span></header><div class="sbody">';
+  h += groups.map(function(g){ return bGroupHTML(g, b, r, sup); }).join("");
   var sm = Render.summonedFor(C, r);
   if(sm.length && !b.over) h += '<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+(BS.sumPick ? '<span class="muted">Summon:</span>'+sm.map(function(u){ return '<button class="btn sm" data-a="b-summon" data-v="'+esc(u.id)+'">'+esc(u.name)+'</button>'; }).join("")+'<button class="btn ghost sm" data-a="b-sumpick">Cancel</button>' : '<button class="btn sm" data-a="b-sumpick">Add a Summoned Unit</button>')+'</div>';
-  h += '</div></section></div><aside class="rail" id="b-rail">'+bRailHTML(b, r)+'</aside></div>';
+  h += '</div></section></div><aside class="rail" id="b-rail">'+bRailHTML(b, r)+'</aside></div>'+bDockHTML(b, r);
   el.innerHTML = h;
+  document.body.classList.add("has-bdock");
+  syncWake();
 }
+/* Keep the screen on while a battle is open (Screen Wake Lock). Browsers release the lock when the page is hidden; it is asked for again when the page comes back. */
+var WAKE = { lock:null, pending:false, state:"off" };
+function wakeWanted(){ var b = S.cur && S.cur.battle; return !!(P.wake && S.view==="build" && S.tab==="battle" && b && !b.over && document.visibilityState==="visible"); }
+function wakeText(){
+  if(!P.wake) return "Off. Your phone's normal screen timeout applies.";
+  return { on:"On. The screen stays on while this battle is open.",
+    denied:"This view didn't allow it. The installed SurgeCraft app may; otherwise set a longer Auto-Lock in your phone's settings.",
+    unsupported:"This browser can't keep the screen on. Set a longer Auto-Lock in your phone's settings instead.",
+    off:"Turns on while a battle is in progress on this tab." }[WAKE.state] || "";
+}
+function updWake(){ var el = $("b-wake-st"); if(el) el.textContent = wakeText(); }
+function syncWake(){
+  if(wakeWanted()){
+    if(WAKE.lock || WAKE.pending || WAKE.state==="denied") return; // a refusal stands until the option is switched off and on again
+    if(!navigator.wakeLock || typeof navigator.wakeLock.request!=="function"){ WAKE.state = "unsupported"; updWake(); return; }
+    WAKE.pending = true;
+    try{
+      navigator.wakeLock.request("screen").then(function(l){
+        WAKE.pending = false;
+        if(!wakeWanted()){ l.release().catch(function(){}); return; }
+        WAKE.lock = l; WAKE.state = "on"; updWake();
+        l.addEventListener("release", function(){ if(WAKE.lock===l){ WAKE.lock = null; WAKE.state = "off"; updWake(); } });
+      }, function(){ WAKE.pending = false; WAKE.state = "denied"; updWake(); });
+    }catch(e){ WAKE.pending = false; WAKE.state = "denied"; updWake(); }
+  } else if(WAKE.lock){
+    var l = WAKE.lock; WAKE.lock = null; if(WAKE.state==="on") WAKE.state = "off"; try{ l.release().catch(function(){}); }catch(e){} updWake();
+  }
+}
+document.addEventListener("visibilitychange", syncWake);
 function bClick(a, v, eu, t){
   var r = S.cur, b = r && r.battle;
   switch(a){
@@ -1212,7 +1333,7 @@ function bClick(a, v, eu, t){
     case "b-mcard": var mm = C.missions[v]; if(mm) openModal(Render.missionCardHTML(mm, BT.side(C, r))); return true;
     case "b-start":
       var nb = BT.create(C, r, BS.set); if(!nb) return true;
-      r.battle = nb; BS.undo = []; BS.warn = []; BS.pass = false; BS.quit = false; BS.adj = {me:0, opp:0}; BS.openAb = {};
+      r.battle = nb; BS.undo = []; BS.warn = []; BS.pass = false; BS.quit = false; BS.adj = {me:0, opp:0}; BS.openAb = {}; BS.openU = {}; BS.grp = {}; BS.tab = "play"; BS.showAll = false;
       bCommit(); window.scrollTo(0,0); return true;
   }
   if(!b) return false;
@@ -1234,8 +1355,15 @@ function bClick(a, v, eu, t){
     case "b-mkon": bMut(function(){ var due = BT.activationDue(C, b); if(!due) return; var n = v==="random" ? due.pool[Math.floor(Math.random()*due.pool.length)] : Number(v); BT.activateMarker(C, b, n); return v==="random" ? {warnings:["Mission Marker "+n+" was picked at random and is now Activated."]} : null; }); return true;
     case "b-inp": var f = v.split(":"), cap = /quarters/.test(f[0]) ? 4 : 99; bMut(function(){ b.si[f[0]] = Math.max(0, Math.min(cap, (b.si[f[0]]||0)+Number(f[1]))); }); return true;
     case "b-adj": var g = v.split(":"); BS.adj[g[0]] += Number(g[1]); renderBattle(); return true;
-    case "b-end": BS.pass = true; renderBattle(); var ph = $("b-phase"); if(ph) ph.scrollIntoView({block:"nearest"}); return true;
-    case "b-pass": BS.pass = false; if(v==="cancel"){ renderBattle(); return true; } bMut(function(){ BT.advance(C, r, b, v); }); var p2 = $("b-phase"); if(p2) p2.scrollIntoView({block:"start"}); return true;
+    case "b-end": BS.pass = true; renderBattle(); return true;
+    case "b-open": BS.openU[eu] = !BS.openU[eu]; renderBattle(); return true;
+    case "b-grp": BS.grp[v] = !BS.grp[v]; renderBattle(); return true;
+    case "b-all": BS.showAll = !BS.showAll; renderBattle(); return true;
+    case "b-tab": BS.tab = v; renderBattle(); var bt = $("battle"); if(bt){ var y = bt.getBoundingClientRect().top + window.scrollY - 70; if(window.scrollY > y) window.scrollTo(0, Math.max(0, y)); } return true;
+    case "b-goscore": BS.tab = "play"; renderBattle(); var gs = $("b-phase"); if(gs) gs.scrollIntoView({block:"start"}); return true;
+    case "b-guides": P.guides = !P.guides; savePrefs(); renderBattle(); return true;
+    case "b-wake": P.wake = !P.wake; savePrefs(); WAKE.state = "off"; renderBattle(); return true;
+    case "b-pass": BS.pass = false; if(v==="cancel"){ renderBattle(); return true; } bMut(function(){ BT.advance(C, r, b, v); }); var p2 = BS.tab==="play" && $("b-phase"); if(p2) p2.scrollIntoView({block:"start"}); return true;
     case "b-back": bMut(function(){ BT.back(C, r, b); }); return true;
     case "b-fpm": bMut(function(){ b.fpm = v; b.rollOff = false; }); return true;
     case "b-confirm": bMut(function(){ var sg = BT.suggestion(C, r, b); BT.confirmScores(C, r, b, Math.max(0, sg.me.total+BS.adj.me), Math.max(0, sg.opp.total+BS.adj.opp)); BS.adj = {me:0, opp:0}; }); var p3 = $("b-phase"); if(p3) p3.scrollIntoView({block:"start"}); return true;

@@ -2,7 +2,10 @@ from playwright.sync_api import sync_playwright
 def run(p, label, ctxargs, tap=False):
     out = {}; errs = []
     b = p.chromium.launch(); pg = b.new_context(**ctxargs).new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.wait_for_timeout(300)
+    # the page opens on the roster list; no example army is loaded until one is asked for
+    out["opens_on_list_empty"] = pg.evaluate("__muster.S.view==='list' && !__muster.S.cur") and "No saved rosters yet" in pg.inner_text("#app")
+    pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
     go = (lambda loc: loc.tap()) if tap else (lambda loc: loc.click())
     # give the first Marine unit specialists so the fielded card has something to merge
     pg.evaluate("(()=>{const e=__muster.S.cur.units[0]; e.upgrades=['AGG-12','Rocket Launcher','Bayonet','Combat Shield']; e.specialists={'AGG-12':2,'Rocket Launcher':5}; __muster.S.cur.missions=['frontlines','hold-position']; __muster.S.cur.deployments=['gauntlet','typhoon'];})()")

@@ -4,7 +4,7 @@ out = {}; errs = []
 with sync_playwright() as p:
     b = p.chromium.launch(); ctx = b.new_context(viewport={"width": 1280, "height": 900})
     pg = ctx.new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(600)
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(600)
     out["race"] = pg.evaluate("__muster.S.cur.race")
     # tapping a keyword inside an upgrade description must not toggle the upgrade checkbox
     out["kw_buttons_build"] = pg.evaluate("document.querySelectorAll('#app button.kw').length")

@@ -15,7 +15,7 @@ def pdf_info(path):
 def run(p, label, ctxargs, tap=False):
     errs = []; res = {}
     b = p.chromium.launch(); pg = b.new_context(**ctxargs).new_page(); pg.on("pageerror", lambda e: errs.append(str(e)))
-    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
     pg.evaluate("window.__printed=0; window.print=function(){ window.__printed++; }")
     go = (lambda loc: loc.tap()) if tap else (lambda loc: loc.click())
     go(pg.locator('[data-a="tab"][data-v="export"]')); pg.wait_for_timeout(300)
@@ -42,7 +42,7 @@ def hosted_check(p):
     # inside claude.ai the frame ignores window.print(), so the button must not appear there
     b = p.chromium.launch(); pg = b.new_page()
     pg.add_init_script("window.claude={use:function(){return Promise.reject(new Error('no'))}}")
-    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.cur", timeout=20000); pg.wait_for_timeout(300)
+    pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(300)
     pg.click('[data-a="tab"][data-v="export"]'); pg.wait_for_timeout(300)
     print("===== hosted (claude.ai)"); print("print buttons :", pg.locator('[data-a="exp-print"]').count(), "| note:", pg.locator("#export p.faint").last.inner_text()[:90])
     b.close()

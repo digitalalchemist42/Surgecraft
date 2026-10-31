@@ -406,6 +406,35 @@
       " | Deployments: " + ((r.deployments || []).map(function (id) { return C.deployments[id][side]; }).join(", ") || "—"));
     return L.join("\n") + "\n";
   }
+  /* Tabletop Simulator export: a plain-text army list in the layout the Tabletop Simulator importer reads. Names, costs and card values are SurgeCraft's printed card data.
+     Lines inside a block are joined with " \n " and blocks with "\n". */
+  function ttsText(C, r) {
+    var f = C.faction(r), t = C.totals(r), side = C.limits(r).scale.side;
+    var resType = (f && f.resource && f.resource.type) || RES[r.race] || "", resVal = 0;
+    function addRes(c, n) { if (c && c.resource && typeof c.resource.value === "number") resVal += c.resource.value * (n || 1); }
+    addRes(f, 1);
+    var tac = [];
+    Object.keys(r.tactical || {}).forEach(function (id) { var c = C.cards[id], n = r.tactical[id] || 0; if (!c || !n) return; addRes(c, n); for (var i = 0; i < n; i++) tac.push(c.name); });
+    tac.sort(function (a, b) { return a.localeCompare(b); });
+    var creep = r.creepId && C.cards[r.creepId] ? C.cards[r.creepId] : null; if (creep) addRes(creep, 1);
+    var blocks = [];
+    blocks.push([(r.race || "—") + " - " + (r.name || "Roster") + " (" + t.minerals + " Minerals, " + t.gas + " Gas)", t.supply + " Supply, " + resVal + " " + resType]);
+    blocks.push(["Deployment Maps: " + (r.deployments || []).filter(function (id) { return C.deployments[id]; }).map(function (id) { return C.deployments[id][side]; }).join(", "),
+      "Mission Card: " + (r.missions || []).filter(function (id) { return C.missions[id]; }).map(function (id) { return C.missions[id].name; }).join(", ")]);
+    blocks.push(["# Faction:"].concat(f ? [f.name] : []));
+    blocks.push(["# Tactical:"].concat(tac));
+    if (creep) blocks.push(["# Creep:", creep.name]);
+    var units = ["# Units:"];
+    r.units.forEach(function (e) {
+      var u = C.units[e.unitId]; if (!u) return; var c = C.entryCost(e);
+      var ups = u.upgrades.filter(function (x) { return e.upgrades.indexOf(x.name) !== -1; }).map(function (x) { return x.name; });
+      units.push(e.models + "x " + u.name + " (" + c.total + ", " + c.supply + "S)" + (ups.length ? ": " + ups.join(", ") : ""));
+    });
+    blocks.push(units);
+    summonedFor(C, r).forEach(function (u) { blocks.push([u.name]); });
+    blocks.push(["Created with SurgeCraft"]);
+    return blocks.map(function (b) { return b.join(" \n "); }).join("\n") + "\n";
+  }
   function mdCell(s) { return String(s == null ? "" : s).replace(/\|/g, "\\|").replace(/\n/g, " "); }
   function markdown(C, r) {
     var f = C.faction(r), t = C.totals(r), lim = C.limits(r), side = lim.scale.side, L = [];
@@ -800,7 +829,7 @@
     typePill: typePill, abilityBox: abilityBox, weaponTable: weaponTable, unitCardHTML: unitCardHTML, tacCardHTML: tacCardHTML,
     missionCardHTML: missionCardHTML, deploymentCardHTML: deploymentCardHTML, sheetHTML: sheetHTML, slotsText: slotsText, summonedFor: summonedFor, imagesFor: imagesFor,
     fieldedWeapons: fieldedWeapons, groupEntries: groupEntries, refKeywords: refKeywords, referenceSheetHTML: referenceSheetHTML, REF_CSS: REF_CSS, CARD_MM: CARD_MM, TAC_MM: TAC_MM, CARDSIZE_CSS: CARDSIZE_CSS, fitCards: fitCards,
-    exports: { textFull: textFull, textCompact: textCompact, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc }
+    exports: { textFull: textFull, textCompact: textCompact, tts: ttsText, markdown: markdown, csv: csv, json: jsonFile, rosterSheetDoc: rosterSheetDoc, fieldManualDoc: fieldManualDoc, referenceDoc: referenceDoc }
   };
   if (typeof module !== "undefined" && module.exports) module.exports = R; else root.Render = R;
 })(typeof window !== "undefined" ? window : this);
