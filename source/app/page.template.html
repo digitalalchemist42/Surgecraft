@@ -13,7 +13,7 @@
   --body:"Noto Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --min:#1685C2; --gas:#2B8F48;
   --ok:#1F7A45; --ok-soft:#DCF0E3; --warn:#946000; --warn-soft:#F6EBD2; --err:#B5221C; --err-soft:#F8DEDB;
-  --terran:#005BA4; --protoss:#BD8A00; --zerg:#823287;
+  --terran:#005BA4; --protoss:#BD8A00; --zerg:#823287; --shield:#1A6FA8;
   /* neutral skin, light */
   --bg:#E4E7EB; --bg-img:none; --panel:#FFFFFF; --panel-2:#F3F4F6; --ink:#09202E; --ink-2:#44525F; --ink-3:#6B7784; --line:#CDD2D8; --line-2:#E2E5E9;
   --accent:#005BA4; --accent-ink:#FFFFFF; --accent-soft:#DCE8F3;
@@ -33,7 +33,7 @@ body[data-mode="dark"]{
   --bg:#0A0F14; --panel:#121920; --panel-2:#18212A; --ink:#E4E9EE; --ink-2:#A2AEBA; --ink-3:#7C8894; --line:#26313C; --line-2:#1D2630;
   --accent:#4E9BDB; --accent-ink:#06121C; --accent-soft:#12283A;
   --hdr:#050B10; --hdr-2:#0F2233;
-  --terran:#4E9BDB; --protoss:#E3B236; --zerg:#C07ACB;
+  --terran:#4E9BDB; --protoss:#E3B236; --zerg:#C07ACB; --shield:#52B7EC;
   --min:#52B7EC; --gas:#5FC67C;
   --ok:#5CC487; --ok-soft:#12291D; --warn:#E3B04F; --warn-soft:#332611; --err:#F2786E; --err-soft:#3A1714;
   --glow:0 1px 2px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.3);
@@ -332,6 +332,10 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .bs-l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2)}
 .bstep .stepper span{min-width:58px;padding:0 4px;white-space:nowrap}
 .bstep .stepper span small{color:var(--ink-3);font-weight:500}
+.bstep .stepper span span{min-width:0;padding:0}
+.bstep .stepper .bd-sh{color:var(--shield)}
+.bstep .stepper .bd-sh.out{color:var(--ink-3);text-decoration:line-through}
+.bstep .stepper .bd-dot{color:var(--ink-3);font-weight:500}
 .bstep .stepper button{width:36px;height:34px;font-size:18px}
 .bchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--ink-2)}
 .bchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}

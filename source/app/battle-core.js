@@ -117,9 +117,13 @@
     var supplyNow = supplyFor(u, models);
     var zeroPool = x.entry.upgrades.indexOf("Advanced Medic Facilities") !== -1; // card text: Supply counts as 0 when calculating the Supply Pool
     var threshold = hp + (st.first ? 0 : shield);
+    /* Part 5.1.6: Shield is added to the first model's HP, so Damage comes off the Shield first, then the HP.
+       Once the first model is removed the Shield no longer applies (0 left). */
+    var shieldLeft = shield && !st.first ? Math.max(0, shield - st.d) : 0;
+    var hpLeft = Math.max(0, hp - Math.max(0, st.d - (st.first ? 0 : shield)));
     return {
       uid: uid, entry: x.entry, unit: u, summoned: x.summoned, st: st, state: st.st, models: models, start: x.entry.models,
-      hp: hp, shield: shield, threshold: threshold, casualtyDue: models > 0 && st.d >= threshold,
+      hp: hp, shield: shield, threshold: threshold, shieldLeft: shieldLeft, hpLeft: hpLeft, casualtyDue: models > 0 && st.d >= threshold,
       shielded: shield > 0 && !st.first && !st.shb, supplyNow: supplyNow, supplyStart: supplyFor(u, x.entry.models),
       poolSupply: zeroPool ? 0 : supplyNow, zeroPool: zeroPool, flying: u.combat_tags.indexOf("Flying") !== -1
     };

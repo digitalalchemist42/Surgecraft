@@ -123,7 +123,14 @@ const rp = mk("Protoss","daelaam",["gateway"],[["zealot",3]]); const bp = B.crea
 let zi = B.info(C,rp,bp,z); eq("Zealot first model needs HP 4 + Shield 3 = 7", [zi.threshold, zi.shielded], [7,true]);
 B.changeDamage(C,rp,bp,z,4); zi = B.info(C,rp,bp,z); eq("4 damage > Shield 3: Shielded lost, no casualty yet", [zi.shielded, zi.casualtyDue], [false,false]);
 B.changeDamage(C,rp,bp,z,-4); eq("healing does not restore Shielded", B.info(C,rp,bp,z).shielded, false);
+// Shield counter readout: Damage comes off the Shield first, then the HP (5.1.6)
+zi = B.info(C,rp,bp,z); eq("no damage: Shield 3/3, HP 4/4", [zi.shieldLeft, zi.hpLeft], [3,4]);
+B.changeDamage(C,rp,bp,z,2); zi = B.info(C,rp,bp,z); eq("2 damage: Shield 1 left, HP 4 left", [zi.shieldLeft, zi.hpLeft], [1,4]);
+B.changeDamage(C,rp,bp,z,3); zi = B.info(C,rp,bp,z); eq("5 damage: Shield 0 left, HP 2 left", [zi.shieldLeft, zi.hpLeft], [0,2]);
+B.changeDamage(C,rp,bp,z,4); zi = B.info(C,rp,bp,z); eq("9 damage: HP clamps at 0, casualty due", [zi.shieldLeft, zi.hpLeft, zi.casualtyDue], [0,0,true]);
+B.changeDamage(C,rp,bp,z,-9);
 B.changeDamage(C,rp,bp,z,7); B.removeCasualty(C,rp,bp,z); zi = B.info(C,rp,bp,z); eq("after first casualty threshold is HP 4", [zi.models, zi.st.d, zi.threshold], [2,0,4]);
+B.changeDamage(C,rp,bp,z,2); zi = B.info(C,rp,bp,z); eq("after the first model: no Shield left, HP 2/4", [zi.shieldLeft, zi.hpLeft], [0,2]); B.changeDamage(C,rp,bp,z,-2);
 // --- abilities ---
 bp.phase = 2; let ab = B.abilitiesFor(C,rp,bp,z).map(a=>a.ability.name); eq("Zealot assault abilities include Charge", ab.includes("Charge"), true);
 let ua = B.useAbility(C,rp,bp,z,"Charge"); eq("Charge costs 1 PE: reminder to exhaust", ua.cost, 1);

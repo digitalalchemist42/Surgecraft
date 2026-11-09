@@ -1075,6 +1075,11 @@ function bActsHTML(i, b, r){
   if(!acts.length) return '<span class="faint">'+(p===3?"Not Engaged: no action in the Combat Phase.":"No action available.")+'</span>';
   return acts.map(function(a){ return '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="'+a+'">'+esc(BT.ACTIONS[a].label)+(a==="gather"?" +1 VP":"")+'</button>'; }).join("");
 }
+/* Damage stepper readout. Units with a Shield show Shield and HP left (Damage drains the Shield first, Part 5.1.6). Struck through once Shielded is lost (Total Damage over the Shield value). */
+function bDmgVal(i, full){
+  if(!i.shield) return i.st.d+' <small>/ '+(full?'HP ':'')+i.threshold+'</small>';
+  return '<span class="bd-sh'+(i.shielded?'':' out')+'">Shield '+i.shieldLeft+'<small>/'+i.shield+'</small></span><span class="bd-dot"> · </span><span class="bd-hp">HP '+i.hpLeft+'<small>/'+i.hp+'</small></span>';
+}
 function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
@@ -1104,7 +1109,7 @@ function bUnitCompact(i, b, r, sup){
     if(!fits) row += '<span class="pill err">Only '+Math.max(0,sup.available)+' Supply available</span>';
     if(p===1 && !b.over) row += '<span class="grow"></span>'+(acted ? bActsHTML(i, b, r) : '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="deploy">Deploy</button>');
   } else if(i.state==="fld"){
-    row += bStepper("Damage", st.d+' <small>/ '+i.threshold+'</small>', 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"');
+    row += bStepper("Damage", bDmgVal(i), 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"');
     var acts = bActsHTML(i, b, r); if(acts) row += '<span class="grow"></span><span class="bu-q">'+acts+'</span>';
   }
   if(row) h += '<div class="bu-c2">'+row+'</div>';
@@ -1132,7 +1137,7 @@ function bUnitFull(i, b, r, sup){
     return h+'</article>';
   }
   h += '<div class="bu-row">'+bStepper("Models", i.models+' <small>/ '+i.start+'</small>', 'data-a="b-m" data-e="'+uid+'" data-v="-1"', 'data-a="b-m" data-e="'+uid+'" data-v="1"')+
-    bStepper("Damage", st.d+' <small>/ HP '+i.threshold+'</small>', 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"')+'</div>';
+    bStepper("Damage", bDmgVal(i, true), 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"')+'</div>';
   if(i.casualtyDue) h += bCasHTML(i);
   h += '<div class="bu-row chips"><button class="bchip" data-a="b-eng" data-e="'+uid+'" aria-pressed="'+(!!st.eng)+'">Engaged</button>';
   BT.statusKeys(C, r, i).forEach(function(k){ h += '<button class="bchip" data-a="b-stat" data-e="'+uid+'" data-v="'+k+'" aria-pressed="'+(!!st.stat[k])+'">'+esc(BT.STATUS[k])+'</button>'; });

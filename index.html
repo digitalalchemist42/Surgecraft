@@ -129,7 +129,7 @@ tr.sc-struck .sc-for{text-decoration:none}
   --body:"Noto Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --min:#1685C2; --gas:#2B8F48;
   --ok:#1F7A45; --ok-soft:#DCF0E3; --warn:#946000; --warn-soft:#F6EBD2; --err:#B5221C; --err-soft:#F8DEDB;
-  --terran:#005BA4; --protoss:#BD8A00; --zerg:#823287;
+  --terran:#005BA4; --protoss:#BD8A00; --zerg:#823287; --shield:#1A6FA8;
   /* neutral skin, light */
   --bg:#E4E7EB; --bg-img:none; --panel:#FFFFFF; --panel-2:#F3F4F6; --ink:#09202E; --ink-2:#44525F; --ink-3:#6B7784; --line:#CDD2D8; --line-2:#E2E5E9;
   --accent:#005BA4; --accent-ink:#FFFFFF; --accent-soft:#DCE8F3;
@@ -149,7 +149,7 @@ body[data-mode="dark"]{
   --bg:#0A0F14; --panel:#121920; --panel-2:#18212A; --ink:#E4E9EE; --ink-2:#A2AEBA; --ink-3:#7C8894; --line:#26313C; --line-2:#1D2630;
   --accent:#4E9BDB; --accent-ink:#06121C; --accent-soft:#12283A;
   --hdr:#050B10; --hdr-2:#0F2233;
-  --terran:#4E9BDB; --protoss:#E3B236; --zerg:#C07ACB;
+  --terran:#4E9BDB; --protoss:#E3B236; --zerg:#C07ACB; --shield:#52B7EC;
   --min:#52B7EC; --gas:#5FC67C;
   --ok:#5CC487; --ok-soft:#12291D; --warn:#E3B04F; --warn-soft:#332611; --err:#F2786E; --err-soft:#3A1714;
   --glow:0 1px 2px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.3);
@@ -448,6 +448,10 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .bs-l{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2)}
 .bstep .stepper span{min-width:58px;padding:0 4px;white-space:nowrap}
 .bstep .stepper span small{color:var(--ink-3);font-weight:500}
+.bstep .stepper span span{min-width:0;padding:0}
+.bstep .stepper .bd-sh{color:var(--shield)}
+.bstep .stepper .bd-sh.out{color:var(--ink-3);text-decoration:line-through}
+.bstep .stepper .bd-dot{color:var(--ink-3);font-weight:500}
 .bstep .stepper button{width:36px;height:34px;font-size:18px}
 .bchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--ink-2)}
 .bchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -2864,9 +2868,13 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
     var supplyNow = supplyFor(u, models);
     var zeroPool = x.entry.upgrades.indexOf("Advanced Medic Facilities") !== -1; // card text: Supply counts as 0 when calculating the Supply Pool
     var threshold = hp + (st.first ? 0 : shield);
+    /* Part 5.1.6: Shield is added to the first model's HP, so Damage comes off the Shield first, then the HP.
+       Once the first model is removed the Shield no longer applies (0 left). */
+    var shieldLeft = shield && !st.first ? Math.max(0, shield - st.d) : 0;
+    var hpLeft = Math.max(0, hp - Math.max(0, st.d - (st.first ? 0 : shield)));
     return {
       uid: uid, entry: x.entry, unit: u, summoned: x.summoned, st: st, state: st.st, models: models, start: x.entry.models,
-      hp: hp, shield: shield, threshold: threshold, casualtyDue: models > 0 && st.d >= threshold,
+      hp: hp, shield: shield, threshold: threshold, shieldLeft: shieldLeft, hpLeft: hpLeft, casualtyDue: models > 0 && st.d >= threshold,
       shielded: shield > 0 && !st.first && !st.shb, supplyNow: supplyNow, supplyStart: supplyFor(u, x.entry.models),
       poolSupply: zeroPool ? 0 : supplyNow, zeroPool: zeroPool, flying: u.combat_tags.indexOf("Flying") !== -1
     };
@@ -4518,6 +4526,11 @@ function bActsHTML(i, b, r){
   if(!acts.length) return '<span class="faint">'+(p===3?"Not Engaged: no action in the Combat Phase.":"No action available.")+'</span>';
   return acts.map(function(a){ return '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="'+a+'">'+esc(BT.ACTIONS[a].label)+(a==="gather"?" +1 VP":"")+'</button>'; }).join("");
 }
+/* Damage stepper readout. Units with a Shield show Shield and HP left (Damage drains the Shield first, Part 5.1.6). Struck through once Shielded is lost (Total Damage over the Shield value). */
+function bDmgVal(i, full){
+  if(!i.shield) return i.st.d+' <small>/ '+(full?'HP ':'')+i.threshold+'</small>';
+  return '<span class="bd-sh'+(i.shielded?'':' out')+'">Shield '+i.shieldLeft+'<small>/'+i.shield+'</small></span><span class="bd-dot"> · </span><span class="bd-hp">HP '+i.hpLeft+'<small>/'+i.hp+'</small></span>';
+}
 function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
@@ -4547,7 +4560,7 @@ function bUnitCompact(i, b, r, sup){
     if(!fits) row += '<span class="pill err">Only '+Math.max(0,sup.available)+' Supply available</span>';
     if(p===1 && !b.over) row += '<span class="grow"></span>'+(acted ? bActsHTML(i, b, r) : '<button class="btn sm primary" data-a="b-act" data-e="'+uid+'" data-v="deploy">Deploy</button>');
   } else if(i.state==="fld"){
-    row += bStepper("Damage", st.d+' <small>/ '+i.threshold+'</small>', 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"');
+    row += bStepper("Damage", bDmgVal(i), 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"');
     var acts = bActsHTML(i, b, r); if(acts) row += '<span class="grow"></span><span class="bu-q">'+acts+'</span>';
   }
   if(row) h += '<div class="bu-c2">'+row+'</div>';
@@ -4575,7 +4588,7 @@ function bUnitFull(i, b, r, sup){
     return h+'</article>';
   }
   h += '<div class="bu-row">'+bStepper("Models", i.models+' <small>/ '+i.start+'</small>', 'data-a="b-m" data-e="'+uid+'" data-v="-1"', 'data-a="b-m" data-e="'+uid+'" data-v="1"')+
-    bStepper("Damage", st.d+' <small>/ HP '+i.threshold+'</small>', 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"')+'</div>';
+    bStepper("Damage", bDmgVal(i, true), 'data-a="b-d" data-e="'+uid+'" data-v="-1"', 'data-a="b-d" data-e="'+uid+'" data-v="1"')+'</div>';
   if(i.casualtyDue) h += bCasHTML(i);
   h += '<div class="bu-row chips"><button class="bchip" data-a="b-eng" data-e="'+uid+'" aria-pressed="'+(!!st.eng)+'">Engaged</button>';
   BT.statusKeys(C, r, i).forEach(function(k){ h += '<button class="bchip" data-a="b-stat" data-e="'+uid+'" data-v="'+k+'" aria-pressed="'+(!!st.stat[k])+'">'+esc(BT.STATUS[k])+'</button>'; });
