@@ -154,7 +154,7 @@ function commit(opts){
   Store.queue(r);
   if(!opts || !opts.quiet) render(); else { renderMeters(); renderRail(); renderCrumb(); }
 }
-function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; BS.ks=null; BS.modal=null; BS.oppOpen=false; BS.oppDraft=null; BS.oppErr=null; BS.hDel=null; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
+function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; BS.ks=null; BS.pay=null; BS.modal=null; BS.oppOpen=false; BS.oppDraft=null; BS.oppErr=null; BS.hDel=null; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
 function openRoster(id){ var r = S.rosters.filter(function(x){return x.id===id;})[0]; if(!r) return; S.cur = clone(r); resetView(); render(); window.scrollTo(0,0); }
 function newRoster(){ var r = C.newRoster(); S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
 function setRace(race){
@@ -683,7 +683,7 @@ function openDeployModal(id){
     Render.deploymentCardHTML(d, side)+
     '<details class="dm-other"><summary>Other side of this card: '+esc(d[other])+'</summary>'+Render.deploymentCardHTML(d, other)+'</details></div>');
 }
-function closeModal(){ $("modal-root").innerHTML = ""; if(BS){ BS.modal = null; BS.ks = null; BS.oppDraft = null; BS.oppErr = null; if(S.cur && S.cur.battle) BS.oppOpen = false; } }
+function closeModal(){ $("modal-root").innerHTML = ""; if(BS){ BS.modal = null; BS.ks = null; BS.pay = null; BS.oppDraft = null; BS.oppErr = null; if(S.cur && S.cur.battle) BS.oppOpen = false; } }
 
 /* ------------ keyword reference ------------
    Definitions are the rulebook's own text (Full Rules, Part 11), shipped in keywords.js.
@@ -993,7 +993,7 @@ function vClick(a, v){
    Rules logic lives in battle-core.js (window.Battle). State is kept on the roster as r.battle and saved with it.
    The tracker guides and warns; it never blocks a step. */
 var BT = window.Battle;
-var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false, ks:null, modal:null, oppOpen:false, oppDraft:null, oppErr:null, hDel:null };
+var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false, ks:null, pay:null, modal:null, oppOpen:false, oppDraft:null, oppErr:null, hDel:null };
 var PHASE_GUIDE = {
   1: ["Players take turns activating one Unit at a time. The holder of the First Player Marker decides who goes first.", "Each Unit performs one action: Deploy (from Reserves), Move, Disengage or Hold.", "The first player to Pass takes the First Player Marker for the Assault Phase."],
   2: ["Players take turns activating one Unit on the battlefield. Units in Reserves cannot act.", "Each Unit performs one action: Ranged Attack, Charge, Run or Hold.", "The first player to Pass takes the First Player Marker for the Combat Phase."],
@@ -1080,6 +1080,7 @@ function bDmgVal(i, full){
   if(!i.shield) return i.st.d+' <small>/ '+(full?'HP ':'')+i.threshold+'</small>';
   return '<span class="bd-sh'+(i.shielded?'':' out')+'">Shield '+i.shieldLeft+'<small>/'+i.shield+'</small></span><span class="bd-dot"> · </span><span class="bd-hp">HP '+i.hpLeft+'<small>/'+i.hp+'</small></span>';
 }
+function bPaidTxt(a){ return a.paid ? (a.paid.length ? ' · paid with '+esc(a.paid.map(function(x){ return x.card; }).join(" + ")) : ' · no card') : ''; }
 function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
@@ -1149,7 +1150,7 @@ function bUnitFull(i, b, r, sup){
     h += '<div class="bu-ab"><button class="btn ghost sm" data-a="b-ab" data-e="'+uid+'" aria-expanded="'+open+'">'+(open?'Hide':'Show')+' abilities for this Phase ('+abs.length+')</button>';
     if(open) abs.forEach(function(a){
       h += '<div class="ab'+(a.used?' used':'')+'"><div class="ab-h"><b>'+esc(a.ability.name)+'</b> '+tp(a.ability.type)+(a.ability.cost?' <span class="faint">'+esc(a.ability.cost)+'</span>':'')+'<span class="grow"></span>'+
-        (a.usable ? (a.used && !a.repeatable ? '<span class="pill neutral">Used</span><button class="btn ghost sm" data-a="b-unuse" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Undo</button>' : '<button class="btn sm" data-a="b-use" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Use</button>') : '')+'</div><div class="u-desc">'+Render.richText(a.ability.text)+'</div></div>';
+        (a.usable ? (a.used && !a.repeatable ? '<span class="pill neutral">Used'+bPaidTxt(a)+'</span><button class="btn ghost sm" data-a="b-unuse" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Undo</button>' : (a.repeatable && a.paid ? '<span class="faint ab-paid">Last'+bPaidTxt(a)+'</span>' : '')+'<button class="btn sm" data-a="b-use" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Use</button>') : '')+'</div><div class="u-desc">'+Render.richText(a.ability.text)+'</div></div>';
     });
     h += '</div>';
   }
@@ -1339,6 +1340,33 @@ function killSheetHTML(){
   if(gone) h += '<div class="faint" style="font-size:12px;margin-top:6px">'+gone+' enemy Unit'+(gone>1?'s':'')+' Destroyed.</div>';
   return h+'<div class="ks-f"><span class="faint">Enemy Supply destroyed this Round: <b>'+BT.enemyLost(C, b).total+'</b></span><button class="btn primary" data-a="close-modal">Done</button></div></div>';
 }
+/* Ready card that pays a cost with the least waste: the smallest single card that covers it, Tactical Cards before the Faction
+   and Creep Cards on a tie (list order otherwise), else none picked. */
+function payDefault(r, b, cost){
+  var ready = BT.cardList(C, r, b).filter(function(c){ return !c.exhausted && c.value>0; });
+  var fit = ready.filter(function(c){ return c.value>=cost; }).sort(function(x, y){ return x.value-y.value || (x.key.charAt(0)!=="t") - (y.key.charAt(0)!=="t"); })[0];
+  return fit ? [fit.key] : [];
+}
+/* Pop-up from Use on an ability with a cost: pick the Ready card(s) to Exhaust for it (10.5.1). */
+function paySheetHTML(){
+  var r = S.cur, b = r && r.battle, pk = BS.pay; if(!b || !pk) return "";
+  var i = BT.info(C, r, b, pk.uid); if(!i) return "";
+  var a = BT.abilitiesFor(C, r, b, pk.uid).filter(function(x){ return x.ability.name===pk.name; })[0]; if(!a) return "";
+  var cards = BT.cardList(C, r, b), type = BT.resource(C, r, b).type, sel = cards.filter(function(c){ return pk.keys.indexOf(c.key)!==-1 && !c.exhausted; });
+  var got = sel.reduce(function(n, c){ return n+c.value; }, 0);
+  var h = '<div class="ksheet"><div class="ks-h"><h2>'+esc(a.ability.name)+'</h2><span class="faint">'+esc(i.unit.name)+' · Cost '+esc(a.ability.cost||(a.cost+" "+type))+'</span></div>'+
+    '<p class="faint ks-help">Tap the card'+(a.cost>1?'s':'')+' to Exhaust for it. Extra '+esc(type)+' over the cost is lost (10.5.1).</p><div class="ks-list">';
+  h += cards.map(function(c){
+    var on = sel.indexOf(c)!==-1, nm = esc(c.card.name)+(c.copy?' '+c.copy:'');
+    if(c.exhausted || !c.value) return '<div class="ks-row pay-row off"><span class="ks-n">'+nm+'</span><span class="ks-m num">'+(c.value?c.value+' '+esc(type):'—')+'</span><span class="ks-go">'+(c.exhausted?'Exhausted':'No '+esc(type))+'</span></div>';
+    var waste = on && sel.length===1 && c.value>a.cost ? (c.value-a.cost)+' '+esc(type)+' lost' : '';
+    return '<button class="ks-row pay-row" data-a="b-paypick" data-v="'+esc(c.key)+'" aria-pressed="'+on+'"><span class="ks-n">'+nm+(waste?' <span class="faint">('+waste+')</span>':'')+'</span><span class="ks-m num">'+c.value+' '+esc(type)+'</span><span class="ks-go">'+(on?'✓':'')+'</span></button>';
+  }).join("")+'</div>';
+  var short = got<a.cost;
+  h += '<div class="pay-sum'+(short&&sel.length?' warn':'')+'">Paying <b>'+got+'</b> of '+a.cost+' '+esc(type)+(short&&sel.length?' · short unless a cost reduction applies':'')+'</div>';
+  h += '<button class="btn ghost sm pay-alt" data-a="b-payok" data-v="none">Use without Exhausting a card</button>'+(P.guides?'<span class="faint" style="font-size:12px;margin-top:-6px">For a cost brought to 0 by another ability, such as a card that reduces it.</span>':'');
+  return h+'<div class="ks-f"><span class="grow"></span><button class="btn ghost" data-a="close-modal">Cancel</button><button class="btn primary" data-a="b-payok"'+(sel.length?'':' disabled')+'>Exhaust and use</button></div></div>';
+}
 /* Pop-up for the whole opponent list: models, Battlefield / Reserves / Destroyed, add or remove Units, replace the list. */
 function oppModalHTML(){
   var r = S.cur, b = r && r.battle; if(!b) return "";
@@ -1359,7 +1387,7 @@ function oppModalHTML(){
 }
 /* Re-draw an open pop-up in place, keeping its scroll position. */
 function bModal(){
-  var html = BS.modal==="kill" ? killSheetHTML() : BS.modal==="opp" ? oppModalHTML() : "";
+  var html = BS.modal==="kill" ? killSheetHTML() : BS.modal==="opp" ? oppModalHTML() : BS.modal==="pay" ? paySheetHTML() : "";
   if(!html){ closeModal(); return; }
   var sc = document.querySelector("#modal-root .scrim"), m = document.querySelector("#modal-root .modal");
   if(sc && m){ var y = sc.scrollTop; m.innerHTML = '<button class="mclose" data-a="close-modal" aria-label="Close">×</button>'+html; sc.scrollTop = y; }
@@ -1558,7 +1586,12 @@ function bClick(a, v, eu, t){
     case "b-stat": bMut(function(){ BT.toggleStatus(C, r, b, eu, v); }); return true;
     case "b-state": bMut(function(){ BT.setState(C, r, b, eu, v); }); return true;
     case "b-ab": BS.openAb[eu] = !BS.openAb[eu]; renderBattle(); return true;
-    case "b-use": bMut(function(){ return BT.useAbility(C, r, b, eu, v); }); return true;
+    case "b-use":
+      var ua = BT.abilitiesFor(C, r, b, eu).filter(function(x){ return x.ability.name===v; })[0];
+      if(ua && ua.cost>0){ BS.pay = { uid:eu, name:v, keys:payDefault(r, b, ua.cost) }; BS.modal = "pay"; bModal(); return true; }
+      bMut(function(){ return BT.useAbility(C, r, b, eu, v); }); return true;
+    case "b-paypick": var pk = BS.pay; if(!pk) return true; var ix = pk.keys.indexOf(v); if(ix===-1) pk.keys.push(v); else pk.keys.splice(ix,1); bModal(); return true;
+    case "b-payok": var pp = BS.pay; if(!pp) return true; var keys = v==="none" ? [] : pp.keys.slice(); closeModal(); bMut(function(){ return BT.useAbility(C, r, b, pp.uid, pp.name, keys); }); return true;
     case "b-unuse": bMut(function(){ BT.unuseAbility(C, r, b, eu, v); }); return true;
     case "b-card": bMut(function(){ BT.toggleCard(C, r, b, v); }); return true;
     case "b-mk": bMut(function(){ BT.cycleMarker(C, b, Number(v)); }); return true;

@@ -896,7 +896,7 @@
     // your army
     h += '<h2>Your army</h2><div class="rp-wide"><table><thead><tr><th>Unit</th><th class="n">Models</th><th>Status</th><th class="n">Actions</th><th>Kills</th><th>Lost to</th><th>Abilities used</th></tr></thead><tbody>';
     me.forEach(function (i) {
-      var acts = (b.acts || []).filter(function (a) { return a.uid === i.uid; }).length, uses = count((b.uses || []).filter(function (u) { return u.uid === i.uid; }), function (u) { return u.name; });
+      var acts = (b.acts || []).filter(function (a) { return a.uid === i.uid; }).length, uses = count((b.uses || []).filter(function (u) { return u.uid === i.uid; }), function (u) { return u.name + (u.paid && u.paid.length ? " (" + u.paid.map(function (x) { return x.card; }).join(" + ") + ")" : ""); });
       var k = count(kills.filter(function (k) { return k.by && k.by.s === "me" && k.by.uid === i.uid; }), function (k) { return nameOf("opp", k.to.uid); });
       var lost = count(kills.filter(function (k) { return k.to.s === "me" && k.to.uid === i.uid; }), function (k) { return k.by ? nameOf("opp", k.by.uid) : "unrecorded"; });
       h += "<tr><td><b>" + esc(i.unit.name) + "</b>" + (i.summoned ? ' <span class="faint">Summoned</span>' : "") + (i.entry.upgrades.length ? '<br><span class="faint">' + esc(i.entry.upgrades.join(", ")) + "</span>" : "") + (b.mvp === i.uid ? ' <b style="color:#946000">★ MVP</b>' : "") + "</td>" +
@@ -924,7 +924,7 @@
       h += "<h2>Cards used</h2><table><tbody>";
       Object.keys(times).map(Number).sort(function (x, y) { return x - y; }).forEach(function (n) {
         var s = spend.filter(function (x) { return x.r === n; }); if (!s.length) return;
-        h += '<tr><td style="width:44px"><b>R' + n + "</b></td><td>" + esc(s.map(function (x) { return x.card + " (" + PH[x.p] + ")"; }).join(", ")) + '</td><td class="n">' + s.reduce(function (a, x) { return a + (x.value || 0); }, 0) + "</td></tr>";
+        h += '<tr><td style="width:44px"><b>R' + n + "</b></td><td>" + esc(s.map(function (x) { return x.card + " (" + PH[x.p] + (x.for ? ", for " + x.for.unit + ": " + x.for.name : "") + ")"; }).join(", ")) + '</td><td class="n">' + s.reduce(function (a, x) { return a + (x.value || 0); }, 0) + "</td></tr>";
       });
       h += "</tbody></table>";
     }

@@ -518,6 +518,16 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .ks-m{font-weight:700}
 .ks-s{font-size:12px;color:var(--ink-2);white-space:nowrap}
 .ks-go{justify-self:end;background:var(--accent);color:var(--accent-ink);font-weight:800;border-radius:var(--r);padding:4px 10px;font-size:13px}
+.pay-row{grid-template-columns:minmax(0,1fr) auto 72px}
+.pay-row[aria-pressed="true"]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.pay-row .ks-go{width:26px;height:26px;padding:0;display:grid;place-items:center;background:none;border:2px solid var(--line);color:var(--accent-ink)}
+.pay-row[aria-pressed="true"] .ks-go{background:var(--accent);border-color:var(--accent)}
+.pay-row.off{color:var(--ink-3)}
+.pay-row.off .ks-go{width:auto;height:auto;border:0;font-weight:500;font-size:12.5px;color:var(--ink-3)}
+.pay-alt{align-self:flex-start}
+.pay-sum{font-size:13.5px}
+.pay-sum.warn{color:var(--warn)}
+.ab-paid{font-size:12px}
 .ks-f{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line-2);padding-top:10px}
 .opp-list{display:flex;flex-direction:column;gap:6px}
 .opp-row{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:flex;flex-direction:column;gap:6px}
@@ -534,7 +544,7 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .hrow:first-child{border-top:0}
 .h-t{flex:1;min-width:200px}
 .h-a{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-@media (max-width:680px){.ks-row{grid-template-columns:minmax(0,1fr) auto 48px}.ks-s{display:none}.ks-mode button{font-size:12.5px;padding:8px 6px}}
+@media (max-width:680px){.ks-row{grid-template-columns:minmax(0,1fr) auto 48px}.pay-row{grid-template-columns:minmax(0,1fr) auto 72px}.ks-s{display:none}.ks-mode button{font-size:12.5px;padding:8px 6px}}
 /* battle: compact rows, groups, bottom bar, phone tabs */
 .bunit.cpt{padding:6px 8px;gap:6px}
 .bu-c{display:flex;align-items:center;gap:8px;min-width:0}
@@ -2031,7 +2041,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
     // your army
     h += '<h2>Your army</h2><div class="rp-wide"><table><thead><tr><th>Unit</th><th class="n">Models</th><th>Status</th><th class="n">Actions</th><th>Kills</th><th>Lost to</th><th>Abilities used</th></tr></thead><tbody>';
     me.forEach(function (i) {
-      var acts = (b.acts || []).filter(function (a) { return a.uid === i.uid; }).length, uses = count((b.uses || []).filter(function (u) { return u.uid === i.uid; }), function (u) { return u.name; });
+      var acts = (b.acts || []).filter(function (a) { return a.uid === i.uid; }).length, uses = count((b.uses || []).filter(function (u) { return u.uid === i.uid; }), function (u) { return u.name + (u.paid && u.paid.length ? " (" + u.paid.map(function (x) { return x.card; }).join(" + ") + ")" : ""); });
       var k = count(kills.filter(function (k) { return k.by && k.by.s === "me" && k.by.uid === i.uid; }), function (k) { return nameOf("opp", k.to.uid); });
       var lost = count(kills.filter(function (k) { return k.to.s === "me" && k.to.uid === i.uid; }), function (k) { return k.by ? nameOf("opp", k.by.uid) : "unrecorded"; });
       h += "<tr><td><b>" + esc(i.unit.name) + "</b>" + (i.summoned ? ' <span class="faint">Summoned</span>' : "") + (i.entry.upgrades.length ? '<br><span class="faint">' + esc(i.entry.upgrades.join(", ")) + "</span>" : "") + (b.mvp === i.uid ? ' <b style="color:#946000">★ MVP</b>' : "") + "</td>" +
@@ -2059,7 +2069,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
       h += "<h2>Cards used</h2><table><tbody>";
       Object.keys(times).map(Number).sort(function (x, y) { return x - y; }).forEach(function (n) {
         var s = spend.filter(function (x) { return x.r === n; }); if (!s.length) return;
-        h += '<tr><td style="width:44px"><b>R' + n + "</b></td><td>" + esc(s.map(function (x) { return x.card + " (" + PH[x.p] + ")"; }).join(", ")) + '</td><td class="n">' + s.reduce(function (a, x) { return a + (x.value || 0); }, 0) + "</td></tr>";
+        h += '<tr><td style="width:44px"><b>R' + n + "</b></td><td>" + esc(s.map(function (x) { return x.card + " (" + PH[x.p] + (x.for ? ", for " + x.for.unit + ": " + x.for.name : "") + ")"; }).join(", ")) + '</td><td class="n">' + s.reduce(function (a, x) { return a + (x.value || 0); }, 0) + "</td></tr>";
       });
       h += "</tbody></table>";
     }
@@ -3058,26 +3068,55 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
     i.entry.upgrades.forEach(function (n) { var up = C.upgradeDef(i.entry, n); if (up && up.kind === "ability") list.push(up); });
     return list.filter(function (a) { return a.phase === "Any" || a.phase === ph; }).map(function (a) {
       var rep = /^REPEATABLE/.test(a.text || ""), game = /Once per Game/i.test(a.text || "");
-      var m = /^(\d+)/.exec(a.cost || "");
+      var m = /^(\d+)/.exec(a.cost || ""), last = lastUse(b, uid, a.name, game);
       return { ability: a, repeatable: rep, oncePerGame: game, cost: m ? Number(m[1]) : 0, usable: a.type !== "Passive",
-        used: !!(game ? i.st.usedGame[a.name] : i.st.used[a.name]) };
+        used: !!(game ? i.st.usedGame[a.name] : i.st.used[a.name]), paid: last && last.paid ? last.paid : null };
     });
   }
-  function useAbility(C, r, b, uid, name) {
+  /* The most recent use of a Unit's ability: this Round, or any Round for Once per Game abilities. */
+  function lastUse(b, uid, name, anyRound) {
+    for (var k = (b.uses || []).length - 1; k >= 0; k--) { var u = b.uses[k]; if (u.uid === uid && u.name === name && (anyRound || u.r === b.round)) return u; }
+    return null;
+  }
+  /* keys: the Faction/Tactical Card keys Exhausted to pay the cost (10.5.1), linked to this use.
+     [] = used without Exhausting a card (a cost reduction); omitted = the cost is left to the player. */
+  function useAbility(C, r, b, uid, name, keys) {
     var i = info(C, r, b, uid); if (!i) return { warnings: [] };
     var a = abilitiesFor(C, r, b, uid).filter(function (x) { return x.ability.name === name; })[0]; if (!a) return { warnings: [] };
-    var warn = [], res = resource(C, r, b);
+    var warn = [], res = resource(C, r, b), paid = null;
     if (a.used && !a.repeatable) warn.push(name + " was already used by this Unit this " + (a.oncePerGame ? "game" : "Round") + " (10.2, 10.4).");
-    if (a.cost > res.ready) warn.push(name + " costs " + a.cost + " " + res.type + " but your Ready cards only provide " + res.ready + " (10.5.1).");
+    if (keys) {
+      var cards = cardList(C, r, b); paid = [];
+      keys.forEach(function (key) {
+        var x = cards.filter(function (c) { return c.key === key; })[0]; if (!x || x.exhausted) return;
+        b.cards[key] = true; x.exhausted = true;
+        paid.push({ key: key, card: x.card.name + (x.copy ? " " + x.copy : ""), value: x.value });
+        (b.spend = b.spend || []).push({ r: b.round, p: b.phase, key: key, card: x.card.name, value: x.value, at: Date.now(), for: { uid: uid, name: name, unit: i.unit.name } });
+      });
+      var got = paid.reduce(function (s, x) { return s + x.value; }, 0);
+      if (a.cost > 0 && !paid.length) warn.push(name + " used without Exhausting a card. Its cost is " + a.cost + " " + res.type + "; that is only right if a cost reduction brought it to 0.");
+      else if (got < a.cost) warn.push("Paid " + got + " of " + a.cost + " " + res.type + " for " + name + ". That is only right if a cost reduction applied; otherwise the ability cannot be used (10.5.1).");
+      else if (got > a.cost) warn.push((got - a.cost) + " " + res.type + " over the cost is lost; it cannot be saved for another ability (10.5.1).");
+    } else if (a.cost > res.ready) warn.push(name + " costs " + a.cost + " " + res.type + " but your Ready cards only provide " + res.ready + " (10.5.1).");
     else if (a.cost > 0) warn.push("Pay " + a.cost + " " + res.type + ": Exhaust a Ready card below (10.5.1).");
     if (a.oncePerGame) i.st.usedGame[name] = true; else if (!a.repeatable) i.st.used[name] = true;
-    (b.uses = b.uses || []).push({ r: b.round, p: b.phase, uid: uid, name: name, cost: a.cost });
-    log(b, i.unit.name + " used " + name + (a.ability.cost ? " (" + a.ability.cost + ")" : "") + ".");
+    var use = { r: b.round, p: b.phase, uid: uid, name: name, cost: a.cost };
+    if (paid) use.paid = paid;
+    (b.uses = b.uses || []).push(use);
+    log(b, i.unit.name + " used " + name + (a.ability.cost ? " (" + a.ability.cost + ")" : "") +
+      (paid ? (paid.length ? ", paid with " + paid.map(function (x) { return x.card; }).join(" and ") : ", no card Exhausted") : "") + ".");
     return { warnings: warn, cost: a.cost };
   }
+  /* Undo a use this Round; cards Exhausted to pay for it are Refreshed. */
   function unuseAbility(C, r, b, uid, name) {
     var st = b.units[uid]; if (st) { delete st.used[name]; delete st.usedGame[name]; }
-    for (var k = (b.uses || []).length - 1; k >= 0; k--) if (b.uses[k].uid === uid && b.uses[k].name === name && b.uses[k].r === b.round) { b.uses.splice(k, 1); break; }
+    for (var k = (b.uses || []).length - 1; k >= 0; k--) if (b.uses[k].uid === uid && b.uses[k].name === name && b.uses[k].r === b.round) {
+      (b.uses[k].paid || []).forEach(function (x) {
+        delete b.cards[x.key];
+        for (var j = (b.spend || []).length - 1; j >= 0; j--) { var s = b.spend[j]; if (s.key === x.key && s.r === b.round && s.for && s.for.uid === uid && s.for.name === name) { b.spend.splice(j, 1); break; } }
+      });
+      b.uses.splice(k, 1); break;
+    }
   }
 
   /* ---------- Faction and Tactical Cards (10.5) ---------- */
@@ -3103,6 +3142,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
     if (b.cards[key]) {
       delete b.cards[key];
       for (var k = (b.spend || []).length - 1; k >= 0; k--) if (b.spend[k].key === key && b.spend[k].r === b.round) { b.spend.splice(k, 1); break; }
+      (b.uses || []).forEach(function (u) { if (u.r === b.round && u.paid) u.paid = u.paid.filter(function (x) { return x.key !== key; }); });
     } else { b.cards[key] = true; (b.spend = b.spend || []).push({ r: b.round, p: b.phase, key: key, card: x.card.name, value: x.value, at: Date.now() }); log(b, x.card.name + " Exhausted."); }
   }
 
@@ -3605,7 +3645,7 @@ function commit(opts){
   Store.queue(r);
   if(!opts || !opts.quiet) render(); else { renderMeters(); renderRail(); renderCrumb(); }
 }
-function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; BS.ks=null; BS.modal=null; BS.oppOpen=false; BS.oppDraft=null; BS.oppErr=null; BS.hDel=null; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
+function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; BS.ks=null; BS.pay=null; BS.modal=null; BS.oppOpen=false; BS.oppDraft=null; BS.oppErr=null; BS.hDel=null; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
 function openRoster(id){ var r = S.rosters.filter(function(x){return x.id===id;})[0]; if(!r) return; S.cur = clone(r); resetView(); render(); window.scrollTo(0,0); }
 function newRoster(){ var r = C.newRoster(); S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
 function setRace(race){
@@ -4134,7 +4174,7 @@ function openDeployModal(id){
     Render.deploymentCardHTML(d, side)+
     '<details class="dm-other"><summary>Other side of this card: '+esc(d[other])+'</summary>'+Render.deploymentCardHTML(d, other)+'</details></div>');
 }
-function closeModal(){ $("modal-root").innerHTML = ""; if(BS){ BS.modal = null; BS.ks = null; BS.oppDraft = null; BS.oppErr = null; if(S.cur && S.cur.battle) BS.oppOpen = false; } }
+function closeModal(){ $("modal-root").innerHTML = ""; if(BS){ BS.modal = null; BS.ks = null; BS.pay = null; BS.oppDraft = null; BS.oppErr = null; if(S.cur && S.cur.battle) BS.oppOpen = false; } }
 
 /* ------------ keyword reference ------------
    Definitions are the rulebook's own text (Full Rules, Part 11), shipped in keywords.js.
@@ -4444,7 +4484,7 @@ function vClick(a, v){
    Rules logic lives in battle-core.js (window.Battle). State is kept on the roster as r.battle and saved with it.
    The tracker guides and warns; it never blocks a step. */
 var BT = window.Battle;
-var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false, ks:null, modal:null, oppOpen:false, oppDraft:null, oppErr:null, hDel:null };
+var BS = { set:null, warn:[], pass:false, undo:[], quit:false, adj:{me:0, opp:0}, sumPick:false, openAb:{}, openU:{}, grp:{}, tab:"play", showAll:false, ks:null, pay:null, modal:null, oppOpen:false, oppDraft:null, oppErr:null, hDel:null };
 var PHASE_GUIDE = {
   1: ["Players take turns activating one Unit at a time. The holder of the First Player Marker decides who goes first.", "Each Unit performs one action: Deploy (from Reserves), Move, Disengage or Hold.", "The first player to Pass takes the First Player Marker for the Assault Phase."],
   2: ["Players take turns activating one Unit on the battlefield. Units in Reserves cannot act.", "Each Unit performs one action: Ranged Attack, Charge, Run or Hold.", "The first player to Pass takes the First Player Marker for the Combat Phase."],
@@ -4531,6 +4571,7 @@ function bDmgVal(i, full){
   if(!i.shield) return i.st.d+' <small>/ '+(full?'HP ':'')+i.threshold+'</small>';
   return '<span class="bd-sh'+(i.shielded?'':' out')+'">Shield '+i.shieldLeft+'<small>/'+i.shield+'</small></span><span class="bd-dot"> · </span><span class="bd-hp">HP '+i.hpLeft+'<small>/'+i.hp+'</small></span>';
 }
+function bPaidTxt(a){ return a.paid ? (a.paid.length ? ' · paid with '+esc(a.paid.map(function(x){ return x.card; }).join(" + ")) : ' · no card') : ''; }
 function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
@@ -4600,7 +4641,7 @@ function bUnitFull(i, b, r, sup){
     h += '<div class="bu-ab"><button class="btn ghost sm" data-a="b-ab" data-e="'+uid+'" aria-expanded="'+open+'">'+(open?'Hide':'Show')+' abilities for this Phase ('+abs.length+')</button>';
     if(open) abs.forEach(function(a){
       h += '<div class="ab'+(a.used?' used':'')+'"><div class="ab-h"><b>'+esc(a.ability.name)+'</b> '+tp(a.ability.type)+(a.ability.cost?' <span class="faint">'+esc(a.ability.cost)+'</span>':'')+'<span class="grow"></span>'+
-        (a.usable ? (a.used && !a.repeatable ? '<span class="pill neutral">Used</span><button class="btn ghost sm" data-a="b-unuse" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Undo</button>' : '<button class="btn sm" data-a="b-use" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Use</button>') : '')+'</div><div class="u-desc">'+Render.richText(a.ability.text)+'</div></div>';
+        (a.usable ? (a.used && !a.repeatable ? '<span class="pill neutral">Used'+bPaidTxt(a)+'</span><button class="btn ghost sm" data-a="b-unuse" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Undo</button>' : (a.repeatable && a.paid ? '<span class="faint ab-paid">Last'+bPaidTxt(a)+'</span>' : '')+'<button class="btn sm" data-a="b-use" data-e="'+uid+'" data-v="'+esc(a.ability.name)+'">Use</button>') : '')+'</div><div class="u-desc">'+Render.richText(a.ability.text)+'</div></div>';
     });
     h += '</div>';
   }
@@ -4790,6 +4831,33 @@ function killSheetHTML(){
   if(gone) h += '<div class="faint" style="font-size:12px;margin-top:6px">'+gone+' enemy Unit'+(gone>1?'s':'')+' Destroyed.</div>';
   return h+'<div class="ks-f"><span class="faint">Enemy Supply destroyed this Round: <b>'+BT.enemyLost(C, b).total+'</b></span><button class="btn primary" data-a="close-modal">Done</button></div></div>';
 }
+/* Ready card that pays a cost with the least waste: the smallest single card that covers it, Tactical Cards before the Faction
+   and Creep Cards on a tie (list order otherwise), else none picked. */
+function payDefault(r, b, cost){
+  var ready = BT.cardList(C, r, b).filter(function(c){ return !c.exhausted && c.value>0; });
+  var fit = ready.filter(function(c){ return c.value>=cost; }).sort(function(x, y){ return x.value-y.value || (x.key.charAt(0)!=="t") - (y.key.charAt(0)!=="t"); })[0];
+  return fit ? [fit.key] : [];
+}
+/* Pop-up from Use on an ability with a cost: pick the Ready card(s) to Exhaust for it (10.5.1). */
+function paySheetHTML(){
+  var r = S.cur, b = r && r.battle, pk = BS.pay; if(!b || !pk) return "";
+  var i = BT.info(C, r, b, pk.uid); if(!i) return "";
+  var a = BT.abilitiesFor(C, r, b, pk.uid).filter(function(x){ return x.ability.name===pk.name; })[0]; if(!a) return "";
+  var cards = BT.cardList(C, r, b), type = BT.resource(C, r, b).type, sel = cards.filter(function(c){ return pk.keys.indexOf(c.key)!==-1 && !c.exhausted; });
+  var got = sel.reduce(function(n, c){ return n+c.value; }, 0);
+  var h = '<div class="ksheet"><div class="ks-h"><h2>'+esc(a.ability.name)+'</h2><span class="faint">'+esc(i.unit.name)+' · Cost '+esc(a.ability.cost||(a.cost+" "+type))+'</span></div>'+
+    '<p class="faint ks-help">Tap the card'+(a.cost>1?'s':'')+' to Exhaust for it. Extra '+esc(type)+' over the cost is lost (10.5.1).</p><div class="ks-list">';
+  h += cards.map(function(c){
+    var on = sel.indexOf(c)!==-1, nm = esc(c.card.name)+(c.copy?' '+c.copy:'');
+    if(c.exhausted || !c.value) return '<div class="ks-row pay-row off"><span class="ks-n">'+nm+'</span><span class="ks-m num">'+(c.value?c.value+' '+esc(type):'—')+'</span><span class="ks-go">'+(c.exhausted?'Exhausted':'No '+esc(type))+'</span></div>';
+    var waste = on && sel.length===1 && c.value>a.cost ? (c.value-a.cost)+' '+esc(type)+' lost' : '';
+    return '<button class="ks-row pay-row" data-a="b-paypick" data-v="'+esc(c.key)+'" aria-pressed="'+on+'"><span class="ks-n">'+nm+(waste?' <span class="faint">('+waste+')</span>':'')+'</span><span class="ks-m num">'+c.value+' '+esc(type)+'</span><span class="ks-go">'+(on?'✓':'')+'</span></button>';
+  }).join("")+'</div>';
+  var short = got<a.cost;
+  h += '<div class="pay-sum'+(short&&sel.length?' warn':'')+'">Paying <b>'+got+'</b> of '+a.cost+' '+esc(type)+(short&&sel.length?' · short unless a cost reduction applies':'')+'</div>';
+  h += '<button class="btn ghost sm pay-alt" data-a="b-payok" data-v="none">Use without Exhausting a card</button>'+(P.guides?'<span class="faint" style="font-size:12px;margin-top:-6px">For a cost brought to 0 by another ability, such as a card that reduces it.</span>':'');
+  return h+'<div class="ks-f"><span class="grow"></span><button class="btn ghost" data-a="close-modal">Cancel</button><button class="btn primary" data-a="b-payok"'+(sel.length?'':' disabled')+'>Exhaust and use</button></div></div>';
+}
 /* Pop-up for the whole opponent list: models, Battlefield / Reserves / Destroyed, add or remove Units, replace the list. */
 function oppModalHTML(){
   var r = S.cur, b = r && r.battle; if(!b) return "";
@@ -4810,7 +4878,7 @@ function oppModalHTML(){
 }
 /* Re-draw an open pop-up in place, keeping its scroll position. */
 function bModal(){
-  var html = BS.modal==="kill" ? killSheetHTML() : BS.modal==="opp" ? oppModalHTML() : "";
+  var html = BS.modal==="kill" ? killSheetHTML() : BS.modal==="opp" ? oppModalHTML() : BS.modal==="pay" ? paySheetHTML() : "";
   if(!html){ closeModal(); return; }
   var sc = document.querySelector("#modal-root .scrim"), m = document.querySelector("#modal-root .modal");
   if(sc && m){ var y = sc.scrollTop; m.innerHTML = '<button class="mclose" data-a="close-modal" aria-label="Close">×</button>'+html; sc.scrollTop = y; }
@@ -5009,7 +5077,12 @@ function bClick(a, v, eu, t){
     case "b-stat": bMut(function(){ BT.toggleStatus(C, r, b, eu, v); }); return true;
     case "b-state": bMut(function(){ BT.setState(C, r, b, eu, v); }); return true;
     case "b-ab": BS.openAb[eu] = !BS.openAb[eu]; renderBattle(); return true;
-    case "b-use": bMut(function(){ return BT.useAbility(C, r, b, eu, v); }); return true;
+    case "b-use":
+      var ua = BT.abilitiesFor(C, r, b, eu).filter(function(x){ return x.ability.name===v; })[0];
+      if(ua && ua.cost>0){ BS.pay = { uid:eu, name:v, keys:payDefault(r, b, ua.cost) }; BS.modal = "pay"; bModal(); return true; }
+      bMut(function(){ return BT.useAbility(C, r, b, eu, v); }); return true;
+    case "b-paypick": var pk = BS.pay; if(!pk) return true; var ix = pk.keys.indexOf(v); if(ix===-1) pk.keys.push(v); else pk.keys.splice(ix,1); bModal(); return true;
+    case "b-payok": var pp = BS.pay; if(!pp) return true; var keys = v==="none" ? [] : pp.keys.slice(); closeModal(); bMut(function(){ return BT.useAbility(C, r, b, pp.uid, pp.name, keys); }); return true;
     case "b-unuse": bMut(function(){ BT.unuseAbility(C, r, b, eu, v); }); return true;
     case "b-card": bMut(function(){ BT.toggleCard(C, r, b, v); }); return true;
     case "b-mk": bMut(function(){ BT.cycleMarker(C, b, Number(v)); }); return true;

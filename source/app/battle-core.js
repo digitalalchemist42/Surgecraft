@@ -307,26 +307,55 @@
     i.entry.upgrades.forEach(function (n) { var up = C.upgradeDef(i.entry, n); if (up && up.kind === "ability") list.push(up); });
     return list.filter(function (a) { return a.phase === "Any" || a.phase === ph; }).map(function (a) {
       var rep = /^REPEATABLE/.test(a.text || ""), game = /Once per Game/i.test(a.text || "");
-      var m = /^(\d+)/.exec(a.cost || "");
+      var m = /^(\d+)/.exec(a.cost || ""), last = lastUse(b, uid, a.name, game);
       return { ability: a, repeatable: rep, oncePerGame: game, cost: m ? Number(m[1]) : 0, usable: a.type !== "Passive",
-        used: !!(game ? i.st.usedGame[a.name] : i.st.used[a.name]) };
+        used: !!(game ? i.st.usedGame[a.name] : i.st.used[a.name]), paid: last && last.paid ? last.paid : null };
     });
   }
-  function useAbility(C, r, b, uid, name) {
+  /* The most recent use of a Unit's ability: this Round, or any Round for Once per Game abilities. */
+  function lastUse(b, uid, name, anyRound) {
+    for (var k = (b.uses || []).length - 1; k >= 0; k--) { var u = b.uses[k]; if (u.uid === uid && u.name === name && (anyRound || u.r === b.round)) return u; }
+    return null;
+  }
+  /* keys: the Faction/Tactical Card keys Exhausted to pay the cost (10.5.1), linked to this use.
+     [] = used without Exhausting a card (a cost reduction); omitted = the cost is left to the player. */
+  function useAbility(C, r, b, uid, name, keys) {
     var i = info(C, r, b, uid); if (!i) return { warnings: [] };
     var a = abilitiesFor(C, r, b, uid).filter(function (x) { return x.ability.name === name; })[0]; if (!a) return { warnings: [] };
-    var warn = [], res = resource(C, r, b);
+    var warn = [], res = resource(C, r, b), paid = null;
     if (a.used && !a.repeatable) warn.push(name + " was already used by this Unit this " + (a.oncePerGame ? "game" : "Round") + " (10.2, 10.4).");
-    if (a.cost > res.ready) warn.push(name + " costs " + a.cost + " " + res.type + " but your Ready cards only provide " + res.ready + " (10.5.1).");
+    if (keys) {
+      var cards = cardList(C, r, b); paid = [];
+      keys.forEach(function (key) {
+        var x = cards.filter(function (c) { return c.key === key; })[0]; if (!x || x.exhausted) return;
+        b.cards[key] = true; x.exhausted = true;
+        paid.push({ key: key, card: x.card.name + (x.copy ? " " + x.copy : ""), value: x.value });
+        (b.spend = b.spend || []).push({ r: b.round, p: b.phase, key: key, card: x.card.name, value: x.value, at: Date.now(), for: { uid: uid, name: name, unit: i.unit.name } });
+      });
+      var got = paid.reduce(function (s, x) { return s + x.value; }, 0);
+      if (a.cost > 0 && !paid.length) warn.push(name + " used without Exhausting a card. Its cost is " + a.cost + " " + res.type + "; that is only right if a cost reduction brought it to 0.");
+      else if (got < a.cost) warn.push("Paid " + got + " of " + a.cost + " " + res.type + " for " + name + ". That is only right if a cost reduction applied; otherwise the ability cannot be used (10.5.1).");
+      else if (got > a.cost) warn.push((got - a.cost) + " " + res.type + " over the cost is lost; it cannot be saved for another ability (10.5.1).");
+    } else if (a.cost > res.ready) warn.push(name + " costs " + a.cost + " " + res.type + " but your Ready cards only provide " + res.ready + " (10.5.1).");
     else if (a.cost > 0) warn.push("Pay " + a.cost + " " + res.type + ": Exhaust a Ready card below (10.5.1).");
     if (a.oncePerGame) i.st.usedGame[name] = true; else if (!a.repeatable) i.st.used[name] = true;
-    (b.uses = b.uses || []).push({ r: b.round, p: b.phase, uid: uid, name: name, cost: a.cost });
-    log(b, i.unit.name + " used " + name + (a.ability.cost ? " (" + a.ability.cost + ")" : "") + ".");
+    var use = { r: b.round, p: b.phase, uid: uid, name: name, cost: a.cost };
+    if (paid) use.paid = paid;
+    (b.uses = b.uses || []).push(use);
+    log(b, i.unit.name + " used " + name + (a.ability.cost ? " (" + a.ability.cost + ")" : "") +
+      (paid ? (paid.length ? ", paid with " + paid.map(function (x) { return x.card; }).join(" and ") : ", no card Exhausted") : "") + ".");
     return { warnings: warn, cost: a.cost };
   }
+  /* Undo a use this Round; cards Exhausted to pay for it are Refreshed. */
   function unuseAbility(C, r, b, uid, name) {
     var st = b.units[uid]; if (st) { delete st.used[name]; delete st.usedGame[name]; }
-    for (var k = (b.uses || []).length - 1; k >= 0; k--) if (b.uses[k].uid === uid && b.uses[k].name === name && b.uses[k].r === b.round) { b.uses.splice(k, 1); break; }
+    for (var k = (b.uses || []).length - 1; k >= 0; k--) if (b.uses[k].uid === uid && b.uses[k].name === name && b.uses[k].r === b.round) {
+      (b.uses[k].paid || []).forEach(function (x) {
+        delete b.cards[x.key];
+        for (var j = (b.spend || []).length - 1; j >= 0; j--) { var s = b.spend[j]; if (s.key === x.key && s.r === b.round && s.for && s.for.uid === uid && s.for.name === name) { b.spend.splice(j, 1); break; } }
+      });
+      b.uses.splice(k, 1); break;
+    }
   }
 
   /* ---------- Faction and Tactical Cards (10.5) ---------- */
@@ -352,6 +381,7 @@
     if (b.cards[key]) {
       delete b.cards[key];
       for (var k = (b.spend || []).length - 1; k >= 0; k--) if (b.spend[k].key === key && b.spend[k].r === b.round) { b.spend.splice(k, 1); break; }
+      (b.uses || []).forEach(function (u) { if (u.r === b.round && u.paid) u.paid = u.paid.filter(function (x) { return x.key !== key; }); });
     } else { b.cards[key] = true; (b.spend = b.spend || []).push({ r: b.round, p: b.phase, key: key, card: x.card.name, value: x.value, at: Date.now() }); log(b, x.card.name + " Exhausted."); }
   }
 

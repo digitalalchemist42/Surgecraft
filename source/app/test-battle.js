@@ -204,4 +204,25 @@ eq("history entry keeps the battle and the roster as it was (unit ids intact)", 
 const old = JSON.parse(JSON.stringify(bk)); delete old.kills; delete old.times; delete old.opp; B.sync(C, rk, old);
 eq("older saved battles gain the new fields", [Array.isArray(old.kills), Array.isArray(old.times), old.opp], [true, true, null]);
 }
+// --- paying ability costs: the Exhausted card is linked to the use (10.5.1) ---
+{
+const rq = mk("Protoss","daelaam",["gateway","forge"],[["sentry",1]]); const bq = B.create(C, rq, { missionId: "artefact-hunt", color: "red" }); const s = rq.units[0].uid; bq.units[s].st = "fld";
+const keys = B.cardList(C,rq,bq).map(c=>c.key); eq("cards f, gateway, forge", keys, ["f","t:gateway:0","t:forge:0"]);
+let w = B.useAbility(C,rq,bq,s,"Guardian Shield",["t:gateway:0"]).warnings;
+eq("paying exactly: no warning, Gateway Exhausted, 2 of 3 PE Ready", [w.length, !!bq.cards["t:gateway:0"], B.resource(C,rq,bq).ready], [0, true, 2]);
+let gs = B.abilitiesFor(C,rq,bq,s).filter(a=>a.ability.name==="Guardian Shield")[0];
+eq("ability shows it was paid with Gateway", [gs.used, gs.paid.map(x=>x.card)], [true, ["Gateway"]]);
+eq("spend entry names the unit and ability", bq.spend.slice(-1)[0].for, { uid: s, name: "Guardian Shield", unit: "Sentry" });
+eq("log names the card", /Guardian Shield \(1 PE\), paid with Gateway\.$/.test(bq.log.slice(-1)[0].t), true);
+B.unuseAbility(C,rq,bq,s,"Guardian Shield");
+eq("undoing the use Refreshes the card and drops its spend", [!!bq.cards["t:gateway:0"], bq.spend.length, B.abilitiesFor(C,rq,bq,s).filter(a=>a.ability.name==="Guardian Shield")[0].paid], [false, 0, null]);
+w = B.useAbility(C,rq,bq,s,"Force Field",["f","t:forge:0"]).warnings;
+eq("over-paying warns that the extra PE is lost", [w.length, /1 PE over the cost is lost/.test(w[0]), bq.uses.slice(-1)[0].paid.map(x=>x.key)], [1, true, ["f","t:forge:0"]]);
+w = B.useAbility(C,rq,bq,s,"Restoration",[]).warnings;
+eq("using without a card warns about the cost", [w.length, /without Exhausting a card/.test(w[0]), bq.uses.slice(-1)[0].paid], [1, true, []]);
+B.toggleCard(C,rq,bq,"t:forge:0");
+eq("Refreshing a card by hand unlinks it from the use", bq.uses.filter(u=>u.name==="Force Field")[0].paid.map(x=>x.key), ["f"]);
+w = B.useAbility(C,rq,bq,s,"Guardian Shield",["f"]).warnings;
+eq("an Exhausted card cannot pay again", [bq.uses.slice(-1)[0].paid, /Paid 0 of 1 PE/.test(w[0]) || /without Exhausting/.test(w[0])], [[], true]);
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
