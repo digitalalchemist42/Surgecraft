@@ -81,12 +81,12 @@
     var takenNames = {}; if (entry) entry.upgrades.forEach(function (n) { takenNames[n] = true; });
     var artSrc = back ? "" : src(ART.unit(u.id)), emb = src(ART.race(u.race));
     var h = '<article class="sc-card' + (artSrc ? "" : " sc-noart") + (face ? " sc-face-" + face : "") + '" data-race="' + esc(u.race) + '">';
-    if (artSrc) h += '<div class="sc-art' + (u.provisional ? " sc-pvart" : "") + '"><img src="' + esc(artSrc) + '" alt="' + esc(u.name) + ' miniatures" loading="lazy"></div>';
+    if (artSrc) h += '<div class="sc-art"><img src="' + esc(artSrc) + '" alt="' + esc(u.name) + ' miniatures" loading="lazy"></div>';
     h += '<div class="sc-body">';
     // title bar
     h += '<header class="sc-title"><div class="sc-tl"><h3>' + esc(u.name.toUpperCase()) + "</h3>" +
       '<div class="sc-meta">' + (u.army_slot ? '<span><em>ARMY SLOT:</em> ' + esc(u.army_slot.toUpperCase()) + "</span>" : '<span><em>SUMMONED UNIT</em></span>') +
-      (u.combat_role ? '<span><em>COMBAT ROLE:</em> ' + esc(String(u.combat_role).toUpperCase()) + "</span>" : "") + (u.unique ? '<span class="sc-uq">UNIQUE</span>' : "") + (u.provisional ? '<span class="sc-pv" title="Transcribed from a preview, not the printed card">PREVIEW</span>' : "") + (back ? '<span class="sc-backtag">&#9650; UPGRADES</span>' : "") + "</div></div>" +
+      (u.combat_role ? '<span><em>COMBAT ROLE:</em> ' + esc(String(u.combat_role).toUpperCase()) + "</span>" : "") + (u.unique ? '<span class="sc-uq">UNIQUE</span>' : "") + (u.provisional ? '<span class="sc-pv" title="Transcribed from photographs of the printed card; no published cost yet">PREVIEW</span>' : "") + (back ? '<span class="sc-backtag">&#9650; UPGRADES</span>' : "") + "</div></div>" +
       (emb ? '<img class="sc-emb" src="' + esc(emb) + '" alt="" loading="lazy">' : "") + "</header>";
     if (!back) {
     // stats + supply
@@ -203,7 +203,7 @@
     var h = '<article class="sc-card sc-tac' + (artSrc ? "" : " sc-noart") + '" data-race="' + esc(c.race) + '">';
     if (artSrc) h += '<div class="sc-art sc-tacart"><img src="' + esc(artSrc) + '" alt="" loading="lazy"></div>';
     h += '<div class="sc-body"><header class="sc-title"><div class="sc-tl"><h3>' + esc(c.name.toUpperCase()) + (count > 1 ? " ×" + count : "") + "</h3>" +
-      '<div class="sc-meta"><span><em>' + esc(c.kind.toUpperCase()) + " CARD</em></span>" + (c.unique ? '<span class="sc-uq">UNIQUE</span>' : "") + (c.provisional ? '<span class="sc-pv" title="Transcribed from a preview, not the printed card">PREVIEW</span>' : "") +
+      '<div class="sc-meta"><span><em>' + esc(c.kind.toUpperCase()) + " CARD</em></span>" + (c.unique ? '<span class="sc-uq">UNIQUE</span>' : "") + (c.provisional ? '<span class="sc-pv" title="Transcribed from photographs of the printed card; no published cost yet">PREVIEW</span>' : "") +
       (c.gas_cost != null && c.kind !== "Faction" ? '<span class="sc-gas">' + c.gas_cost + " VESPENE GAS</span>" : "") + "</div></div>" +
       (c.resource && c.resource.value != null ? '<span class="sc-res">' + esc(c.resource.type) + ": " + esc(c.resource.value) + "</span>" : "") + "</header>";
     PHASES.forEach(function (p) {
@@ -611,6 +611,7 @@
     var blob = texts.join(" ");
     C.data.units.forEach(function (u) {
       if (!u.summoned || seen[u.id]) return;
+      if (f && !u.faction_tags.every(function (t) { return f.faction_tags.indexOf(t) !== -1; })) return;
       var short = u.name.replace(/\s*\(.*\)$/, "");
       if (blob.indexOf(short) !== -1) { seen[u.id] = true; out.push(u); }
     });

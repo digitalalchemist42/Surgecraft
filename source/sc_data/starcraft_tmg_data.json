@@ -2,7 +2,7 @@
  "meta": {
   "game": "StarCraft: Tabletop Miniatures Game",
   "sources": {
-   "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); Terran Update 3, Protoss Update 2, Zerg Update 3 (cards v1.09.26)",
+   "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); Terran Update 3, Protoss Update 2, Zerg Update 3 (cards v1.09.26); v1.10.26 cards from photographs of the printed cards (PREVIEW, no published costs)",
    "costs": "Unit Cost Table 10.6, 09.10.2026 as reissued with the v1.09.26 cards (with 10.6 Changelog)",
    "rules": "Full Rules Part 9.1; Organized Play Rules"
   },
@@ -1973,6 +1973,144 @@
    "compositions": []
   },
   {
+   "id": "firebat",
+   "name": "Firebat",
+   "race": "Terran",
+   "faction_tags": [
+    "Terran"
+   ],
+   "army_slot": "Core",
+   "combat_role": "Damage Dealer",
+   "combat_range_indicator": null,
+   "base_mm": 40,
+   "unique": false,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "speed": "4/7",
+    "armour": "5+",
+    "evade": "6+",
+    "hp": 3,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-2",
+     "supply": 0
+    },
+    {
+     "models": "3-4",
+     "supply": 1
+    },
+    {
+     "models": "5-6",
+     "supply": 2
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Biological",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Stimpack",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "This unit suffers NON-LETHAL DAMAGE (2). This unit gains BUFF Speed (3), its Perdition Flamethrower, and all Close Combat Weapons gain PRECISION (3)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Fire It Up",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit makes a Ranged Attack with its Perdition Flamethrower, you may choose 1 model in this Unit to attack using a Flamer Template (FT) instead of rolling its regular Rate of Attack (RoA). If this Unit's Current Supply Value is 2, you may choose up to 2 models to attack using Flamer Templates instead."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Perdition Flamethrower",
+     "rng": "8",
+     "target": "Ground",
+     "roa": "2",
+     "hit": "3+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "ANTI-EVADE (1)",
+      "INSTANT"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Flame Strike",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "2",
+     "hit": "3+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Incinerator Gauntlets",
+     "type": "Active",
+     "cost": "1 CP",
+     "text": "Set a Fire Wall token Within 4\" in an unoccupied space. If a Unit's Leading Model's path of travel passes through this token, or if any model in a Unit ends either a Move, Deploy, Run, Charge, Disengage, or Close Ranks action, or is Set Within 1\" of this token, remove the Fire Wall token from the battlefield before executing that move. If you do, that Unit suffers HITS 5 (1). If that Unit performed a Charge action, it cannot resolve the IMPACT effect.",
+     "cost_by_composition": [
+      0,
+      0
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Combat",
+     "name": "Need a Light?",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit makes a Close Combat Attack with its Flame Strike, you may choose 1 model in this Unit to attack using a Flamer Template (FT) instead of rolling its regular Rate of Attack (RoA).",
+     "cost_by_composition": [
+      0,
+      0
+     ]
+    }
+   ],
+   "corrections": [],
+   "notes": [
+    "Stimpack is worded as printed on this card ('This unit ... gains BUFF Speed (3), its Perdition Flamethrower, and all Close Combat Weapons gain PRECISION (3)').",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 4,
+     "minerals": 0,
+     "supply": 1
+    },
+    {
+     "models": 6,
+     "minerals": 0,
+     "supply": 2
+    }
+   ]
+  },
+  {
    "id": "adept",
    "name": "Adept",
    "race": "Protoss",
@@ -3622,6 +3760,792 @@
      "supply": 1
     }
    ]
+  },
+  {
+   "id": "reaver",
+   "name": "Reaver",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": "Elite",
+   "combat_role": "Damage Dealer",
+   "combat_range_indicator": null,
+   "base_mm": 150,
+   "unique": false,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 6,
+    "speed": "6",
+    "armour": "5+",
+    "evade": "-",
+    "hp": 8,
+    "size": 4
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 2
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Mechanical",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Large",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit's Leading Model moves, it cannot pass through physical gaps smaller than 3\" wide, regardless of its size. If the Leading Model's path of travel passes through, or any model in this Unit ends its movement on a Size 0 or Size 1 Impassable Terrain piece (excluding Tokens) during any movement action, that terrain piece is immediately removed from the game."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Limited Artificial Intelligence",
+     "type": "Passive",
+     "cost": null,
+     "text": "If this Unit is a parent to any SUMMONED Unit, it cannot SUMMON another one."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Microfactory",
+     "type": "Active",
+     "cost": "2 PE",
+     "text": "This Unit's Scarab Special Ability can be used this Round even if it was already used."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Scarab",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Once per Game. Resolve the SUMMON (Scarab) effect. Then, the Scarab may immediately perform a Move action."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Siege Triangulation",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Move a Scarab, Solarite Scarab or Phasing Scarab created by this Unit up to 5\"."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Indomitable",
+     "type": "Passive",
+     "cost": null,
+     "text": "While Engaged, this Unit may target and be targeted by Unengaged Enemy Units. In both cases, the defending Unit gains an Evade Roll against those attacks."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Crawl Over",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "2",
+     "hit": "2+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Solarite Scarab",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Once per Game. Resolve the SUMMON (Solarite Scarab) effect. Then, the Solarite Scarab may immediately perform a Move action.",
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Phasing Scarab",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Once per Game. Resolve the SUMMON (Phasing Scarab) effect. Then, the Phasing Scarab may immediately perform a Move action.",
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Shuttle",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Once per Game. This ability can be used while this Unit is in Reserves. Set a Faction Indicator anywhere on the battlefield more than 10\" away from any Enemy model. At the End of the Round, the controlling player may Deploy this Unit base-to-base contact with this Faction Indicator. This Unit's Activation ends.",
+     "cost_by_composition": [
+      0
+     ]
+    }
+   ],
+   "corrections": [
+    "Large printed 'Impassible Terrain'; corrected to Impassable Terrain."
+   ],
+   "notes": [
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 0,
+     "supply": 2
+    }
+   ]
+  },
+  {
+   "id": "scarab",
+   "name": "Scarab",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": false,
+   "summoned": true,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 1,
+    "speed": "3",
+    "armour": "6+",
+    "evade": "3+",
+    "hp": 2,
+    "size": 1
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Timed Life",
+     "type": "Passive",
+     "cost": null,
+     "text": "Remove this Unit at the End of the Round."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Nimble",
+     "type": "Passive",
+     "cost": null,
+     "text": "This unit is always eligible to use Evade Rolls against Attacks or Special Abilities."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Proximity Detonation",
+     "type": "Passive",
+     "cost": null,
+     "text": "When an Enemy Ground Unit ends its Activation Within 2\" of this Unit. This Unit immediately performs a Close Combat Attack against that Enemy Unit. Immediately after this Close Combat Attack is resolved, remove this Unit from the battlefield."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Explosive Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, it performs a Close Combat Attack against one of the targets of that Charge. Immediately after this Close Combat Attack is resolved, remove this Unit from the battlefield."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Scarab Detonation",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "12",
+     "hit": "2+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [
+      "CRITICAL HIT (2)"
+     ],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [
+    "Nimble printed 'againts Attacks'; corrected to 'against'."
+   ],
+   "notes": [
+    "Combat role and base size are not on the photographed side.",
+    "The Combat Tags line is cut off in the photograph; Psionic, Ground taken from the Solarite and Phasing Scarab cards.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": []
+  },
+  {
+   "id": "solarite-scarab",
+   "name": "Solarite Scarab",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": false,
+   "summoned": true,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 1,
+    "speed": "5",
+    "armour": "6+",
+    "evade": "3+",
+    "hp": 2,
+    "size": 1
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Timed Life",
+     "type": "Passive",
+     "cost": null,
+     "text": "Remove this Unit at the End of the Round."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Nimble",
+     "type": "Passive",
+     "cost": null,
+     "text": "This unit is always eligible to use Evade Rolls against Attacks or Special Abilities."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Proximity Detonation",
+     "type": "Passive",
+     "cost": null,
+     "text": "When an Enemy Ground Unit ends its Activation Within 2\" of this Unit. This Unit immediately performs a Close Combat Attack against that Enemy Unit. Immediately after this Close Combat Attack is resolved, remove this Unit from the battlefield."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Explosive Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, it performs a Close Combat Attack against one of the targets of that Charge. Immediately after this Close Combat Attack is resolved, remove this Unit from the battlefield."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Solarite Blast",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "5",
+     "hit": "2+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "2",
+     "keywords": [
+      "CRITICAL HIT (2)",
+      "INSTANT"
+     ],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [
+    "Nimble printed 'againts Attacks'; corrected to 'against'."
+   ],
+   "notes": [
+    "Combat role and base size are not on the photographed side.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": []
+  },
+  {
+   "id": "phasing-scarab",
+   "name": "Phasing Scarab",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": false,
+   "summoned": true,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 1,
+    "speed": "3",
+    "armour": "6+",
+    "evade": "3+",
+    "hp": 2,
+    "size": 1
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Timed Life",
+     "type": "Passive",
+     "cost": null,
+     "text": "Remove this Unit at the End of the Round."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Nimble",
+     "type": "Passive",
+     "cost": null,
+     "text": "This unit is always eligible to use Evade Rolls against Attacks or Special Abilities."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Proximity Detonation",
+     "type": "Passive",
+     "cost": null,
+     "text": "When an Enemy Ground Unit ends its Activation Within 2\" of this Unit. This Unit immediately performs a Close Combat Attack against that Enemy Unit. Immediately after this Close Combat Attack is resolved, remove this Unit from the battlefield."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Explosive Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, it performs a Close Combat Attack against one of the targets of that Charge. Immediately after this Close Combat Attack is resolved, remove this Unit from the battlefield."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Phase Blast",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "6",
+     "hit": "2+",
+     "surge_type": "Armoured",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "CRITICAL HIT (2)",
+      "PIERCE Armoured (2)"
+     ],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [
+    "Nimble printed 'againts Attacks'; corrected to 'against'."
+   ],
+   "notes": [
+    "Combat role and base size are not on the photographed side.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": []
+  },
+  {
+   "id": "alarak",
+   "name": "Alarak",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "army_slot": "Hero",
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": true,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 3,
+    "speed": "7",
+    "armour": "4+",
+    "evade": "5+",
+    "hp": 6,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Psionic",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Sacrifice",
+     "type": "Reaction",
+     "cost": "1 PE",
+     "text": "When this Unit receives Damage, target another Friendly Biological Unit Within 8\". The targeted Unit suffers 2 Damage, and the Damage received by this Unit is reduced by 2 (when Empowered, reduced by 3)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Commander",
+     "type": "Passive",
+     "cost": null,
+     "text": "Treat this Unit's Supply characteristic as increased by 1 for Controlling and Contesting Mission Markers, completing objectives, and resolving Disengage checks."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Highlord of the Tal'darim",
+     "type": "Passive",
+     "cost": null,
+     "text": "Calculate the total lost Supply of all Friendly Units (a Unit's lost Supply is its initial Supply Value minus its Current Supply Value). While this total is: 2 or more: When this Unit resolves IMPACT, it generates 3 additional IMPACT dice. 4 or more: This Unit's weapons gain INSTANT. 6 or more: This Unit's abilities are Empowered."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Wrath of the Highlord",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Target another Friendly Biological Unit Within 8\". The targeted Unit suffers 2 Damage, and this Unit performs a 4\" Run Action (when Empowered, perform a 6\" Run Action)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Empower Me",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Target another Friendly Biological Unit Within 8\". The targeted Unit suffers 2 Damage, and this Unit's Bane Blades get BUFF RoA (4) (when Empowered, BUFF RoA (6))."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Destruction Wave",
+     "type": "Active",
+     "cost": "0 PE",
+     "text": "Target another Friendly Biological Unit Within 8\". The targeted Friendly Unit suffers 2 Damage. Then target an Enemy Unit Within 8\" of this Unit. The targeted Enemy Unit suffers HITS 4 (1) (when Empowered, HITS 6 (1))."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Devastating Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, resolve the IMPACT (6) 4+ effect."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Bane Blades",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "6",
+     "hit": "2+",
+     "surge_type": "Light, Armoured",
+     "s_dice": "D3+1",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [],
+   "notes": [
+    "The upgrade side of this card was not photographed: Army Slot is assumed to be Hero (it has Commander and Supply 1 like every other Hero); combat role, base size and any upgrades are unknown.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 0,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "slayer",
+   "name": "Slayer (Stalker)",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss",
+    "Tal'darim"
+   ],
+   "army_slot": "Elite",
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": false,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 3,
+    "speed": "4/8",
+    "armour": "4+",
+    "evade": "6+",
+    "hp": 6,
+    "size": 3
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    },
+    {
+     "models": "2-2",
+     "supply": 2
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Mechanical",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Squadron",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit's Horizontal Coherency is 4\"."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Seek Bloodshed",
+     "type": "Reaction",
+     "cost": "1 PE",
+     "text": "When the Current Supply Value of another Friendly Unit Within 12\" of this Unit is reduced, this Unit, if Unengaged, may perform a Move action Directly Towards that Friendly Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Bloodshard Blink",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately before this Unit resolves any PLACE effect, you may target one Enemy Unit. This Unit's weapons gain BUFF RoA (1) against the targeted Unit, but this Unit must perform PLACE Directly Towards the chosen Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Blink",
+     "type": "Active",
+     "cost": "1 PE",
+     "text": "Resolve the PLACE (6) effect. Models set by this effect cannot be set up Within the Engagement Range of any Enemy Unit."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Particle Disruptors",
+     "rng": "12",
+     "target": "All",
+     "roa": "4",
+     "hit": "3+",
+     "surge_type": "Armoured",
+     "s_dice": "D3",
+     "dmg": "2",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Stomp",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "2",
+     "hit": "5+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [
+    "Bloodshard Blink printed 'BUFF ROA (1)'; shown as BUFF RoA (1)."
+   ],
+   "notes": [
+    "The upgrade side of this card was not photographed: Army Slot is assumed to be Elite (as the Stalker); combat role, base size and any upgrades are unknown.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 0,
+     "supply": 1
+    },
+    {
+     "models": 2,
+     "minerals": 0,
+     "supply": 2
+    }
+   ]
+  },
+  {
+   "id": "taldarim-pylon",
+   "name": "Tal'darim Pylon",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss",
+    "Tal'darim"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": true,
+   "summoned": true,
+   "card_version": "v1.10.26",
+   "stats": {
+    "shield": 2,
+    "speed": "-",
+    "armour": "5+",
+    "evade": "-",
+    "hp": 6,
+    "size": 3
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Bloodshard Monument",
+     "type": "Passive",
+     "cost": null,
+     "text": "When the Current Supply Value of a Unit Within 8\" is reduced. Return one non-Unique Exhausted Tactical Card to the Ready state."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Warp Conduit",
+     "type": "Passive",
+     "cost": null,
+     "text": "Once per Round, the controlling player may deploy a Ground Unit from Reserves using this Pylon base as the Entry Edge. This Unit's Activation ends."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Structure",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit cannot be Activated in any Phase and cannot perform actions. Additionally, its Current Supply Value is treated as 0, and it can never Control or Contest Mission Markers, ignoring the standard Zero Supply Exception. This Unit cannot be a target of an ability, unless stated otherwise."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Overwatch",
+     "type": "Reaction",
+     "cost": "1 PE",
+     "text": "When an Enemy Unit ends its Activation Within 8\". This Unit immediately performs a Ranged Attack against that Enemy Unit."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Overcharged Pylon",
+     "rng": "8",
+     "target": "All",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [
+      "PIERCE Armoured (2)",
+      "PINPOINT"
+     ],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [],
+   "notes": [
+    "Combat role and base size are not on the photographed side.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": []
   },
   {
    "id": "hydralisk",
@@ -5856,6 +6780,594 @@
      "supply": 1
     }
    ]
+  },
+  {
+   "id": "infested-marine",
+   "name": "Infested Marine",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "army_slot": "Core",
+   "combat_role": "Damage Dealer",
+   "combat_range_indicator": null,
+   "base_mm": 40,
+   "unique": false,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "speed": "3/6",
+    "armour": "4+",
+    "evade": "6+",
+    "hp": 2,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-3",
+     "supply": 0
+    },
+    {
+     "models": "4-6",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Infested",
+    "Light",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Live for the Swarm!",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit attacks an Enemy Unit with the INFESTATION Status or a Unit Within 6\" of any Source of Creep or Creep Tumor, its Infested C-14 Rifle and all Close Combat Attacks gain PRECISION (2)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Detonation",
+     "type": "Reaction",
+     "cost": "1 BM",
+     "text": "Immediately before any models in this Unit are Destroyed, Enemy Units Within 2\" suffer HITS 1 (1) for each model in this Unit that will be Destroyed."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Devastating Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, resolve the IMPACT (2) 4+ effect."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Infested C-14 Rifle",
+     "rng": "12",
+     "target": "All",
+     "roa": "2",
+     "hit": "4+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "BURST FIRE 6\" (2)"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Strike",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "1",
+     "hit": "4+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Burrow Ambush",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends.",
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Infested Missile Launcher - Acid Blast",
+     "rng": "6",
+     "target": "All",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [
+      "CRITICAL HIT (1)",
+      "LONG RANGE (12\")",
+      "PIERCE Armoured (2)",
+      "SPECIALIST"
+     ],
+     "replaces": "Infested C-14 Rifle",
+     "specialist": true,
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Infested Missile Launcher - Scourgeshot",
+     "rng": "12",
+     "target": "All",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [
+      "BURST FIRE 6\" (2)",
+      "SPECIALIST"
+     ],
+     "replaces": "Infested C-14 Rifle",
+     "specialist": true,
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Plagued Munitions",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after an attack with the Infested C-14 Rifle, if the attacked Unit suffered Damage, it also suffers NON-LETHAL DAMAGE (1).",
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Wild Mutation",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "2",
+     "hit": "3+",
+     "surge_type": "Armoured",
+     "s_dice": "D3+1",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": "Infested C-14 Rifle",
+     "specialist": false,
+     "cost_by_composition": [
+      0
+     ]
+    }
+   ],
+   "corrections": [
+    "Plagued Munitions printed 'NON-LETHAL Damage (1)'; shown as NON-LETHAL DAMAGE (1)."
+   ],
+   "notes": [
+    "Read from a low-resolution photograph (1078 px wide for four cards); the front's stat line, abilities and weapon rows are best readings. The Supply numbers under the 1-3 and 4-6 brackets are NOT legible: 0 and 1 are assumed (as the Marine) and need checking against the card.",
+    "Wild Mutation is a Close Combat weapon printed 'FOR Infested C-14 Rifle' (a ranged weapon). Reproduced as printed.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 6,
+     "minerals": 0,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "infested-trooper",
+   "name": "Infested Trooper (Infested Marine)",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg",
+    "Stukov's Forces"
+   ],
+   "army_slot": "Core",
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": false,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "speed": "3/6",
+    "armour": "4+",
+    "evade": "6+",
+    "hp": 4,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    },
+    {
+     "models": "2-3",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Infested",
+    "Light",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Live for the Swarm!",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit attacks an Enemy Unit with the INFESTATION Status or a Unit Within 6\" of any Source of Creep or Creep Tumor, its Infested C-14 Rifle and all Close Combat Attacks gain PRECISION (2)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Detonation",
+     "type": "Reaction",
+     "cost": "1 BM",
+     "text": "Immediately before any models in this Unit are Destroyed, Enemy Units Within 2\" suffer HITS 1 (2) for each model in this Unit that will be Destroyed."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Burrow Ambush",
+     "type": "Passive",
+     "cost": null,
+     "text": "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Spread Infestation",
+     "type": "Active",
+     "cost": "1 BM",
+     "text": "Target an Enemy Unit Within 8\". The targeted Unit gains the INFESTATION Status. For the purposes of resolving Special Abilities, this effect is treated as a DEBUFF."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Plagued Munitions",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after an attack with the Infested C-14 Rifle, if the attacked Unit suffered Damage, it also suffers NON-LETHAL DAMAGE (1)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Devastating Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, resolve the IMPACT (2) 4+ effect."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Infested C-14 Rifle",
+     "rng": "12",
+     "target": "All",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "Light",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "BURST FIRE 6\" (2)"
+     ],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Bayonet",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "2",
+     "hit": "5+",
+     "surge_type": "-",
+     "s_dice": "-",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [],
+   "notes": [
+    "Read from a low-resolution photograph (1078 px wide for four cards); best readings; the Bayonet's Hit value (5+) is the least certain.",
+    "The upgrade side of this card was not photographed: Army Slot is assumed to be Core (as the Infested Marine); combat role, base size and any upgrades are unknown.",
+    "Carries the Stukov's Forces tag. No Stukov's Forces Faction Card has been transcribed yet, so no roster can field this Unit until that card is added.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 3,
+     "minerals": 0,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "stukov",
+   "name": "Stukov",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "army_slot": "Hero",
+   "combat_role": "Tactician",
+   "combat_range_indicator": null,
+   "base_mm": 40,
+   "unique": true,
+   "summoned": false,
+   "card_version": "v1.10.26",
+   "stats": {
+    "speed": "7",
+    "armour": "4+",
+    "evade": "6+",
+    "hp": 10,
+    "size": 2
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 1
+    }
+   ],
+   "combat_tags": [
+    "Biological",
+    "Infested",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Commander",
+     "type": "Passive",
+     "cost": null,
+     "text": "Treat this Unit's Supply characteristic as increased by 1 for Controlling and Contesting Mission Markers, completing objectives, and resolving Disengage checks."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Spread Infestation",
+     "type": "Active",
+     "cost": "1 BM",
+     "text": "Target an Enemy Unit Within 8\". The targeted Unit gains the INFESTATION Status. For the purposes of resolving Special Abilities, this effect is treated as a DEBUFF."
+    },
+    {
+     "kind": "ability",
+     "phase": "Movement",
+     "name": "Admiral of the Infested",
+     "type": "Active",
+     "cost": "1 BM",
+     "text": "Target an Enemy Unit Within 8\" that has the INFESTATION Status. That Unit counts as Activated in this Phase (set an Activation Marker next to it) and remove the INFESTATION Status from that Unit. You may target any Non-Unique Friendly Unit with the Infested Combat Tag that is Within 8\" of the previously targeted Enemy Unit. Remove the Activation Marker from that targeted Friendly Unit."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Corrode Armor",
+     "type": "Reaction",
+     "cost": "1 BM",
+     "text": "Immediately after this Unit resolves a Ranged Attack against an Enemy Unit, the target Unit gains the DEBUFF Armour (1)."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Devastating Charge",
+     "type": "Passive",
+     "cost": null,
+     "text": "Immediately after this Unit completes a successful Charge, resolve the IMPACT (6) 4+ effect."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Corrosive Blast",
+     "rng": "8",
+     "target": "Ground",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "Light, Armoured",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    },
+    {
+     "kind": "weapon",
+     "phase": "Combat",
+     "name": "Infested Arm",
+     "rng": "E",
+     "target": "Ground",
+     "roa": "3",
+     "hit": "3+",
+     "surge_type": "Armoured",
+     "s_dice": "D3",
+     "dmg": "2",
+     "keywords": [],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Plague Warden",
+     "type": "Passive",
+     "cost": null,
+     "text": "Treat the Supply characteristic of any Enemy Unit that has the INFESTATION Status and is Within 6\" as reduced by 1 (to a minimum of 0) for Controlling and Contesting Mission Markers, and completing objectives.",
+     "cost_by_composition": [
+      0
+     ]
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Bio-Kill Switch",
+     "type": "Active",
+     "cost": "0 BM",
+     "text": "Each Enemy Unit with the INFESTATION Status on the Battlefield suffers Damage (2). Immediately after this Special Ability is resolved, Remove the INFESTATION Status from Units that suffered Damage.",
+     "cost_by_composition": [
+      0
+     ]
+    }
+   ],
+   "corrections": [],
+   "notes": [
+    "Read from a low-resolution photograph (1078 px wide for four cards); the front's stat line, abilities and weapon rows are best readings (the upgrade side is from a sharp photograph).",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": [
+    {
+     "models": 1,
+     "minerals": 0,
+     "supply": 1
+    }
+   ]
+  },
+  {
+   "id": "infested-missile-turret",
+   "name": "Infested Missile Turret",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg",
+    "Stukov's Forces"
+   ],
+   "army_slot": null,
+   "combat_role": null,
+   "combat_range_indicator": null,
+   "base_mm": null,
+   "unique": true,
+   "summoned": true,
+   "card_version": "v1.10.26",
+   "stats": {
+    "speed": "-",
+    "armour": "5+",
+    "evade": "-",
+    "hp": 8,
+    "size": 3
+   },
+   "supply_profile": [
+    {
+     "models": "1-1",
+     "supply": 0
+    }
+   ],
+   "combat_tags": [
+    "Armoured",
+    "Biological",
+    "Infested",
+    "Ground"
+   ],
+   "abilities": [
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Detection",
+     "type": "Passive",
+     "cost": null,
+     "text": "While Enemy Units are Within 8\" of this Unit, they lose the HIDDEN Status."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Infestation",
+     "type": "Reaction",
+     "cost": "0 BM",
+     "text": "When the Supply of an Enemy Unit with the INFESTATION Status is reduced to 0, or when that Unit is Destroyed, you can apply the INFESTATION Status to another Enemy Unit Within 8\" of that Unit. For the purposes of resolving Special Abilities, this effect is treated as a DEBUFF."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Source of Creep",
+     "type": "Passive",
+     "cost": null,
+     "text": "A Friendly or Enemy Ground Zerg Unit Within 6\" of this Unit, counts as being ON CREEP."
+    },
+    {
+     "kind": "ability",
+     "phase": "Any",
+     "name": "Structure",
+     "type": "Passive",
+     "cost": null,
+     "text": "This Unit cannot be Activated in any Phase and cannot perform actions. Additionally, its Current Supply Value is treated as 0, and it can never Control or Contest Mission Markers, ignoring the standard Zero Supply Exception. This Unit cannot be a target of an ability, unless stated otherwise."
+    },
+    {
+     "kind": "ability",
+     "phase": "Assault",
+     "name": "Ocular Overwatch",
+     "type": "Reaction",
+     "cost": "0 BM",
+     "text": "When an Enemy Flying Unit ends its Activation Within 14\". This Unit immediately performs a Ranged Attack against that Enemy Unit."
+    }
+   ],
+   "weapons": [
+    {
+     "kind": "weapon",
+     "phase": "Assault",
+     "name": "Firefly Missiles",
+     "rng": "14",
+     "target": "Flying",
+     "roa": "8",
+     "hit": "4+",
+     "surge_type": "Light, Armoured",
+     "s_dice": "D3",
+     "dmg": "1",
+     "keywords": [
+      "ANTI-EVADE (1)"
+     ],
+     "replaces": null,
+     "specialist": false
+    }
+   ],
+   "upgrades": [],
+   "corrections": [],
+   "notes": [
+    "Read from a low-resolution photograph (1078 px wide for four cards); best readings; least certain are the Detection range (read as 8\"; other cards print 6\") and the Firefly Missiles RoA (read as 8).",
+    "Combat role and base size are not on the photographed side. Which card sets this Unit on the battlefield is not shown on any photographed card.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "compositions": []
   }
  ],
  "cards": [
@@ -7593,6 +9105,290 @@
    "corrections": [],
    "notes": [],
    "gas_cost": 40
+  },
+  {
+   "id": "taldarim",
+   "name": "Tal'darim",
+   "kind": "Faction",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss",
+    "Tal'darim"
+   ],
+   "unique": true,
+   "slots": {},
+   "resource": {
+    "type": "PE",
+    "value": null
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Chain of Ascension",
+     "type": "Passive",
+     "text": "Calculate the total lost Supply of all Friendly Units. While this total is: 4 or more: All your Units' first used weapons gain PRECISION (1). 6 or more: All your Units' first used weapons gain CRITICAL HIT (1)."
+    },
+    {
+     "phase": "Movement",
+     "name": "Proxy Pylon",
+     "type": "Active",
+     "text": "If there is no Friendly Tal'darim Pylon on the battlefield, set a Friendly Tal'darim Pylon Unit anywhere on the GROUND LEVEL of the battlefield more than 10\" away from any Enemy model. This Round, the Tal'darim Pylon is not eligible to use its Special Abilities (excluding Structure)."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its army slots and PE value are on the other side and are unknown, so it provides no slots yet (slots come only from Tactical Cards)."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "robotics-support-bay",
+   "name": "Robotics Support Bay",
+   "kind": "Tactical",
+   "race": "Protoss",
+   "faction_tags": [
+    "Protoss"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "PE",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Movement",
+     "name": "Master of Robotics",
+     "type": "Active",
+     "text": "The active Mechanical Unit resolves the HEAL (2) effect."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its army slots, Unique marking and faction tags are on the other side and are unknown, so it adds no slots yet.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "infested-command-center",
+   "name": "Infested Command Center",
+   "kind": "Tactical",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "BM",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Movement",
+     "name": "Parasitic Bio-Toxins",
+     "type": "Reaction",
+     "text": "Immediately after a Friendly Infested Unit ends their action Within 8\" of an Enemy Unit. That Enemy Unit gains the INFESTATION Status, this effect is treated as a DEBUFF."
+    },
+    {
+     "phase": "Movement",
+     "name": "Scanner Sweep",
+     "type": "Active",
+     "text": "Set a Faction Indicator anywhere on the battlefield. While Enemy Units are Within 6\" of this Faction Indicator, they lose the HIDDEN Status."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its army slots, Unique marking and faction tags are on the other side and are unknown, so it adds no slots yet.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "infested-barracks",
+   "name": "Infested Barracks",
+   "kind": "Tactical",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "BM",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Movement",
+     "name": "For the Swarm!",
+     "type": "Active",
+     "text": "The active Biological Ground Unit performs a 2\" Move action. This does not count towards its action limit."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its army slots, Unique marking and faction tags are on the other side and are unknown, so it adds no slots yet.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "hive",
+   "name": "Hive",
+   "kind": "Tactical",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "BM",
+    "value": 1
+   },
+   "abilities": [
+    {
+     "phase": "Movement",
+     "name": "Brutal Instinct",
+     "type": "Reaction",
+     "text": "Immediately after an Enemy Unit ends its Activation Within 12\" of a Friendly Ground Unit. That Friendly Unit gains or loses the BURROWED Status."
+    },
+    {
+     "phase": "Movement",
+     "name": "Creep Spread",
+     "type": "Active",
+     "text": "Set a Creep Tumor token on the battlefield Within 6\" (Line of Sight is not required) of either a Friendly Entry Edge or an existing Friendly Creep Tumor token."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its army slots, Unique marking and faction tags are on the other side and are unknown, so it adds no slots yet.",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "weighted-pustule",
+   "name": "Weighted Pustule",
+   "kind": "Creep",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "BM",
+    "value": null
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Fetid Touch",
+     "type": "Passive",
+     "text": "While an Enemy Unit has the INFESTATION Status, it cannot resolve the PLACE and set effects and cannot be returned to Reserves."
+    },
+    {
+     "phase": "Any",
+     "name": "Stukov's Creep",
+     "type": "Passive",
+     "text": "If an Enemy Unit ends a Move, Deploy, Run, Charge or Disengage action Within 1\" of a Friendly Creep Tumor token, remove that token from the battlefield. Creep Tumor tokens have STAY IN PLAY and DISPLACEMENT."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its faction tags and Unique marking are unknown (recorded as Zerg only).",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "hungering-infestation",
+   "name": "Hungering Infestation",
+   "kind": "Creep",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "BM",
+    "value": null
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Growing Infestation",
+     "type": "Passive",
+     "text": "While an Enemy Unit has the INFESTATION Status, it is not eligible to use or to be targeted by any Enemy Reaction Special Ability, except Restoration."
+    },
+    {
+     "phase": "Any",
+     "name": "Stukov's Creep",
+     "type": "Passive",
+     "text": "If an Enemy Unit ends a Move, Deploy, Run, Charge or Disengage action Within 1\" of a Friendly Creep Tumor token, remove that token from the battlefield. Creep Tumor tokens have STAY IN PLAY and DISPLACEMENT."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its faction tags and Unique marking are unknown (recorded as Zerg only).",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
+  },
+  {
+   "id": "healing-pathogen",
+   "name": "Healing Pathogen",
+   "kind": "Creep",
+   "race": "Zerg",
+   "faction_tags": [
+    "Zerg"
+   ],
+   "unique": false,
+   "slots": {},
+   "resource": {
+    "type": "BM",
+    "value": null
+   },
+   "abilities": [
+    {
+     "phase": "Any",
+     "name": "Universal Carrier",
+     "type": "Passive",
+     "text": "While an Enemy Unit has the INFESTATION Status, immediately after its supply is reduced or it is destroyed, target any Friendly Biological Unit Within 12\". This Friendly Unit resolves the HEAL (2) effect."
+    },
+    {
+     "phase": "Any",
+     "name": "Stukov's Creep",
+     "type": "Passive",
+     "text": "If an Enemy Unit ends a Move, Deploy, Run, Charge or Disengage action Within 1\" of a Friendly Creep Tumor token, remove that token from the battlefield. Creep Tumor tokens have STAY IN PLAY and DISPLACEMENT."
+    }
+   ],
+   "card_version": "v1.10.26",
+   "corrections": [],
+   "notes": [
+    "Only the rules side of this card was photographed: its faction tags and Unique marking are unknown (recorded as Zerg only).",
+    "No cost is published for this card yet; it counts as 0 until a cost table lists it."
+   ],
+   "provisional": true,
+   "gas_cost": 0
   }
  ],
  "missions": [

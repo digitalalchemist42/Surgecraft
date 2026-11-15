@@ -329,7 +329,7 @@ function renderCards(){
     h += '<div class="subhead" style="margin-top:0">Creep Card<span class="aside faint">Choose exactly one (Zerg Creep)</span></div><div class="tiles" role="radiogroup" aria-label="Creep Card">';
     C.eligibleCreep(r).forEach(function(c){
       h += '<div class="tile" role="radio" tabindex="0" data-a="creep" data-v="'+esc(c.id)+'" aria-checked="'+(r.creepId===c.id)+'"><span class="t-art"><img src="'+ART.card(c.id)+'" alt=""></span><span class="tcol">'+
-        '<span class="t-name">'+esc(c.name)+'</span><span class="t-meta"><span class="gascost">'+c.gas_cost+' gas</span>'+(c.unique?'<span class="chip uniq">Unique</span>':'')+'</span>'+
+        '<span class="t-name">'+esc(c.name)+'</span><span class="t-meta"><span class="gascost">'+c.gas_cost+' gas</span>'+(c.unique?'<span class="chip uniq">Unique</span>':'')+(c.provisional?'<span class="chip uniq" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+'</span>'+
         '<span class="t-sub">'+c.abilities.map(function(a){return esc(a.name);}).join(" · ")+'</span></span></div>';
     });
     h += '</div><div class="subhead">Tactical Cards</div>';
@@ -339,7 +339,7 @@ function renderCards(){
     C.eligibleTactical(r).forEach(function(c){
       var n = r.tactical[c.id]||0;
       h += '<div class="utile ttile'+(n?' on':'')+'"><button class="ut-img card art-bg" data-a="tcard" data-v="'+esc(c.id)+'" aria-label="View '+esc(c.name)+' card"><img src="'+ART.card(c.id)+'" alt="" loading="lazy">'+
-        '<span class="ut-tl">'+(c.unique?'<span class="chip uniq" style="background:var(--panel)">Unique</span>':'')+'</span><span class="ut-tr gascost">'+c.gas_cost+'</span></button>'+
+        '<span class="ut-tl">'+(c.unique?'<span class="chip uniq" style="background:var(--panel)">Unique</span>':'')+(c.provisional?'<span class="chip uniq" style="background:var(--panel)" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+'</span><span class="ut-tr gascost">'+c.gas_cost+'</span></button>'+
         '<div class="ut-body"><div class="ut-name">'+esc(c.name)+'</div><div class="t-meta" style="display:flex;flex-wrap:wrap;gap:4px">'+slotChips(c.slots)+'</div>'+
         '<div class="ut-meta">'+(c.resource.value!=null?esc(c.resource.value+" "+c.resource.type):"No "+esc(c.resource.type)+" value printed")+(c.faction_tags.length>1?' · '+esc(c.faction_tags.slice(1).join(", ")):'')+'</div></div><div class="ut-act">';
       if(c.unique) h += '<button class="btn sm'+(n?' primary':'')+'" data-a="tac-toggle" data-v="'+esc(c.id)+'" aria-pressed="'+(!!n)+'">'+(n?'Taken':'Take')+'</button>';
@@ -352,7 +352,7 @@ function renderCards(){
   h += '<div class="rows">';
   C.eligibleTactical(r).forEach(function(c){
     var n = r.tactical[c.id]||0, k = "card:"+c.id;
-    h += '<div class="row'+(n?' on':'')+'"><button class="thumb" data-a="tcard" data-v="'+esc(c.id)+'" aria-label="View '+esc(c.name)+' card"><img src="'+ART.card(c.id)+'" alt=""></button><div><div class="r-name">'+esc(c.name)+(c.unique?' <span class="chip uniq">Unique</span>':'')+
+    h += '<div class="row'+(n?' on':'')+'"><button class="thumb" data-a="tcard" data-v="'+esc(c.id)+'" aria-label="View '+esc(c.name)+' card"><img src="'+ART.card(c.id)+'" alt=""></button><div><div class="r-name">'+esc(c.name)+(c.unique?' <span class="chip uniq">Unique</span>':'')+(c.provisional?' <span class="chip uniq" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+
       (c.faction_tags.length>1?' <span class="chip">'+esc(c.faction_tags.slice(1).join(", "))+'</span>':'')+'</div>'+
       '<div class="r-meta">'+slotChips(c.slots)+'<span>· '+(c.resource.value!=null?esc(c.resource.value+" "+c.resource.type):"no "+esc(c.resource.type)+" value printed")+'</span><button class="btn ghost sm" data-a="toggle" data-v="'+k+'">'+(S.open[k]?'Hide abilities':'Abilities')+'</button></div></div>'+
       '<div class="r-ctl"><span class="gascost">'+c.gas_cost+'</span>';
@@ -392,14 +392,14 @@ function entryBodyHTML(e, u, errs){
 }
 function entryHeadHTML(e, u, cost, collapsedLabel){
   return '<div class="entry-h"><button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'" data-e="'+esc(e.uid)+'" aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
-    '<span class="e-name">'+esc(u.name)+'</span><span class="chip slot">'+esc(u.army_slot)+'</span>'+(u.unique?'<span class="chip uniq">Unique</span>':'')+
+    '<span class="e-name">'+esc(u.name)+'</span><span class="chip slot">'+esc(u.army_slot)+'</span>'+(u.unique?'<span class="chip uniq">Unique</span>':'')+(u.provisional?'<span class="chip uniq" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+
     '<span class="faint">×'+e.models+' · Supply '+cost.supply+'</span><span class="e-cost"><span class="mincost" title="'+cost.base+' base + '+cost.upgrades+' upgrades">'+fmt(cost.total)+'</span>'+
     '<button class="btn sm" data-a="card" data-v="'+esc(u.id)+'" data-e="'+esc(e.uid)+'">Card</button>'+collapsedLabel+'</span></div>';
 }
 function unitTileHTML(e, u, cost, errs){
   var open = S.tileOpen===e.uid;
   return '<div class="utile'+(open?' open':'')+(errs?' has-err':'')+'" id="'+esc(e.uid)+'"><button class="ut-img" data-a="tile-open" data-v="'+esc(e.uid)+'" aria-expanded="'+open+'" aria-label="Edit '+esc(u.name)+'">'+
-    '<img src="'+ART.mini(u.id)+'" alt="" loading="lazy"><span class="ut-tl"><span class="chip slot" style="background:var(--panel)">'+esc(u.army_slot)+'</span>'+(u.unique?'<span class="chip uniq" style="background:var(--panel)">Unique</span>':'')+'</span>'+
+    '<img src="'+ART.mini(u.id)+'" alt="" loading="lazy"><span class="ut-tl"><span class="chip slot" style="background:var(--panel)">'+esc(u.army_slot)+'</span>'+(u.unique?'<span class="chip uniq" style="background:var(--panel)">Unique</span>':'')+(u.provisional?'<span class="chip uniq" style="background:var(--panel)" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+'</span>'+
     '<span class="ut-tr mincost">'+fmt(cost.total)+'</span></button><div class="ut-body"><div class="ut-name">'+esc(u.name)+'</div>'+
     '<div class="ut-meta">×'+e.models+' models · Supply '+cost.supply+(cost.upgrades?' · +'+cost.upgrades+' upgrades':'')+'</div>'+
     (e.upgrades.length?'<div class="ut-ups">'+e.upgrades.map(function(n){ var m = e.specialists && e.specialists[n]; return '<span>'+esc(n)+(m?' · M'+m:'')+'</span>'; }).join("")+'</div>':'')+
@@ -448,11 +448,11 @@ function renderUnits(){
         var sizes = u.compositions.map(function(c){return c.models+(c.models>1?" models":" model")+" (Supply "+c.supply+")";}).join(" / ");
         var addBtn = '<button class="btn sm primary" data-a="add-unit" data-v="'+esc(u.id)+'"'+(blocked?' disabled title="Unique: already on this roster"':'')+'>Add</button>';
         if(tiles){
-          h += '<div class="utile"><button class="ut-img" data-a="card" data-v="'+esc(u.id)+'" aria-label="View '+esc(u.name)+' card"><img src="'+ART.mini(u.id)+'" alt="" loading="lazy"><span class="ut-tl">'+(u.unique?'<span class="chip uniq" style="background:var(--panel)">Unique</span>':'')+'</span><span class="ut-tr mincost">'+costRange(u)+'</span></button>'+
+          h += '<div class="utile"><button class="ut-img" data-a="card" data-v="'+esc(u.id)+'" aria-label="View '+esc(u.name)+' card"><img src="'+ART.mini(u.id)+'" alt="" loading="lazy"><span class="ut-tl">'+(u.unique?'<span class="chip uniq" style="background:var(--panel)">Unique</span>':'')+(u.provisional?'<span class="chip uniq" style="background:var(--panel)" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+'</span><span class="ut-tr mincost">'+costRange(u)+'</span></button>'+
             '<div class="ut-body"><div class="ut-name">'+esc(u.name)+'</div><div class="ut-meta">'+esc(sizes)+'</div>'+(minSup>free?'<span class="pill warn" style="align-self:flex-start">needs '+minSup+' '+esc(s)+'</span>':'')+'</div>'+
             '<div class="ut-act">'+addBtn+'<span class="grow"></span><button class="btn ghost sm" data-a="card" data-v="'+esc(u.id)+'">Card</button></div></div>';
         } else {
-          h += '<div class="row"><button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'" aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button><div><div class="r-name">'+esc(u.name)+(u.unique?' <span class="chip uniq">Unique</span>':'')+'</div>'+
+          h += '<div class="row"><button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'" aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button><div><div class="r-name">'+esc(u.name)+(u.unique?' <span class="chip uniq">Unique</span>':'')+(u.provisional?' <span class="chip uniq" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+'</div>'+
             '<div class="r-meta"><span class="mincost">'+costRange(u)+'</span><span>· '+esc(sizes)+'</span>'+(minSup>free?'<span class="pill warn">needs '+minSup+' '+esc(s)+'</span>':'')+'</div></div>'+
             '<div class="r-ctl"><button class="btn ghost sm" data-a="card" data-v="'+esc(u.id)+'">Card</button>'+addBtn+'</div></div>';
         }
@@ -810,7 +810,7 @@ function crListHTML(){
       h += '<div class="subhead">'+esc(g[0]==="Summoned Units"?g[0]:g[0]+" units")+' <span class="aside">'+g[1].length+'</span></div><div class="vlist">';
       g[1].forEach(function(u){
         var sizes = u.compositions.map(function(c){ return '<span class="chip">'+c.models+(c.models>1?' models':' model')+' · Supply '+c.supply+'</span>'; }).join("");
-        var meta = (u.combat_role?'<span class="chip">'+esc(u.combat_role)+'</span>':'')+(u.unique?'<span class="chip uniq">Unique</span>':'')+crTags(u.faction_tags, race)+(u.summoned?'<span class="faint">No Mineral cost</span>':sizes);
+        var meta = (u.combat_role?'<span class="chip">'+esc(u.combat_role)+'</span>':'')+(u.unique?'<span class="chip uniq">Unique</span>':'')+(u.provisional?'<span class="chip uniq" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+crTags(u.faction_tags, race)+(u.summoned?'<span class="faint">No Mineral cost</span>':sizes);
         var right = u.summoned ? '' : '<span class="mincost">'+u.compositions.map(function(c){ return c.minerals; }).join(" / ")+'</span>';
         h += crRow("u:"+u.id, '<span class="thumb mini">'+miniImg(u.id)+'</span>', esc(u.name), meta, right);
       });
@@ -822,7 +822,7 @@ function crListHTML(){
     var cs = it.cards.filter(function(c){ return c.kind===kind; }); if(!cs.length) return; n += cs.length;
     h += '<div class="subhead">'+esc(kind)+' Cards <span class="aside">'+cs.length+'</span></div><div class="vlist">';
     cs.forEach(function(c){
-      var meta = (c.unique?'<span class="chip uniq">Unique</span>':'')+slotChips(c.slots)+(c.resource && c.resource.value!=null?'<span class="chip">'+esc(c.resource.value+" "+c.resource.type)+'</span>':'')+crTags(c.faction_tags, race)+
+      var meta = (c.unique?'<span class="chip uniq">Unique</span>':'')+(c.provisional?'<span class="chip uniq" title="From photographs of the printed card; no published cost yet">Preview</span>':'')+slotChips(c.slots)+(c.resource && c.resource.value!=null?'<span class="chip">'+esc(c.resource.value+" "+c.resource.type)+'</span>':'')+crTags(c.faction_tags, race)+
         '<span class="faint">'+c.abilities.map(function(a){ return esc(a.name); }).join(" · ")+'</span>';
       h += crRow("c:"+c.id, '<span class="thumb art-bg"><img src="'+ART.card(c.id)+'" alt="" loading="lazy"></span>', esc(c.name), meta, kind==="Faction"?'':'<span class="gascost">'+(c.gas_cost||0)+'</span>');
     });

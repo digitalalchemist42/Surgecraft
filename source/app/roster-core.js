@@ -246,6 +246,14 @@
       });
     });
 
+    // PREVIEW cards: transcribed before any cost table lists them, so they count as 0 Minerals / 0 Gas
+    var pv = [];
+    if (f && f.provisional) pv.push(f.name);
+    Object.keys(r.tactical || {}).forEach(function (id) { var c = self.cards[id]; if (c && c.provisional && r.tactical[id] && pv.indexOf(c.name) === -1) pv.push(c.name); });
+    if (r.creepId && self.cards[r.creepId] && self.cards[r.creepId].provisional) pv.push(self.cards[r.creepId].name);
+    r.units.forEach(function (e) { var u = self.units[e.unitId]; if (u && u.provisional && pv.indexOf(u.name) === -1) pv.push(u.name); });
+    if (pv.length) add("warn", "PREVIEW cards with no published cost, counted as 0 Minerals / 0 Gas: " + pv.join(", ") + ". This roster's totals are not final.", "No cost table yet", "units");
+
     // Organized Play submission requirements
     var ms = r.missions || [], ds = r.deployments || [];
     if (ms.length !== 2) add("warn", "Tournament rosters list 2 Mission Cards (" + ms.length + " chosen).", "OP: Army Rosters", "scenario");

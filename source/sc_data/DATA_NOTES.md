@@ -2,11 +2,34 @@
 
 Source of truth for the roster app: `starcraft_tmg_data.json` (built from visual transcription of every card, cross-checked against the PDF text layer and the Unit Cost Table — version 10.6, 09.10.2026, as reissued with the v1.09.26 cards).
 
-## Contents (after the v1.09.26 card update, 2026-10-22)
+## Contents (official cards, after the v1.09.26 card update, 2026-10-22; the v1.10.26 PREVIEW set below adds 12 units and 8 cards)
 - 45 unit entries: 38 fieldable, 7 summoned (Point Defense Drone, Pylon, Omega Worm, Roachling, Auto-Turret, Holo Decoy, Sabotage Drone)
 - 49 cards: 10 Faction, 36 Tactical, 3 Creep
 - 7 Mission Cards (each with Standard + Skirmish side), 7 Deployment Cards (Standard 54x36 side + Skirmish 36x36 side)
-- No provisional (PREVIEW) entries remain. The build fails if any entry is marked provisional.
+- PREVIEW entries: only the v1.10.26 set in `cards_1010.py`. The build fails if any other entry is marked provisional.
+
+## v1.10.26 cards from photographs (2026-11-15) — PREVIEW, no costs
+Source: the owner's photographs of printed v1.10.26 cards. Archon has published no card sheets and no cost table for these (downloads page checked 15 Nov 2026: cost table still 10.2026). Every entry is `provisional` (shown as PREVIEW) in `cards_1010.py`.
+
+**Owner decision:** usable in the builder at **0 Minerals / 0 Gas** until a cost table lists them; a roster holding any of them gets a warning. Compositions are an assumption (largest model count of each Supply bracket of 1 or more).
+
+**Added (12 units, 8 cards):** Firebat; Reaver, Scarab, Solarite Scarab, Phasing Scarab (summoned); Alarak; Slayer (Stalker); Tal'darim Pylon (summoned); Infested Marine; Infested Trooper (Infested Marine); Stukov; Infested Missile Turret (summoned). Cards: Tal'darim (Faction), Robotics Support Bay, Infested Command Center, Infested Barracks, Hive (Tactical), Weighted Pustule, Hungering Infestation, Healing Pathogen (Creep).
+
+**Zealot and High Templar v1.10.26 reprints** (both sides photographed): identical to the stored cards; no change.
+
+**Not photographed, so unknown or assumed:**
+- Upgrade sides of Alarak, Slayer and Infested Trooper: army slot assumed (Hero, Elite, Core); role, base and any upgrades unknown.
+- Slot side of Tal'darim, Robotics Support Bay, Infested Command Center, Infested Barracks, Hive: slots `{}`, Unique and tags unknown (Tal'darim's PE value also unknown). These cards provide no slots yet.
+- Creep Card tags: recorded as Zerg only, so they are offered to every Zerg faction (likely Stukov's Forces only).
+- The Stukov's Forces Faction Card: not transcribed. Infested Trooper and Infested Missile Turret carry that tag and cannot be fielded or summoned until it is.
+- Role and base of the summoned units; the Scarab's Combat Tags line (cut off; taken from the other two Scarabs).
+
+**Low-resolution photograph** (fronts of Infested Marine, Infested Trooper, Stukov, Infested Missile Turret; 1078 px for four cards): best readings. Not legible: Infested Marine Supply under 1-3 / 4-6 (0 / 1 assumed). Least certain: Infested Trooper Bayonet Hit 5+, Infested Missile Turret Detection 8" and Firefly Missiles RoA 8.
+
+**Card typos normalized:** Reaver Large "Impassible"; Scarabs' Nimble "againts"; Slayer "BUFF ROA (1)"; Infested Marine "NON-LETHAL Damage (1)".
+**Reproduced as printed:** Firebat Stimpack wording; Infested Marine's Wild Mutation (Close Combat weapon printed FOR Infested C-14 Rifle).
+
+Art: portraits and card art are crops of the photographs (`w4/art.py` boxes); minis are the same crops, not cut-outs. Tal'darim uses the Protoss emblem.
 
 ## v1.09.26 card update (2026-10-22)
 Sources: Terran Update 3, Protoss Update 2, Zerg Update 3 (10-2026), cards v1.09.26, sheets dated September 2026 v.1.0. Transcribed visually and cross-checked against the PDF text layer: every ability name, type, cost and text, and every weapon row, matches (differences were typography only: `''` for `"`, bullet glyphs, a space before a colon in "PSI LIGHTNING :").

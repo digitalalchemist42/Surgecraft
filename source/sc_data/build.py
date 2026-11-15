@@ -16,9 +16,18 @@ ZU = ZU + copy.deepcopy(cards_1009.ZERG)
 CARDS = CARDS + copy.deepcopy(cards_1009.CARDS)
 UNIT_COSTS = dict(UNIT_COSTS, **cards_1009.COSTS)
 GAS_COSTS = dict(GAS_COSTS, **cards_1009.GAS)
+import cards_1010
+# v1.10.26 (Wave 4) cards transcribed from photographs: PREVIEW entries with placeholder 0 costs (owner decision, 15 Nov 2026).
+TU = TU + copy.deepcopy(cards_1010.TERRAN)
+PU = PU + copy.deepcopy(cards_1010.PROTOSS)
+ZU = ZU + copy.deepcopy(cards_1010.ZERG)
+CARDS = CARDS + copy.deepcopy(cards_1010.CARDS)
+UNIT_COSTS = dict(UNIT_COSTS, **cards_1010.COSTS)
+GAS_COSTS = dict(GAS_COSTS, **cards_1010.GAS)
 from scenarios import MISSIONS, DEPLOYMENTS, SCENARIO_NOTES
 
 UNITS = TU + PU + ZU
+PREVIEW_OK = {x['id'] for x in cards_1010.TERRAN + cards_1010.PROTOSS + cards_1010.ZERG + cards_1010.CARDS}
 errors, warnings = [], []
 E = errors.append
 Wn = warnings.append
@@ -131,15 +140,16 @@ for u in UNITS:
         continue
     ok = [f["id"] for f in CARDS if f["kind"] == "Faction" and set(u["faction_tags"]) <= set(f["faction_tags"])]
     if not ok:
-        E(f"{u['id']}: no Faction Card can field it")
+        (Wn if u.get("provisional") else E)(f"{u['id']}: no Faction Card can field it")
+        continue
     slot_sources = [c["id"] for c in CARDS if c["kind"] != "Creep" and u["army_slot"] in c["slots"]
                     and set(c["faction_tags"]) <= set(max((card_ids[f]["faction_tags"] for f in ok), key=len))]
     if not slot_sources:
         Wn(f"{u['id']}: no card provides a {u['army_slot']} slot for it")
 
 for x in UNITS + CARDS:
-    if x.get("provisional"):
-        E(f"{x['id']}: still marked provisional")
+    if x.get("provisional") and x["id"] not in PREVIEW_OK:
+        E(f"{x['id']}: marked provisional but not in the v1.10.26 preview set")
 
 # Air slots are provided but no Air unit exists yet
 if not any(u["army_slot"] == "Air" for u in UNITS):
@@ -149,7 +159,7 @@ data = {
     "meta": {
         "game": "StarCraft: Tabletop Miniatures Game",
         "sources": {
-            "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); Terran Update 3, Protoss Update 2, Zerg Update 3 (cards v1.09.26)",
+            "unit_cards": "Terran/Protoss/Zerg Units 1 & 2 PDFs (unit cards v1.03.26-v1.06.26); Terran Update 3, Protoss Update 2, Zerg Update 3 (cards v1.09.26); v1.10.26 cards from photographs of the printed cards (PREVIEW, no published costs)",
             "costs": "Unit Cost Table 10.6, 09.10.2026 as reissued with the v1.09.26 cards (with 10.6 Changelog)",
             "rules": "Full Rules Part 9.1; Organized Play Rules",
         },
