@@ -5,6 +5,11 @@ def run(p, label, ctxargs, tap=False):
     pg.goto("http://localhost:8765/test.html"); pg.wait_for_function("window.__muster && __muster.S.store!=='loading'", timeout=20000); pg.wait_for_timeout(300)
     # the page opens on the roster list; no example army is loaded until one is asked for
     out["opens_on_list_empty"] = pg.evaluate("__muster.S.view==='list' && !__muster.S.cur") and "No saved rosters yet" in pg.inner_text("#app")
+    # a race button on the list starts a blank roster of that race; the app itself offers no example armies
+    pg.click('[data-a="new-race"][data-v="Zerg"]'); pg.wait_for_function("__muster.S.cur", timeout=20000)
+    out["blank_roster"] = pg.evaluate("[__muster.S.cur.race, __muster.S.cur.units.length, __muster.S.cur.factionId, !!__muster.S.cur.isExample]")
+    pg.evaluate("(function(){ var b=document.querySelector('[data-a=\"home\"],[data-a=\"list\"],[data-a=\"back\"]'); if(b) b.click(); })()"); pg.wait_for_timeout(400)
+    out["back_on_list"] = pg.locator('[data-a="new-race"]').count()
     pg.click('[data-a="example"][data-v="Terran"]'); pg.wait_for_function("__muster.S.cur", timeout=20000); pg.wait_for_timeout(400)
     go = (lambda loc: loc.tap()) if tap else (lambda loc: loc.click())
     # give the first Marine unit specialists so the fielded card has something to merge

@@ -3656,7 +3656,8 @@ function commit(opts){
 }
 function resetView(){ VS.open={}; BS.set=null; BS.warn=[]; BS.pass=false; BS.undo=[]; BS.quit=false; BS.adj={me:0,opp:0}; BS.sumPick=false; BS.openAb={}; BS.openU={}; BS.grp={}; BS.tab="play"; BS.showAll=false; BS.ks=null; BS.pay=null; BS.modal=null; BS.oppOpen=false; BS.oppDraft=null; BS.oppErr=null; BS.hDel=null; S.view="build"; S.tab="build"; S.picker=false; S.open={}; S.notice=null; S.confirmRace=null; S.tileOpen=null; S.exp.preview=null; S.exp.copyText=null; S.exp.base=""; }
 function openRoster(id){ var r = S.rosters.filter(function(x){return x.id===id;})[0]; if(!r) return; S.cur = clone(r); resetView(); render(); window.scrollTo(0,0); }
-function newRoster(){ var r = C.newRoster(); S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
+var TEST_EXAMPLES = false;
+function newRoster(race){ var r = C.newRoster(); if(race && RACES.indexOf(race)!==-1) r.race = race; S.cur = r; resetView(); Store.queue(r); render(); window.scrollTo(0,0); }
 function setRace(race){
   var r = S.cur; if(r.race===race) return;
   var loses = r.units.length + Object.keys(r.tactical).length + (r.creepId?1:0);
@@ -3728,7 +3729,9 @@ function noticeHTML(){
 function renderList(){
   var list = S.rosters.slice().sort(function(a,b){ return (b.updatedAt||0)-(a.updatedAt||0); });
   var h = '<div class="listhead"><h1>Your rosters</h1><div class="actions">'+(APP.prompt?'<button class="btn" data-a="install">Install app</button>':'')+'<button class="btn" data-a="toggle-import">Import</button><button class="btn primary" data-a="new">New roster</button></div></div>';
-  h += '<div class="examples"><span>Example armies</span><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="example" data-v="'+x+'"><img src="'+ART.race(x)+'" alt="">'+x+'</button>'; }).join("")+'</div></div>';
+  h += '<div class="examples"><span>Start a blank roster</span><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="new-race" data-v="'+x+'"><img src="'+ART.race(x)+'" alt="">'+x+'</button>'; }).join("")+'</div></div>';
+  // The example armies are no longer offered in the app (owner decision, 15 Nov 2026); the test page keeps buttons for them.
+  if(TEST_EXAMPLES) h += '<div class="examples"><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="example" data-v="'+x+'">Example '+x+'</button>'; }).join("")+'</div></div>';
   if(APP.iosHint) h += '<div class="notice" style="margin:0 0 14px"><div class="grow">To install SurgeCraft on this iPhone or iPad: tap <b>Share</b>, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</div></div>';
   h += noticeHTML();
   if(S.importOpen){
@@ -3736,7 +3739,7 @@ function renderList(){
       '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" data-a="import-code">Import code</button><span class="faint">or</span><label class="btn" for="imp-file">Choose roster file…</label><input type="file" id="imp-file" accept=".json,application/json" hidden><button class="btn ghost" data-a="toggle-import">Cancel</button></div></div>';
   }
   if(S.store==="loading") h += '<div class="empty">Loading your rosters…</div>';
-  else if(!list.length) h += '<div class="empty">No saved rosters yet. Start a new roster, import one, or open an example army.</div>';
+  else if(!list.length) h += '<div class="empty">No saved rosters yet. Start a new roster or import one.</div>';
   else {
     h += '<div class="cards">';
     list.forEach(function(r){
@@ -5141,6 +5144,7 @@ document.addEventListener("click", function(ev){
   switch(a){
     case "home": S.view="list"; S.cur=null; S.notice=null; S.confirmDel=null; render(); window.scrollTo(0,0); break;
     case "new": newRoster(); break;
+    case "new-race": newRoster(v); break;
     case "example": openExample(false, v); break;
     case "mode": P.mode = v; savePrefs(); applyMode(); break;
     case "hdr": P.hdrOff = !P.hdrOff; savePrefs(); applyHdr(); break;

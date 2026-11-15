@@ -22,7 +22,7 @@ with sync_playwright() as p:
     out["offline_title"] = pg.title()
     if pg.locator('[data-a="home"]').count():
         pg.click('[data-a="home"]')
-    pg.click('[data-a="example"][data-v="Protoss"]'); pg.wait_for_timeout(300)
+    pg.click('[data-a="new-race"][data-v="Protoss"]'); pg.wait_for_timeout(300)
     pg.click('[data-a="layout"][data-v="tiles"]'); pg.wait_for_timeout(300)
     for y in range(0, 5000, 500):
         pg.evaluate(f"window.scrollTo(0,{y})"); pg.wait_for_timeout(80)
