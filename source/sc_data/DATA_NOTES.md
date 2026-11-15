@@ -9,6 +9,8 @@ Source of truth for the roster app: `starcraft_tmg_data.json` (built from visual
 - PREVIEW entries: only the v1.10.26 set in `cards_1010.py`. The build fails if any other entry is marked provisional.
 
 ## v1.10.26 cards from photographs (2026-11-15) — PREVIEW, no costs
+Status: in the repo at commit 3adaa63 (15 Nov 2026) and on both published pages. This supersedes BUILD_SOURCE.md's "No PREVIEW entries remain". The project copy of `starcraft_tmg_data.json` was not refreshed; the current dataset is `source/sc_data/starcraft_tmg_data.json` in the repo. Photo crop tools: `source/upd1110/`.
+
 Source: the owner's photographs of printed v1.10.26 cards. Archon has published no card sheets and no cost table for these (downloads page checked 15 Nov 2026: cost table still 10.2026). Every entry is `provisional` (shown as PREVIEW) in `cards_1010.py`.
 
 **Owner decision:** usable in the builder at **0 Minerals / 0 Gas** until a cost table lists them; a roster holding any of them gets a warning. Compositions are an assumption (largest model count of each Supply bracket of 1 or more).
