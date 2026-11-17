@@ -146,7 +146,7 @@ console.log("\n" + C.rosterText(r));
 }
 // ---- pre-made terrain maps (Full Rules, Map Layouts pp. 115-124; Part 9.3: D6 Standard, D3 Skirmish) ----
 {
-  const T = DATA.terrain, std = T.maps.filter(m => m.scale === "standard"), sk = T.maps.filter(m => m.scale === "skirmish");
+  const T = C.data.terrain, std = T.maps.filter(m => m.scale === "standard"), sk = T.maps.filter(m => m.scale === "skirmish");
   eq("terrain: 6 Standard and 3 Skirmish maps, numbered in printed order", [std.map(m => m.number), sk.map(m => m.number), T.maps.map(m => m.page)], [[1,2,3,4,5,6], [1,2,3], [116,117,118,119,120,121,122,123,124]]);
   eq("terrain: 14 piece types in the Terrain Key", T.key.pieces.length, 14);
   const n = m => m.requires.reduce((a, q) => a + q[0], 0), ramps = m => (m.requires.find(q => q[1] === "Lost Temple Ramp") || [0])[0];
