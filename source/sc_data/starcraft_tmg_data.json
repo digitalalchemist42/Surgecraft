@@ -9770,5 +9770,630 @@
   "Organized Play rules: each roster submits 2 Mission Cards and 2 Deployment Cards, no duplicates within a player's own set.",
   "'Special winning condition' lead threshold: none printed on Artefact Hunt.",
   "Artefact Hunt keeps its printed grammar ('Unit that CLAIM', 'a Unit DROP') because CLAIM/DROP are keyword terms."
- ]
+ ],
+ "terrain": {
+  "source": "Full Rules, Map Layouts (pp. 115-124) and Part 9.3",
+  "key": {
+   "page": 115,
+   "pieces": [
+    "Head Statue",
+    "Statue Shard",
+    "Vespene Geyser",
+    "Shrubs A",
+    "Shrubs B",
+    "Protoss Banner",
+    "Temple Obelisk",
+    "Wall Set 1",
+    "Wall Set 2",
+    "Wall Set 3",
+    "Wall Set 4",
+    "Wall Set 5",
+    "Wall Set 6",
+    "Lost Temple Ramp"
+   ],
+   "size": [
+    1051,
+    1318
+   ]
+  },
+  "maps": [
+   {
+    "id": "standard-1",
+    "scale": "standard",
+    "number": 1,
+    "page": 116,
+    "battlefield": "36\" × 54\"",
+    "requires": [
+     [
+      2,
+      "Head Statue"
+     ],
+     [
+      2,
+      "Statue Shard"
+     ],
+     [
+      2,
+      "Vespene Geyser"
+     ],
+     [
+      4,
+      "Shrubs A"
+     ],
+     [
+      4,
+      "Shrubs B"
+     ],
+     [
+      2,
+      "Protoss Banner"
+     ],
+     [
+      2,
+      "Temple Obelisk"
+     ],
+     [
+      2,
+      "Wall Set 1"
+     ],
+     [
+      2,
+      "Wall Set 2"
+     ],
+     [
+      2,
+      "Wall Set 3"
+     ],
+     [
+      2,
+      "Wall Set 4"
+     ],
+     [
+      2,
+      "Wall Set 5"
+     ],
+     [
+      2,
+      "Wall Set 6"
+     ]
+    ],
+    "size": [
+     843,
+     1262
+    ]
+   },
+   {
+    "id": "standard-2",
+    "scale": "standard",
+    "number": 2,
+    "page": 117,
+    "battlefield": "36\" × 54\"",
+    "requires": [
+     [
+      2,
+      "Head Statue"
+     ],
+     [
+      2,
+      "Statue Shard"
+     ],
+     [
+      2,
+      "Vespene Geyser"
+     ],
+     [
+      4,
+      "Shrubs A"
+     ],
+     [
+      4,
+      "Shrubs B"
+     ],
+     [
+      2,
+      "Protoss Banner"
+     ],
+     [
+      2,
+      "Temple Obelisk"
+     ],
+     [
+      2,
+      "Wall Set 1"
+     ],
+     [
+      2,
+      "Wall Set 2"
+     ],
+     [
+      2,
+      "Wall Set 3"
+     ],
+     [
+      2,
+      "Wall Set 4"
+     ],
+     [
+      2,
+      "Wall Set 5"
+     ],
+     [
+      2,
+      "Wall Set 6"
+     ]
+    ],
+    "size": [
+     843,
+     1262
+    ]
+   },
+   {
+    "id": "standard-3",
+    "scale": "standard",
+    "number": 3,
+    "page": 118,
+    "battlefield": "36\" × 54\"",
+    "requires": [
+     [
+      2,
+      "Head Statue"
+     ],
+     [
+      2,
+      "Statue Shard"
+     ],
+     [
+      2,
+      "Vespene Geyser"
+     ],
+     [
+      4,
+      "Shrubs A"
+     ],
+     [
+      4,
+      "Shrubs B"
+     ],
+     [
+      2,
+      "Protoss Banner"
+     ],
+     [
+      2,
+      "Temple Obelisk"
+     ],
+     [
+      2,
+      "Wall Set 1"
+     ],
+     [
+      2,
+      "Wall Set 2"
+     ],
+     [
+      2,
+      "Wall Set 3"
+     ],
+     [
+      2,
+      "Wall Set 4"
+     ],
+     [
+      2,
+      "Wall Set 5"
+     ],
+     [
+      2,
+      "Wall Set 6"
+     ]
+    ],
+    "size": [
+     843,
+     1262
+    ]
+   },
+   {
+    "id": "standard-4",
+    "scale": "standard",
+    "number": 4,
+    "page": 119,
+    "battlefield": "36\" × 54\"",
+    "requires": [
+     [
+      2,
+      "Head Statue"
+     ],
+     [
+      2,
+      "Statue Shard"
+     ],
+     [
+      2,
+      "Vespene Geyser"
+     ],
+     [
+      4,
+      "Shrubs A"
+     ],
+     [
+      4,
+      "Shrubs B"
+     ],
+     [
+      2,
+      "Protoss Banner"
+     ],
+     [
+      2,
+      "Temple Obelisk"
+     ],
+     [
+      2,
+      "Wall Set 1"
+     ],
+     [
+      2,
+      "Wall Set 2"
+     ],
+     [
+      2,
+      "Wall Set 3"
+     ],
+     [
+      2,
+      "Wall Set 4"
+     ],
+     [
+      2,
+      "Wall Set 5"
+     ],
+     [
+      2,
+      "Wall Set 6"
+     ]
+    ],
+    "size": [
+     843,
+     1262
+    ]
+   },
+   {
+    "id": "standard-5",
+    "scale": "standard",
+    "number": 5,
+    "page": 120,
+    "battlefield": "36\" × 54\"",
+    "requires": [
+     [
+      2,
+      "Head Statue"
+     ],
+     [
+      2,
+      "Statue Shard"
+     ],
+     [
+      2,
+      "Vespene Geyser"
+     ],
+     [
+      4,
+      "Shrubs A"
+     ],
+     [
+      4,
+      "Shrubs B"
+     ],
+     [
+      2,
+      "Protoss Banner"
+     ],
+     [
+      2,
+      "Temple Obelisk"
+     ],
+     [
+      2,
+      "Wall Set 1"
+     ],
+     [
+      2,
+      "Wall Set 2"
+     ],
+     [
+      2,
+      "Wall Set 3"
+     ],
+     [
+      2,
+      "Wall Set 4"
+     ],
+     [
+      2,
+      "Wall Set 5"
+     ],
+     [
+      2,
+      "Wall Set 6"
+     ],
+     [
+      2,
+      "Lost Temple Ramp"
+     ]
+    ],
+    "size": [
+     843,
+     1262
+    ]
+   },
+   {
+    "id": "standard-6",
+    "scale": "standard",
+    "number": 6,
+    "page": 121,
+    "battlefield": "36\" × 54\"",
+    "requires": [
+     [
+      2,
+      "Head Statue"
+     ],
+     [
+      2,
+      "Statue Shard"
+     ],
+     [
+      2,
+      "Vespene Geyser"
+     ],
+     [
+      4,
+      "Shrubs A"
+     ],
+     [
+      4,
+      "Shrubs B"
+     ],
+     [
+      2,
+      "Protoss Banner"
+     ],
+     [
+      2,
+      "Temple Obelisk"
+     ],
+     [
+      2,
+      "Wall Set 1"
+     ],
+     [
+      2,
+      "Wall Set 2"
+     ],
+     [
+      2,
+      "Wall Set 3"
+     ],
+     [
+      2,
+      "Wall Set 4"
+     ],
+     [
+      2,
+      "Wall Set 5"
+     ],
+     [
+      2,
+      "Wall Set 6"
+     ],
+     [
+      2,
+      "Lost Temple Ramp"
+     ]
+    ],
+    "size": [
+     843,
+     1262
+    ]
+   },
+   {
+    "id": "skirmish-1",
+    "scale": "skirmish",
+    "number": 1,
+    "page": 122,
+    "battlefield": "36\" × 36\"",
+    "requires": [
+     [
+      1,
+      "Head Statue"
+     ],
+     [
+      1,
+      "Statue Shard"
+     ],
+     [
+      1,
+      "Vespene Geyser"
+     ],
+     [
+      2,
+      "Shrubs A"
+     ],
+     [
+      2,
+      "Shrubs B"
+     ],
+     [
+      1,
+      "Protoss Banner"
+     ],
+     [
+      1,
+      "Temple Obelisk"
+     ],
+     [
+      1,
+      "Wall Set 1"
+     ],
+     [
+      1,
+      "Wall Set 2"
+     ],
+     [
+      1,
+      "Wall Set 3"
+     ],
+     [
+      1,
+      "Wall Set 4"
+     ],
+     [
+      1,
+      "Wall Set 5"
+     ],
+     [
+      1,
+      "Wall Set 6"
+     ]
+    ],
+    "size": [
+     837,
+     836
+    ]
+   },
+   {
+    "id": "skirmish-2",
+    "scale": "skirmish",
+    "number": 2,
+    "page": 123,
+    "battlefield": "36\" × 36\"",
+    "requires": [
+     [
+      1,
+      "Head Statue"
+     ],
+     [
+      1,
+      "Statue Shard"
+     ],
+     [
+      1,
+      "Vespene Geyser"
+     ],
+     [
+      2,
+      "Shrubs A"
+     ],
+     [
+      2,
+      "Shrubs B"
+     ],
+     [
+      1,
+      "Protoss Banner"
+     ],
+     [
+      1,
+      "Temple Obelisk"
+     ],
+     [
+      1,
+      "Wall Set 1"
+     ],
+     [
+      1,
+      "Wall Set 2"
+     ],
+     [
+      1,
+      "Wall Set 3"
+     ],
+     [
+      1,
+      "Wall Set 4"
+     ],
+     [
+      1,
+      "Wall Set 5"
+     ],
+     [
+      1,
+      "Wall Set 6"
+     ]
+    ],
+    "size": [
+     837,
+     836
+    ]
+   },
+   {
+    "id": "skirmish-3",
+    "scale": "skirmish",
+    "number": 3,
+    "page": 124,
+    "battlefield": "36\" × 36\"",
+    "requires": [
+     [
+      1,
+      "Head Statue"
+     ],
+     [
+      1,
+      "Statue Shard"
+     ],
+     [
+      1,
+      "Vespene Geyser"
+     ],
+     [
+      2,
+      "Shrubs A"
+     ],
+     [
+      2,
+      "Shrubs B"
+     ],
+     [
+      1,
+      "Protoss Banner"
+     ],
+     [
+      1,
+      "Temple Obelisk"
+     ],
+     [
+      1,
+      "Wall Set 1"
+     ],
+     [
+      1,
+      "Wall Set 2"
+     ],
+     [
+      1,
+      "Wall Set 3"
+     ],
+     [
+      1,
+      "Wall Set 4"
+     ],
+     [
+      1,
+      "Wall Set 5"
+     ],
+     [
+      1,
+      "Wall Set 6"
+     ],
+     [
+      1,
+      "Lost Temple Ramp"
+     ]
+    ],
+    "size": [
+     837,
+     836
+    ]
+   }
+  ]
+ }
 }

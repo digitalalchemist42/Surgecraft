@@ -22,7 +22,8 @@
     mini: function (id) { return "img/minis/" + id + ".webp"; },
     card: function (id) { return "img/cards/" + id + ".webp"; },
     race: function (r) { return "img/race/" + String(r).toLowerCase() + ".webp"; },
-    deploy: function (id, side) { return "img/deploy/" + id + "-" + side + ".webp"; }
+    deploy: function (id, side) { return "img/deploy/" + id + "-" + side + ".webp"; },
+    terrain: function (id) { return "img/terrain/" + id + ".webp"; }
   };
   var identity = function (p) { return p; };
 

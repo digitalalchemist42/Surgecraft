@@ -144,5 +144,13 @@ console.log("\n" + C.rosterText(r));
   ["Terran","Protoss","Zerg"].forEach(race => { const r2 = Ex.build(C, race); const t2 = C.totals(r2), l2 = C.limits(r2);
     eq(race + " example legal at 10.6 costs (" + t2.minerals + " / " + t2.gas + ")", C.validate(r2).filter(v => v.level === "error").map(v => v.msg), []); });
 }
+// ---- pre-made terrain maps (Full Rules, Map Layouts pp. 115-124; Part 9.3: D6 Standard, D3 Skirmish) ----
+{
+  const T = DATA.terrain, std = T.maps.filter(m => m.scale === "standard"), sk = T.maps.filter(m => m.scale === "skirmish");
+  eq("terrain: 6 Standard and 3 Skirmish maps, numbered in printed order", [std.map(m => m.number), sk.map(m => m.number), T.maps.map(m => m.page)], [[1,2,3,4,5,6], [1,2,3], [116,117,118,119,120,121,122,123,124]]);
+  eq("terrain: 14 piece types in the Terrain Key", T.key.pieces.length, 14);
+  const n = m => m.requires.reduce((a, q) => a + q[0], 0), ramps = m => (m.requires.find(q => q[1] === "Lost Temple Ramp") || [0])[0];
+  eq("terrain: pieces per map as printed (Standard 30, or 32 with two ramps; Skirmish 15, or 16 with one ramp)", [std.map(n), sk.map(n), T.maps.map(ramps)], [[30,30,30,30,32,32], [15,15,16], [0,0,0,0,2,2,0,0,1]]);
+}
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

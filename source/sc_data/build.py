@@ -155,6 +155,10 @@ for x in UNITS + CARDS:
 if not any(u["army_slot"] == "Air" for u in UNITS):
     Wn("Faction cards provide Air slots, but no unit in the current card set uses the Air slot.")
 
+TERRAIN = json.load(open("/home/claude/sc_data/terrain.json", encoding="utf-8"))
+assert [m["scale"] for m in TERRAIN["maps"]].count("standard") == 6 and [m["scale"] for m in TERRAIN["maps"]].count("skirmish") == 3, "Part 9.3: D6 Standard maps, D3 Skirmish maps"
+for _m in TERRAIN["maps"]:
+    assert all(b in TERRAIN["key"]["pieces"] for a, b in _m["requires"]), _m["id"]
 data = {
     "meta": {
         "game": "StarCraft: Tabletop Miniatures Game",
@@ -171,6 +175,8 @@ data = {
         "resources": RES,
     },
     "units": [], "cards": [], "missions": MISSIONS, "deployments": DEPLOYMENTS, "scenario_notes": SCENARIO_NOTES,
+    # Pre-made terrain maps (Full Rules, Map Layouts pp. 115-124): written by source/terrain/extract_terrain.py
+    "terrain": TERRAIN,
 }
 for u in UNITS:
     d = copy.deepcopy(u)

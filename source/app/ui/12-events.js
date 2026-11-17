@@ -11,6 +11,8 @@ document.addEventListener("click", function(ev){
   if(t.hasAttribute("disabled") || t.getAttribute("aria-disabled")==="true") return;
   if(a.indexOf("v-")===0){ vClick(a, v); return; }
   if(a==="cards"){ openCardRef(); return; }
+  if(a==="terrain"){ openTerrain(); return; }
+  if(a.indexOf("tr-")===0){ trClick(a, v); return; }
   if(a.indexOf("cr-")===0){ crClick(a, v); return; }
   if(a.indexOf("b-")===0){ if(t.tagName==="INPUT") return; bClick(a, v, eu, t); return; }
   switch(a){

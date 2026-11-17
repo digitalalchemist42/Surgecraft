@@ -8,6 +8,15 @@ Source of truth for the roster app: `starcraft_tmg_data.json` (built from visual
 - 7 Mission Cards (each with Standard + Skirmish side), 7 Deployment Cards (Standard 54x36 side + Skirmish 36x36 side)
 - PREVIEW entries: only the v1.10.26 set in `cards_1010.py`. The build fails if any other entry is marked provisional.
 
+## Terrain maps (2026-11-16)
+Source: Full Rules, Map Layouts (printed pages 115-124), and Part 9.3 Battlefield Setup. Extracted by `source/terrain/extract_terrain.py` into `terrain.json` and `img/terrain/`.
+- Terrain Key (p. 115): 14 piece types.
+- 6 Standard maps (pp. 116-121, 36" x 54") and 3 Skirmish maps (pp. 122-124, 36" x 36"). Part 9.3: roll D6 for Standard, D3 for Skirmish.
+- Each map's "Assembly requires" list is parsed from the page text: Standard maps use 30 pieces (maps 5 and 6: 32, with 2 Lost Temple Ramps); Skirmish maps 15 (map 3: 16, with 1 ramp).
+- **Assumption:** the rulebook does not print map numbers. Maps are numbered in the order the pages appear, so a roll of 1 is the first Standard (or Skirmish) map printed.
+- Images are the printed maps cropped at 150 dpi (the placed image is larger than the part that shows on the page, so the crop keeps only the visible map). Piece positions are not transcribed as data.
+- The Battlefield Setup order in the app is a short restatement of Part 9.3, not the printed wording. The Terrain Density Guidelines are not in the app (owner chose maps, roll and setup steps only).
+
 ## v1.10.26 cards from photographs (2026-11-15) — PREVIEW, no costs
 Status: in the repo at commit 3adaa63 (15 Nov 2026) and on both published pages. The current dataset is `source/sc_data/starcraft_tmg_data.json` in the repo. Photo crop tools: `source/upd1110/`.
 

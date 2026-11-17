@@ -63,7 +63,7 @@ for d, _, fs in os.walk(A + "img"):
         if f.endswith(".webp"):
             p = os.path.relpath(os.path.join(d, f), A)
             imgs[p] = "data:image/webp;base64," + base64.b64encode(open(os.path.join(d, f), "rb").read()).decode()
-patch = ("<script>\n(function(){var M=" + json.dumps(imgs) + ";['unit','mini','card','race','deploy'].forEach(function(k){var f=Render.ART[k];"
+patch = ("<script>\n(function(){var M=" + json.dumps(imgs) + ";['unit','mini','card','race','deploy','terrain'].forEach(function(k){var f=Render.ART[k];"
          "Render.ART[k]=function(){var p=f.apply(null,arguments);return M[p]||p;};});})();\n</script>\n")
 marker = "<script>\n/* Example armies"
 assert marker in body, "examples marker"

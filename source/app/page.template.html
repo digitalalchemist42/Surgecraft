@@ -278,6 +278,18 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .kr-item.flash summary{box-shadow:inset 4px 0 0 var(--accent)}
 .kr-item .kw-body{padding:8px 12px 12px;font-size:13.5px}
 .kr-empty{padding:14px;color:var(--ink-2)}
+.tref ol{margin:0;padding-left:20px;font-size:13.5px;display:flex;flex-direction:column;gap:5px}
+.tref details>summary{cursor:pointer;font-family:var(--display);font-stretch:87.5%;font-weight:600;font-size:15px;letter-spacing:.03em;padding:4px 0}
+.tref details>*:not(summary){margin-top:8px}
+.tr-ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tr-roll{font-size:13.5px}
+.tr-roll b{font-family:var(--display);font-size:16px}
+.tr-fig{margin:0;display:flex;flex-direction:column;gap:8px;align-items:center}
+.tr-fig img{display:block;width:100%;max-width:600px;height:auto;border-radius:var(--r);border:1px solid var(--line);background:var(--panel-2)}
+.tr-fig.sq img{max-width:600px}
+.tr-fig figcaption{font-size:12.5px;color:var(--ink-2);text-align:center}
+.tr-req{display:flex;flex-wrap:wrap;gap:5px}
+.tr-key img{display:block;width:100%;max-width:760px;height:auto;border-radius:var(--r);border:1px solid var(--line);background:#fff}
 /* card reference */
 .cref .cr-ctl{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
 .cref .race button{font-size:14px;padding:4px 12px 4px 6px}
@@ -667,6 +679,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
   <div class="savestate" id="savestate" aria-live="polite"></div>
   <button class="kwbtn" data-a="cards" title="Card reference" aria-label="Card reference"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.2" y="1.8" width="8" height="10.6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.6 4.4l-.9.3a1.2 1.2 0 0 0-.8 1.5l2.4 7.6a1.2 1.2 0 0 0 1.5.8l4.4-1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="ml">Cards</span></button>
   <button class="kwbtn" data-a="kw-all" title="Keyword reference" aria-label="Keyword reference"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.6c1.9-.5 3.8-.3 5.5.8v10.2c-1.7-1.1-3.6-1.3-5.5-.8zM13.5 2.6c-1.9-.5-3.8-.3-5.5.8v10.2c1.7-1.1 3.6-1.3 5.5-.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="ml">Keywords</span></button>
+  <button class="kwbtn" data-a="terrain" title="Terrain setup" aria-label="Terrain setup"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="2.2" width="12.4" height="11.6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.4 5v3.2h2.4M11.6 11V7.8H9.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ml">Terrain</span></button>
   <div class="modes" role="group" aria-label="Color mode" id="modes">
     <button data-a="mode" data-v="auto" aria-pressed="true" title="Match your device"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg><span class="ml">Auto</span></button>
     <button data-a="mode" data-v="light" aria-pressed="false" title="Light mode"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><path d="M8 .8v2.2M8 13v2.2M.8 8H3M13 8h2.2M2.9 2.9l1.6 1.6M11.5 11.5l1.6 1.6M2.9 13.1l1.6-1.6M11.5 4.5l1.6-1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="ml">Light</span></button>
