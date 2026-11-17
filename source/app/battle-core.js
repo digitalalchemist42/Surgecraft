@@ -68,7 +68,7 @@
   function upgrade(b) {
     if (!b.kills) b.kills = []; if (!b.times) b.times = [{ r: b.round, p: b.phase, at: b.startedAt || Date.now() }];
     if (!b.rounds) b.rounds = {}; if (!b.notes) b.notes = {}; if (!b.spend) b.spend = []; if (!b.acts) b.acts = []; if (!b.uses) b.uses = [];
-    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.terrain === undefined) b.terrain = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
+    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.terrain === undefined) b.terrain = null; if (b.clock === undefined) b.clock = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
     return b;
   }
   function sync(C, r, b) {
@@ -95,6 +95,7 @@
       units: {}, summoned: [], cards: {}, markers: {}, vp: { me: [], opp: [] },
       si: freshInputs(), over: null, rollOff: false, log: [], startedAt: Date.now(),
       terrain: opts.terrain && C.data.terrain && C.data.terrain.maps.some(function (t) { return t.id === opts.terrain && t.scale === sd; }) ? opts.terrain : null,
+      clock: opts.clock === "on" ? clockNew(opts.clockMin) : null,
       opp: opts.opp ? oppFrom(C, opts.opp) : null, kills: [], times: [], rounds: {}, notes: {}, summary: "", mvp: null, spend: [], acts: [], uses: []
     };
     var allOn = opts.missionId !== "supply-drop";
@@ -483,7 +484,7 @@
     if (m.special_win_lead && lead >= m.special_win_lead) b.over = { reason: "Special Winning Condition: a lead of " + m.special_win_lead + " or more VPs.", winner: t.me > t.opp ? "me" : "opp" };
     else if (wiped) b.over = { reason: "A player has no models on the battlefield and no Units in Reserves (8.9.3).", winner: t.me > t.opp ? "me" : t.opp > t.me ? "opp" : "draw" };
     else if (final) b.over = { reason: "Round " + b.round + " was the final Round (8.10).", winner: t.me > t.opp ? "me" : t.opp > t.me ? "opp" : "draw" };
-    if (b.over) { b.over.at = Date.now(); mark(b); }
+    if (b.over) { b.over.at = Date.now(); mark(b); clockSet(b, null); }
     if (b.over) log(b, "Game over. " + (b.over.winner === "me" ? "You win" : b.over.winner === "opp" ? "The opponent wins" : "Draw") + " " + t.me + " to " + t.opp + ".");
     return b.over;
   }
@@ -679,6 +680,29 @@
 
   /* ---------- finished battles ----------
      A copy of the battle with the roster as it was, kept on the roster (r.history, newest first) for the battle report. */
+  /* ---------- chess clock ----------
+     b.clock = { me, opp: milliseconds used; run: "me" | "opp" | null; at: when the running side started;
+     limit: milliseconds each player has, or null }. The time of the side that is running is me/opp plus (now - at),
+     so the clock keeps going while the app is closed. */
+  function clockNew(minutes) { var n = Math.floor(Number(minutes)); return { me: 0, opp: 0, run: null, at: 0, limit: n > 0 && n <= 600 ? n * 60000 : null }; }
+  function clockRead(b, now) {
+    var c = b && b.clock; if (!c) return null;
+    var add = c.run ? Math.max(0, (now == null ? Date.now() : now) - c.at) : 0;
+    var me = c.me + (c.run === "me" ? add : 0), opp = c.opp + (c.run === "opp" ? add : 0);
+    return { me: me, opp: opp, run: c.run, limit: c.limit, left: c.limit ? { me: c.limit - me, opp: c.limit - opp } : null };
+  }
+  /* who: "me" or "opp" starts that side's clock (and stops the other); null pauses both. */
+  function clockSet(b, who, now) {
+    var c = b && b.clock; if (!c) return;
+    now = now == null ? Date.now() : now;
+    var cur = clockRead(b, now); c.me = cur.me; c.opp = cur.opp;
+    c.run = who === "me" || who === "opp" ? who : null; c.at = c.run ? now : 0;
+  }
+  function clockText(ms) {
+    var neg = ms < 0, s = Math.floor(Math.abs(ms) / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+    return (neg ? "\u2212" : "") + (h ? h + ":" + (m < 10 ? "0" : "") + m : m) + ":" + (x < 10 ? "0" : "") + x;
+  }
+
   function historyEntry(C, r, b) {
     var roster = clone(r); delete roster.history; delete roster.battle; // keeps unit ids, which the battle state is keyed by
     return { id: "h_" + Math.random().toString(36).slice(2, 9), endedAt: Date.now(), battle: clone(b), roster: roster };
@@ -692,6 +716,7 @@
     statusKeys: statusKeys, abilitiesFor: abilitiesFor, useAbility: useAbility, unuseAbility: unuseAbility, cardList: cardList, resource: resource, toggleCard: toggleCard,
     cycleMarker: cycleMarker, setMarker: setMarker, setLevel: setLevel, suggestion: suggestion, totals: totals, confirmScores: confirmScores, nextRound: nextRound,
     phaseWarnings: phaseWarnings, advance: advance, back: back, summonable: summonable, addSummoned: addSummoned, removeSummoned: removeSummoned, hasAssaultWeapon: hasAssaultWeapon,
+    clockNew: clockNew, clockRead: clockRead, clockSet: clockSet, clockText: clockText,
     upgrade: upgrade, setFpm: setFpm, oppFrom: oppFrom, oppInfo: oppInfo, oppInfos: oppInfos, setOpp: setOpp, oppChange: oppChange, oppSetState: oppSetState, oppAdd: oppAdd, oppRemove: oppRemove,
     enemyLost: enemyLost, kill: kill, parseList: parseList, listFromRoster: listFromRoster, matchUnit: matchUnit, historyEntry: historyEntry
   };

@@ -60,7 +60,7 @@ python3 mk_test.py                                   # -> test.html (adds the te
 python3 build_standalone.py                          # -> out/surgecraft.html and out/surgecraft-site/ (this repo's root)
 node test-core.js && node test-render.js && node test-battle.js && node test-dice.js
 python3 -m http.server 8765 &                        # smoke tests load http://localhost:8765/test.html
-python3 smoke_view.py; python3 smoke_dep.py; python3 smoke_kw.py; python3 smoke_battle.py; python3 smoke_battle2.py; python3 smoke_shield.py; python3 smoke_pay.py; python3 smoke_cards.py; python3 smoke_terrain.py; python3 smoke_dice.py; python3 smoke_extras.py; python3 smoke_print.py   # Print / PDF: renders each export through Chromium's print pipeline and checks Letter pages (needs pypdf)
+python3 smoke_view.py; python3 smoke_dep.py; python3 smoke_kw.py; python3 smoke_battle.py; python3 smoke_battle2.py; python3 smoke_shield.py; python3 smoke_pay.py; python3 smoke_cards.py; python3 smoke_terrain.py; python3 smoke_dice.py; python3 smoke_extras.py; python3 smoke_qr_clock.py; python3 smoke_print.py   # Print / PDF: renders each export through Chromium's print pipeline and checks Letter pages (needs pypdf)
 rm -rf /tmp/pwa-site && cp -r out/surgecraft-site /tmp/pwa-site && (cd /tmp/pwa-site && python3 -m http.server 8767 &) ; python3 smoke_pwa.py   # the test edits sw.js, so it serves a copy
 ```
 
@@ -79,3 +79,7 @@ rm -rf /tmp/pwa-site && cp -r out/surgecraft-site /tmp/pwa-site && (cd /tmp/pwa-
 ## Automatic tests
 
 `.github/workflows/tests.yml` runs on every push: it restores the workspace with `restore.sh`, rebuilds the data file (must print `ERRORS: 0` and match the committed copy), rebuilds the page, then runs the four `test-*.js` files and the browser tests. `smoke_pwa.py` is not part of it.
+
+## Third-party code
+
+`source/app/vendor-qrcode.js` is qrcode-generator 1.4.4 by Kazuhiko Arase (MIT licence), used for the roster QR code. `vendor-jszip.min.js` is JSZip, used for the "Everything" export.

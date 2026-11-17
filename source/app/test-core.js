@@ -152,5 +152,18 @@ console.log("\n" + C.rosterText(r));
   const n = m => m.requires.reduce((a, q) => a + q[0], 0), ramps = m => (m.requires.find(q => q[1] === "Lost Temple Ramp") || [0])[0];
   eq("terrain: pieces per map as printed (Standard 30, or 32 with two ramps; Skirmish 15, or 16 with one ramp)", [std.map(n), sk.map(n), T.maps.map(ramps)], [[30,30,30,30,32,32], [15,15,16], [0,0,0,0,2,2,0,0,1]]);
 }
+{ // short form for links and QR codes
+  const strip = x => { const y = JSON.parse(JSON.stringify(x)); y.notes = ""; return y; };
+  const rq = C.newRoster(); rq.race = "Terran"; rq.factionId = "raynors-raiders"; rq.name = "QR \u2013 test"; rq.player = "Sam"; rq.notes = "not carried";
+  rq.tactical = { barracks: 2, factory: 1 }; rq.missions = [Object.keys(C.missions)[0]]; rq.deployments = [Object.keys(C.deployments)[0]];
+  const withUp = Object.keys(C.units).map(id => C.units[id]).filter(u => u.race === "Terran" && u.upgrades.length)[0];
+  const e1 = C.newEntry(withUp.id); e1.upgrades = [withUp.upgrades[withUp.upgrades.length - 1].name]; e1.specialists = {}; e1.specialists[e1.upgrades[0]] = 2;
+  const e2 = C.newEntry("marine"); e2.models = 9; rq.units.push(e1, e2);
+  const packed = C.pack(rq), back = C.unpack(JSON.parse(JSON.stringify(packed)));
+  eq("pack/unpack: the roster comes back the same, without notes", C.exportable(C.normalize(back).roster), strip(C.exportable(C.normalize(C.exportable(rq)).roster)));
+  eq("pack: upgrades are written as positions", typeof packed[10][0][2][0], "number");
+  eq("pack: much shorter than the full export", JSON.stringify(packed).length < JSON.stringify(C.exportable(rq)).length / 2, true);
+  eq("unpack: refuses other shapes", [C.unpack(null), C.unpack([1]), C.unpack({})], [null, null, null]);
+}
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

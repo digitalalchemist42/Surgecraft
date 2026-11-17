@@ -225,4 +225,14 @@ eq("Refreshing a card by hand unlinks it from the use", bq.uses.filter(u=>u.name
 w = B.useAbility(C,rq,bq,s,"Guardian Shield",["f"]).warnings;
 eq("an Exhausted card cannot pay again", [bq.uses.slice(-1)[0].paid, /Paid 0 of 1 PE/.test(w[0]) || /without Exhausting/.test(w[0])], [[], true]);
 }
+{ // chess clock
+  const bc = { clock: B.clockNew(60), over: null };
+  eq("clock: new clock is stopped with the limit in milliseconds", [bc.clock.run, bc.clock.limit, B.clockNew("").limit, B.clockNew(-5).limit], [null, 3600000, null, null]);
+  B.clockSet(bc, "me", 1000); B.clockSet(bc, "opp", 61000);
+  eq("clock: switching banks the time of the side that was running", [B.clockRead(bc, 91000).me, B.clockRead(bc, 91000).opp, B.clockRead(bc, 91000).run], [60000, 30000, "opp"]);
+  B.clockSet(bc, null, 121000);
+  eq("clock: paused, time does not move", [B.clockRead(bc, 999000).me, B.clockRead(bc, 999000).opp, B.clockRead(bc, 999000).left.opp], [60000, 60000, 3540000]);
+  eq("clock: text", [B.clockText(0), B.clockText(59999), B.clockText(605000), B.clockText(3723000), B.clockText(-5000)], ["0:00", "0:59", "10:05", "1:02:03", "\u22120:05"]);
+  eq("clock: a battle without a clock reads null", B.clockRead({ clock: null }, 5), null);
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");

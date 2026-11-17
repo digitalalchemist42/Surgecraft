@@ -73,5 +73,5 @@ var Store = {
 };
 function upsertList(r){ var i = S.rosters.findIndex(function(x){return x.id===r.id;}); var c = clone(r); if(i===-1) S.rosters.push(c); else S.rosters[i]=c; }
 function setSave(s){ S.save = s; renderSaveState(); }
-function afterLoad(){ render(); } // example armies open only from the Example buttons, never on their own
+function afterLoad(){ render(); importFromHash(); } // example armies open only from the Example buttons, never on their own
 

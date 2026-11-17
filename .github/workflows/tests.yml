@@ -51,7 +51,7 @@ jobs:
           python3 -m playwright install --with-deps chromium
           python3 -m http.server 8765 >/dev/null 2>&1 &
           sleep 2
-          for s in smoke_view smoke_dep smoke_kw smoke_battle smoke_battle2 smoke_shield smoke_pay smoke_cards smoke_terrain smoke_dice smoke_extras smoke_print; do
+          for s in smoke_view smoke_dep smoke_kw smoke_battle smoke_battle2 smoke_shield smoke_pay smoke_cards smoke_terrain smoke_dice smoke_extras smoke_qr_clock smoke_print; do
             echo "::group::$s"
             python3 "$s.py" > "/tmp/$s.out" 2>&1 || { cat "/tmp/$s.out"; exit 1; }
             if grep -E "pageerrors : \[.+\]" "/tmp/$s.out"; then cat "/tmp/$s.out"; exit 1; fi

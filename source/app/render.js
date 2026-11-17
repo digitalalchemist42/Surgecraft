@@ -249,7 +249,7 @@
     var remb = r.race && opts.art !== false ? src(ART.race(r.race)) : "";
     var h = '<div class="rs"><header class="rs-h">' + (remb ? '<img class="rs-emb" src="' + esc(remb) + '" alt="">' : "") +
       '<div><div class="rs-k">ARMY ROSTER</div><h2>' + esc(r.name || "Roster") + "</h2></div>" +
-      '<div class="rs-status ' + (errs.length ? "bad" : "ok") + '">' + (errs.length ? errs.length + " RULES ISSUE" + (errs.length > 1 ? "S" : "") : "LEGAL") + "</div></header>";
+      '<div class="rs-status ' + (errs.length ? "bad" : "ok") + '">' + (errs.length ? errs.length + " RULES ISSUE" + (errs.length > 1 ? "S" : "") : "LEGAL") + "</div>" + (opts.qr ? '<div class="rs-qr">' + opts.qr + "<span>Scan to open in SurgeCraft</span></div>" : "") + "</header>";
     h += '<div class="rs-grid"><div><span>PLAYER</span><b>' + esc(r.player || "—") + "</b></div><div><span>FACTION</span><b>" + esc((r.race || "—") + (f ? " · " + f.name : "")) + "</b></div>" +
       "<div><span>ENGAGEMENT</span><b>" + esc(lim.scale.name) + "</b></div><div><span>MINERALS</span><b>" + fmt(t.minerals) + " / " + fmt(lim.minerals) + "</b></div>" +
       "<div><span>VESPENE GAS</span><b>" + fmt(t.gas) + " / " + fmt(lim.gas) + "</b></div><div><span>TOTAL SUPPLY</span><b>" + t.supply + "</b></div></div>";
@@ -362,6 +362,7 @@
     ".rs-h{display:flex;align-items:center;gap:12px;border-bottom:3px solid #09202E;padding-bottom:10px}",
     ".rs-h h2{margin:0;font-family:'Saira','Noto Sans',sans-serif;font-stretch:87.5%;font-weight:600;font-size:26px;line-height:1.1}",
     ".rs-emb{width:48px;height:48px;object-fit:contain}",
+    ".rs-qr{width:112px;flex:none;text-align:center;font-size:8px;font-weight:700;letter-spacing:.04em;color:#5d6670;line-height:1.2}.rs-qr svg{display:block;width:112px;height:112px}",
     ".rs-k{font-size:11px;font-weight:800;letter-spacing:.12em;color:#5d6670}",
     ".rs-status{margin-left:auto;font-weight:800;font-size:12px;letter-spacing:.08em;padding:4px 10px;border-radius:3px;white-space:nowrap}",
     ".rs-status.ok{background:#DDF0E4;color:#1F6B41}.rs-status.bad{background:#F7DEDC;color:#A2231D}",
@@ -565,13 +566,13 @@
   }
   function rosterSheetDoc(C, r, src, opts) {
     opts = opts || {};
-    return docShell((r.name || "Roster") + " — Army Roster", '<div class="paper">' + sheetHTML(C, r, src, { art: opts.art !== false, checks: true }) + "</div>");
+    return docShell((r.name || "Roster") + " — Army Roster", '<div class="paper">' + sheetHTML(C, r, src, { art: opts.art !== false, checks: true, qr: opts.qr }) + "</div>");
   }
   function fieldManualDoc(C, r, src, opts) {
     opts = opts || {};
     var cs = !!opts.cardSize; // one 162 x 107 mm face per unit, 2 per page
     var wrapCard = function (html) { return cs ? '<div class="cs-wrap">' + html + "</div>" : html; };
-    var lim = C.limits(r), side = lim.scale.side, body = '<div class="paper">' + sheetHTML(C, r, src, { art: !src || !!src(ART.race(r.race || "Terran")), checks: true }) + "</div>";
+    var lim = C.limits(r), side = lim.scale.side, body = '<div class="paper">' + sheetHTML(C, r, src, { art: !src || !!src(ART.race(r.race || "Terran")), checks: true, qr: opts.qr }) + "</div>";
     if (r.units.length) {
       body += '<h2 class="doc-h brk">UNIT CARDS</h2>';
       var items = [];
@@ -879,6 +880,7 @@
       '<div class="rp-grid"><div><span>Date</span><b>' + rpDate(b.startedAt) + "</b></div><div><span>Time</span><b>" + rpTime(b.startedAt) + " – " + (b.over ? rpTime(end) : "now") + "</b></div><div><span>Game length</span><b>" + rpDur(end - (b.startedAt || end)) + "</b></div>" +
       "<div><span>Mission</span><b>" + esc(m ? m.name : b.missionId) + "</b></div><div><span>Deployment</span><b>" + esc(b.deploymentId && C.deployments[b.deploymentId] ? C.deployments[b.deploymentId][b.side] : "—") + "</b></div>" +
       (function () { var tm = b.terrain && C.data.terrain ? C.data.terrain.maps.filter(function (x) { return x.id === b.terrain; })[0] : null; return tm ? "<div><span>Terrain</span><b>" + esc((tm.scale === "standard" ? "Standard" : "Skirmish") + " map " + tm.number + " (Full Rules p. " + tm.page + ")") + "</b></div>" : ""; })() +
+      (b.clock ? "<div><span>Clock</span><b>You " + BT.clockText(BT.clockRead(b, end).me) + " \u00b7 Opponent " + BT.clockText(BT.clockRead(b, end).opp) + (b.clock.limit ? " (" + Math.round(b.clock.limit / 60000) + " min each)" : "") + "</b></div>" : "") +
       "<div><span>Engagement</span><b>" + (b.side === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ", you were " + (b.color === "red" ? "Red" : "Blue") + "</b></div></div>";
     // scores
     h += "<h2>Victory Points</h2>" + vpChart(b, rounds) + '<div class="rp-wide"><table><thead><tr><th></th>';

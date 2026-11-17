@@ -76,6 +76,9 @@ function bSetupHTML(r){
       return '<button data-a="b-set" data-v="terrain:'+t.id+'" aria-pressed="'+(st.terrain===t.id)+'">Map '+t.number+'</button>'; }).join("")+'</div><button class="btn sm" data-a="b-troll">Roll '+(side==="standard"?"D6":"D3")+'</button>'+(st.terrain?'<button class="btn sm" data-a="b-tmap" data-v="'+esc(st.terrain)+'">View map</button>':'')+'</div>';
   h += '<div class="grid2" style="margin-top:16px"><div class="field"><span class="lbl-s">Your colour</span><div class="seg"><button data-a="b-set" data-v="color:red" aria-pressed="'+(st.color==="red")+'">Red Player</button><button data-a="b-set" data-v="color:blue" aria-pressed="'+(st.color==="blue")+'">Blue Player</button></div><span class="faint" style="font-size:12px">Sets your Entry Edge and which Markers are your colour (1 and 3 Red, 2 and 4 Blue).</span></div>'+
     '<div class="field"><span class="lbl-s">First Player Marker for Round 1</span><div class="seg"><button data-a="b-set" data-v="fpm:me" aria-pressed="'+(st.fpm==="me")+'">You</button><button data-a="b-set" data-v="fpm:opp" aria-pressed="'+(st.fpm==="opp")+'">Opponent</button></div><span class="faint" style="font-size:12px">The Roll-Off winner gives it to either player (8.2.2).</span></div></div>';
+  h += '<div class="subhead">Chess clock <span class="aside">optional</span></div><div class="tr-ctl"><div class="seg"><button data-a="b-set" data-v="clock:" aria-pressed="'+(st.clock!=="on")+'">Off</button><button data-a="b-set" data-v="clock:on" aria-pressed="'+(st.clock==="on")+'">On</button></div>'+
+    (st.clock==="on" ? '<label class="clk-min"><span>Minutes each</span><input class="input" data-a="b-clockmin" inputmode="numeric" maxlength="3" value="'+esc(st.clockMin||"")+'" placeholder="No limit"></label>' : '')+'</div>'+
+    '<span class="faint" style="font-size:12px;display:block;margin-top:4px">One clock per player in the bar at the bottom. Tap a side to run its clock; tap it again to pause.</span>';
   h += bOppSetupHTML();
   h += '<div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn primary" data-a="b-start">Start battle</button><span class="faint">Every Unit starts in Reserves (8.3).</span></div></div></section>';
   return h;
@@ -256,15 +259,33 @@ function bRailHTML(b, r){
     '<div class="bopt"><button class="bchip" data-a="b-wake" aria-pressed="'+P.wake+'">Keep screen awake</button><span class="faint" id="b-wake-st">'+esc(wakeText())+'</span></div></div></div>';
   h += '<div class="panel'+btc("more")+'"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.terrain?'<button class="btn sm" data-a="b-tmap" data-v="'+esc(b.terrain)+'">Terrain map</button>':'')+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
   h += '<div class="panel'+btc("more")+'"><h3>Battle</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="btn sm" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button>'+
+    (!b.clock && !b.over ? '<button class="btn sm" data-a="b-clk" data-v="add">Add a chess clock</button>' : '')+
     (BS.quit?'<span class="muted">End this battle and clear its tracking?</span><button class="btn danger sm" data-a="b-quit-yes">End battle</button><button class="btn sm" data-a="b-quit-no">Keep</button>':'<button class="btn ghost sm danger" data-a="b-quit">End battle</button>')+'</div></div>';
   if(b.log.length) h += '<details class="panel blog'+btc("more")+'"><summary><h3>Battle log ('+b.log.length+')</h3></summary><div class="pb">'+b.log.slice(-60).reverse().map(function(l){ return '<div class="bl"><span class="faint num">R'+l.r+' P'+l.p+'</span> '+esc(l.t)+'</div>'; }).join("")+'</div></details>';
   return h;
 }
+/* Chess clock strip in the bottom bar. The running side is pressed. With a limit the time counts down and goes negative. */
+function bClockVal(c, who){ return BT.clockText(c.left ? c.left[who] : c[who]); }
+function bClockHTML(b){
+  var c = BT.clockRead(b); if(!c) return "";
+  var side = function(who){ var over = c.left && c.left[who] < 0;
+    return '<button class="clk'+(over?' over':'')+'" data-a="b-clk" data-v="'+who+'" aria-pressed="'+(c.run===who)+'"'+(b.over?' disabled':'')+' aria-label="'+bWho(who)+' clock"><span>'+(who==="me"?"You":"Opp.")+'</span><b class="num" data-clk="'+who+'">'+bClockVal(c, who)+'</b></button>'; };
+  return '<div class="bd-clk">'+side("me")+'<span class="clk-st" id="clk-st">'+(b.over?"Stopped":c.run?"Running":"Paused")+'</span>'+side("opp")+'</div>';
+}
+function bClockTick(){
+  var r = S.cur, b = r && r.battle; if(!b || !b.clock || !b.clock.run) return;
+  var c = BT.clockRead(b);
+  ["me","opp"].forEach(function(who){ var n = document.querySelector('[data-clk="'+who+'"]'); if(!n) return; n.textContent = bClockVal(c, who); n.parentNode.classList.toggle("over", !!(c.left && c.left[who] < 0)); });
+}
+setInterval(bClockTick, 500);
+/* Undo puts the battle back but leaves the clock where it is: time spent is not given back. */
+function bUndoTo(r, prev){ var clock = r.battle && r.battle.clock, nb = JSON.parse(prev); if(clock !== undefined && nb.clock !== undefined) nb.clock = clock; r.battle = nb; }
 /* Fixed bar at the bottom of the screen: where the battle stands, Undo and the next step, plus the phone tabs. */
 function bDockHTML(b, r){
   var m = BT.mission(C, b), t = BT.totals(b), p = b.phase, h = '<div class="bdock" role="region" aria-label="Battle controls"><div class="wrap">';
   var warn = function(list, info){ return '<div class="bd-warn">'+list.map(function(w){ return '<div class="check '+(info && /^(Pay |Mission Marker )/.test(w)?'info':'warn')+'"><span class="mk"></span><span>'+esc(w)+'</span></div>'; }).join("")+'</div>'; };
   if(BS.warn.length) h += warn(BS.warn, true);
+  h += bClockHTML(b);
   if(BS.pass && p<=3 && !b.over){
     var pw = BT.phaseWarnings(C, r, b);
     if(pw.length) h += warn(pw, false);

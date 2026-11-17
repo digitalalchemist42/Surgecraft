@@ -154,6 +154,7 @@ function bArchive(r){
 }
 function bChange(a, t){
   var r = S.cur, b = r && r.battle, v = t.getAttribute("data-v");
+  if(a==="b-clockmin"){ if(BS.set) BS.set.clockMin = t.value.replace(/[^0-9]/g, ""); return true; }
   if(a==="b-oppname"){ if(!b){ if(BS.set) BS.set.oppName = t.value.trim(); return true; } bMut(function(){ if(!b.opp) b.opp = BT.oppFrom(C, {}); b.opp.player = t.value.trim(); }); bModal(); return true; }
   if(a==="b-oppfix"){
     var l = t.getAttribute("data-w")==="set" ? BS.set && BS.set.opp : BS.oppDraft, k = Number(v), x = l && l.unmatched[k]; if(!x || !t.value) return true;
@@ -206,7 +207,7 @@ function bOppClick(a, v, eu){
       var k2 = BS.ks; if(!k2) return true; var n0 = BT.info(C, r, b, k2.uid).models;
       bMut(function(){ return BT.kill(C, r, b, k2.uid, null, "taken"); });
       k2.last = BT.info(C, r, b, k2.uid).unit.name+" lost a model: "+n0+" → "+BT.info(C, r, b, k2.uid).models+" left."; bModal(); return true;
-    case "b-ksundo": var prev = BS.undo.pop(); if(prev){ r.battle = JSON.parse(prev); BS.warn = []; bCommit(); } if(BS.ks) BS.ks.last = ""; bModal(); return true;
+    case "b-ksundo": var prev = BS.undo.pop(); if(prev){ bUndoTo(r, prev); BS.warn = []; bCommit(); } if(BS.ks) BS.ks.last = ""; bModal(); return true;
     case "b-oppedit": BS.modal = "opp"; BS.oppOpen = !hasOpp(b); BS.oppErr = null; bModal(); return true;
     case "b-oppuse": var d = BS.oppDraft; if(!d) return true; var nm = b.opp && b.opp.player; BS.oppDraft = null; bMut(function(){ BT.setOpp(C, b, d); if(nm && !b.opp.player) b.opp.player = nm; }); bModal(); return true;
     case "b-oppdrop": BS.oppDraft = null; bModal(); return true;
@@ -288,6 +289,9 @@ function bClick(a, v, eu, t){
   if(a==="b-tmap"){ var tm = DATA.terrain.maps.filter(function(t){ return t.id===v; })[0]; if(tm) openModal('<div class="kwref tref"><div class="kr-head"><h2>'+esc(trName(tm))+'</h2><p>'+esc(tm.battlefield)+' \u00b7 Full Rules p. '+tm.page+'</p></div><figure class="tr-fig"><img src="'+ART.terrain(tm.id)+'" alt="'+esc(trName(tm))+', terrain layout"></figure><div class="tr-req">'+tm.requires.map(function(q){ return '<span class="chip">'+q[0]+' \u00d7 '+esc(q[1])+'</span>'; }).join("")+'</div></div>'); return true; }
   if(a==="b-troll"){ var sd = BT.side(C, r), d6 = 1+Math.floor(Math.random()*6), n = sd==="standard" ? d6 : Math.ceil(d6/2); BS.set.terrain = sd+"-"+n; renderBattle(); return true; }
   if(a==="b-dice" && b){ DS.aL = "me"; DS.aU = eu; DS.aW = 0; if(DS.o) DS.o.models = null; DS.roll = null; S.tab = "dice"; render(); window.scrollTo(0,0); return true; }
+  if(a==="b-clk" && b){
+    if(v==="add"){ if(!b.clock) b.clock = BT.clockNew(0); } else if(b.clock && !b.over) BT.clockSet(b, b.clock.run===v ? null : v);
+    Store.queue(r); renderBattle(); return true; }
   if(bSetupClick(a, v)) return true;
   switch(a){
     case "b-set": var kv = v.split(":"); BS.set[kv[0]] = kv.slice(1).join(":"); renderBattle(); return true;
@@ -336,7 +340,7 @@ function bClick(a, v, eu, t){
     case "b-fpm": bMut(function(){ BT.setFpm(C, b, v); }); return true;
     case "b-confirm": bMut(function(){ var sg = BT.suggestion(C, r, b); BT.confirmScores(C, r, b, Math.max(0, sg.me.total+BS.adj.me), Math.max(0, sg.opp.total+BS.adj.opp)); BS.adj = {me:0, opp:0}; }); var p3 = $("b-phase"); if(p3) p3.scrollIntoView({block:"start"}); return true;
     case "b-next": bMut(function(){ BT.nextRound(C, r, b); }); window.scrollTo(0,0); return true;
-    case "b-undo": var prev = BS.undo.pop(); if(prev){ r.battle = JSON.parse(prev); BS.warn = []; BS.pass = false; bCommit(); } return true;
+    case "b-undo": var prev = BS.undo.pop(); if(prev){ bUndoTo(r, prev); BS.warn = []; BS.pass = false; bCommit(); } return true;
     case "b-quit": BS.quit = true; renderBattle(); return true;
     case "b-quit-no": BS.quit = false; renderBattle(); return true;
     case "b-quit-yes": bArchive(r); delete r.battle; BS.quit = false; BS.undo = []; BS.set = null; BS.warn = []; bCommit(); window.scrollTo(0,0); return true;

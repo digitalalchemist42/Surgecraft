@@ -317,6 +317,37 @@
     };
   };
 
+  /* ---------- short form for links and QR codes ----------
+     The same roster as exportable() without the notes, as a positional array. Upgrades are written as their position
+     in the unit's printed upgrade list (the name is kept when it is not found). unpack() returns the exportable() shape,
+     which normalize() then checks like any other import. */
+  Core.prototype.pack = function (r) {
+    var self = this, x = this.exportable(r), tac = [];
+    Object.keys(x.tactical || {}).forEach(function (id) { if (x.tactical[id] > 0) tac.push(x.tactical[id] === 1 ? id : [id, x.tactical[id]]); });
+    var units = (x.units || []).map(function (e) {
+      var u = self.units[e.unitId], names = u ? u.upgrades.map(function (g) { return g.name; }) : [];
+      var ix = function (n) { var i = names.indexOf(n); return i === -1 ? n : i; };
+      var row = [e.unitId, e.models], ups = (e.upgrades || []).map(ix), sp = [];
+      Object.keys(e.specialists || {}).forEach(function (n) { if (e.specialists[n]) sp.push([ix(n), e.specialists[n]]); });
+      if (ups.length || sp.length) row.push(ups); if (sp.length) row.push(sp);
+      return row;
+    });
+    return [2, x.name || "", x.player || "", x.scale || "", x.minerals || 0, x.grandMinerals || 0, x.race || "", x.factionId || "", tac, x.creepId || "", units, x.missions || [], x.deployments || []];
+  };
+  Core.prototype.unpack = function (a) {
+    if (!Array.isArray(a) || a[0] !== 2 || !Array.isArray(a[10])) return null;
+    var self = this, tac = {};
+    (Array.isArray(a[8]) ? a[8] : []).forEach(function (t) { if (Array.isArray(t)) tac[String(t[0])] = Number(t[1]) || 1; else tac[String(t)] = 1; });
+    var units = a[10].filter(Array.isArray).map(function (row) {
+      var u = self.units[row[0]], names = u ? u.upgrades.map(function (g) { return g.name; }) : [];
+      var nm = function (v) { return typeof v === "number" ? names[v] : String(v); };
+      var sp = {}; (Array.isArray(row[3]) ? row[3] : []).forEach(function (p) { var n = Array.isArray(p) ? nm(p[0]) : null; if (n) sp[n] = Number(p[1]) || null; });
+      return { unitId: String(row[0]), models: Number(row[1]) || 0, upgrades: (Array.isArray(row[2]) ? row[2] : []).map(nm).filter(Boolean), specialists: sp };
+    });
+    return { format: "sc-tmg-roster", version: 1, name: String(a[1] || ""), player: String(a[2] || ""), scale: a[3] || undefined, minerals: a[4] || undefined, grandMinerals: a[5] || undefined,
+      race: a[6] || undefined, factionId: a[7] || null, tactical: tac, creepId: a[9] || null, units: units, missions: Array.isArray(a[11]) ? a[11] : [], deployments: Array.isArray(a[12]) ? a[12] : [], notes: "" };
+  };
+
   /* ---------- plain-text roster (Organized Play fields) ---------- */
   Core.prototype.rosterText = function (r) {
     var self = this, lim = this.limits(r), t = this.totals(r), f = this.faction(r), L = [];

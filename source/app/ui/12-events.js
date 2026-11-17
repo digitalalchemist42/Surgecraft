@@ -64,6 +64,8 @@ document.addEventListener("click", function(ev){
     case "goto-checks": var ch=$("rail-checks"); if(ch) ch.scrollIntoView({behavior:"smooth", block:"start"}); else { S.tab="build"; render(); var c2=$("rail-checks"); if(c2) c2.scrollIntoView({block:"start"}); } break;
     case "goto": var map = {setup:"sec-setup", cards:"sec-cards", units:"sec-units", scenario:"sec-scenario", slots:"rail-slots"}; var tg = $(map[v] || v); if(tg) tg.scrollIntoView({behavior:"smooth", block:"start"}); break;
     case "copy-code": copyText(shareCode(r), "Share code"); break;
+    case "copy-link": copyText(shareLink(r), "Roster link"); break;
+    case "qr": openQr(r); break;
     case "exp-save": saveFile(fmtById(v)); break;
     case "exp-print": printFile(fmtById(v)); break;
     case "exp-copy": var fc = fmtById(v); build(fc).then(function(c){ copyText(c, fc.name); }); break;

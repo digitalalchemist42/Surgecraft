@@ -37,10 +37,10 @@ function build(f, forPreview){
     case "md": return Promise.resolve(X.markdown(C, r));
     case "csv": return Promise.resolve(X.csv(C, r));
     case "json": return Promise.resolve(X.json(C, r));
-    case "sheet": return (forPreview ? Promise.resolve(null) : art ? embedResolver(r, "sheet") : Promise.resolve(BLANK)).then(function(res){ return X.rosterSheetDoc(C, r, res, {art: art}); });
+    case "sheet": return (forPreview ? Promise.resolve(null) : art ? embedResolver(r, "sheet") : Promise.resolve(BLANK)).then(function(res){ return X.rosterSheetDoc(C, r, res, {art: art, qr: qrSvg(shareLink(r))}); });
     case "ref": return Promise.resolve(X.referenceDoc(C, r, {glossary: S.exp.gloss, kw: KW}));
     case "report": var rp = S.exp.rep; return rp ? Promise.resolve(X.battleReport(C, BT, rp.r, rp.b, { endedAt: rp.endedAt })) : Promise.reject({code:"none"});
-    case "manual": return (forPreview ? Promise.resolve(art ? null : BLANK) : art ? embedResolver(r, "manual") : Promise.resolve(BLANK)).then(function(res){ return X.fieldManualDoc(C, r, res, {cardSize: S.exp.cardSize}); });
+    case "manual": return (forPreview ? Promise.resolve(art ? null : BLANK) : art ? embedResolver(r, "manual") : Promise.resolve(BLANK)).then(function(res){ return X.fieldManualDoc(C, r, res, {cardSize: S.exp.cardSize, qr: qrSvg(shareLink(r))}); });
     case "zip": return buildZip();
   }
   return Promise.reject({code:"unknown"});
@@ -55,7 +55,7 @@ function renderExport(){
   var el = $("export"); if(!el) return;
   var r = S.cur, errs = C.validate(r).filter(function(x){return x.level==="error";});
   var h = '<div class="exhead"><div class="field"><label for="exp-base">File name</label><input class="input" id="exp-base" value="'+esc(S.exp.base || baseName())+'" maxlength="60"></div>'+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-a="copy-code">Copy share code</button></div></div>';
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-a="copy-code">Copy share code</button><button class="btn" data-a="qr">QR code</button></div></div>';
   if(errs.length) h += '<div class="notice err"><div class="grow">This roster has '+errs.length+' rules issue'+(errs.length>1?'s':'')+'. Exports still work, and the HTML versions list the issues.</div><button class="btn sm" data-a="tab" data-v="build">Fix in Build</button></div>';
   if(!S.downloads) h += '<div class="notice"><div class="grow">Saving files isn\'t available in this view. Use Copy and paste into a file, or open the preview.</div></div>';
   h += '<div class="formats">';

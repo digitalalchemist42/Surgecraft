@@ -524,6 +524,16 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .bdock{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--panel);color:var(--ink);border-top:3px solid var(--accent);box-shadow:0 -4px 18px rgba(0,0,0,.18);padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px))}
 .bdock>.wrap{display:flex;flex-direction:column;gap:6px}
 .bd-row{display:flex;align-items:center;gap:8px}
+.bd-clk{display:flex;align-items:stretch;gap:6px}
+.clk{flex:1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink-2);font:inherit;cursor:pointer}
+.clk span{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.clk b{font-size:18px;font-weight:700;color:var(--ink)}
+.clk[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}.clk[aria-pressed="true"] b{color:#fff}
+.clk.over b{color:var(--err)}.clk.over[aria-pressed="true"]{background:var(--err);border-color:var(--err)}.clk.over[aria-pressed="true"] b{color:#fff}
+.clk-st{align-self:center;font-size:11px;color:var(--ink-2);min-width:52px;text-align:center}
+.clk-min{display:flex;align-items:center;gap:6px;font-size:13px}.clk-min .input{width:96px}
+.qr-box{max-width:340px;margin:8px auto;background:#fff;padding:6px;border-radius:4px}.qr-box svg{display:block;width:100%;height:auto}
+.qr-act{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .bd-st{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
 .bd-st b{font-family:var(--display);font-stretch:87.5%;font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd-st span{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -764,6 +774,9 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
 </script>
 <script>
 /*__DICE__*/
+</script>
+<script>
+/*__QR__*/
 </script>
 <script>
 /*__EXAMPLES__*/
