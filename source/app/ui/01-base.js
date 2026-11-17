@@ -41,7 +41,7 @@ var APP = { prompt:null, iosHint:false };
 
 /* ------------ viewer preferences (this browser only): color mode + layout ------------ */
 var PREF_KEY = "surgecraft.prefs.v1";
-var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true, hdrOff:false}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; if(typeof v.hdrOff==="boolean") d.hdrOff=v.hdrOff; }catch(e){} return d; })();
+var P = (function(){ var d = {mode:"auto", layout:"list", guides:true, wake:true, hdrOff:false, dc:[]}; try{ var v = JSON.parse(localStorage.getItem(PREF_KEY)||"{}"); if(["auto","light","dark"].indexOf(v.mode)!==-1) d.mode=v.mode; if(["list","tiles"].indexOf(v.layout)!==-1) d.layout=v.layout; if(typeof v.guides==="boolean") d.guides=v.guides; if(typeof v.wake==="boolean") d.wake=v.wake; if(typeof v.hdrOff==="boolean") d.hdrOff=v.hdrOff; if(Array.isArray(v.dc)) d.dc=v.dc.filter(function(x){ return typeof x==="string"; }).slice(0,20); }catch(e){} return d; })();
 function savePrefs(){ try{ localStorage.setItem(PREF_KEY, JSON.stringify(P)); }catch(e){} }
 var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 function effectiveMode(){

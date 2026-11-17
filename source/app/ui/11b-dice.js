@@ -8,6 +8,19 @@ var D_TRIALS = 20000;
 var D_LIM = { models:[0,30], longModels:[0,30], templ:[0,12], hitMod:[-3,3], roaMod:[-4,6], precision:[0,9], crit:[0,9], antiEvade:[0,4],
   tModels:[0,30], visible:[0,30], prior:[0,40], armourMod:[-3,3], evadeMod:[-3,3], tough:[0,9], dodge:[0,9], reduce:[0,12] };
 
+/* Every block of the tab folds. P.dc lists the blocks the viewer has closed (kept on this device). */
+var D_SEC = { astat:["hitMod","roaMod","precision","crit","antiEvade","burst","longModels"], tstat:["prior","firstGone","stationary"], evade:["evEng","evHigh","evHid","evAbil"], def:["armourMod","evadeMod","tough","dodge","reduce"] };
+function dOpen(k){ return P.dc.indexOf(k)===-1; }
+function dBlk(k, title, id, sub){ return '<details class="panel d-blk" data-k="'+k+'"'+(id?' id="'+id+'"':'')+(dOpen(k)?' open':'')+'><summary><h3>'+esc(title)+(sub?'<small>'+esc(sub)+'</small>':'')+'</h3></summary>'; }   // sub: what the block holds, shown while it is folded
+function dSec(k, title){
+  var n = (D_SEC[k]||[]).filter(function(x){ return !!DS.o[x]; }).length;   // settings changed from their defaults, so a folded group still shows it holds something
+  return '<details class="d-sec" data-k="'+k+'"'+(dOpen(k)?' open':'')+'><summary class="lbl-s">'+esc(title)+(n?' <span class="chip slot">'+n+' set</span>':'')+'</summary><div class="d-pb">';
+}
+document.addEventListener("toggle", function(ev){
+  var t = ev.target, k = t && t.getAttribute && t.getAttribute("data-k"); if(!k || !t.closest || !t.closest("#dice")) return;
+  var i = P.dc.indexOf(k); if(t.open && i!==-1) P.dc.splice(i, 1); else if(!t.open && i===-1) P.dc.push(k); else return;
+  savePrefs();
+}, true);
 function dMaxModels(u){ if(u.compositions && u.compositions.length) return Math.max.apply(null, u.compositions.map(function(c){ return c.models; }));
   var last = u.supply_profile[u.supply_profile.length-1], m = /(\d+)\s*$/.exec(String(last.models)); return m ? Number(m[1]) : 1; }
 function dLabel(list){ var seen = {}, tot = {}; list.forEach(function(c){ tot[c.unitId] = (tot[c.unitId]||0)+1; });
@@ -95,7 +108,7 @@ function renderDice(){
   var el = $("dice"); if(!el) return;
   var ctx = dEnsure(), o = DS.o, a = ctx.a.c, t = ctx.t.c, wx = ctx.wx, h = "";
   var listOpts = ctx.lists.map(function(l){ return [l.id, l.name]; });
-  h += '<div class="d-grid"><section class="panel"><h3>Attacker</h3><div class="pb d-pb">'+
+  h += '<div class="d-grid">'+dBlk("atk", "Attacker", null, a ? a.label+(wx?" \u00b7 "+wx.w.name:"") : "")+'<div class="pb d-pb">'+
     '<div class="field"><label>List</label>'+dSel("d-al", listOpts, DS.aL, "Attacker's list")+'</div>';
   if(!a) h += '<p class="muted">This list has no units yet.</p>';
   else {
@@ -104,7 +117,7 @@ function renderDice(){
     if(wx){
       var w = Dice.parseWeapon(wx.w);
       h += '<div class="d-prof">'+(wx.w.impact ? 'IMPACT: '+esc(wx.w.roa)+' dice per model · Hit '+esc(wx.w.hit)+' · Dmg 1 · no Surge' : weaponLine(wx.w))+'</div>';
-      h += '<div class="lbl-s d-sub">Attacker status</div>';
+      h += dSec("astat", "Attacker status");
       if(w.template) h += dStep("templ", "Models under the template", "Dice = affected models + "+w.roa);
       else h += dStep("models", w.impact ? "Models in the Fighting or Supporting Rank" : "Models attacking", w.ranged ? "In Range of a Visible model" : "");
       if(w.longRange && !w.template) h += dStep("longModels", "Of those, beyond "+esc(wx.w.rng)+"″", "LONG RANGE ("+w.longRange+"″): −1 to Hit");
@@ -113,36 +126,38 @@ function renderDice(){
         dStep("precision", "PRECISION", w.precision?"Weapon prints "+w.precision:"From an ability or card")+
         dStep("crit", "CRITICAL HIT", w.crit?"Weapon prints "+w.crit+"; highest applies":"From an ability or card");
       if(!wx.w.impact) h += dStep("antiEvade", "ANTI-EVADE", w.antiEvade?"Weapon prints "+w.antiEvade+"; highest applies":"From an ability or card");
+      h += '</div></details>';
       var nk = (wx.w.keywords||[]).filter(function(k){ return /^(SIDEARM|PINPOINT|INDIRECT FIRE|INSTANT|BULKY|SPECIALIST|SIEGE MODE)/.test(k); });
       if(nk.length) h += '<p class="faint d-note">Not part of the dice: '+esc(nk.join(", "))+'.</p>';
       h += dHintsHTML("This unit's abilities that may change the attack", dHints(a, new RegExp("weapon|Ranged Attack|Close Combat Attack|IMPACT|RoA|Hit Roll|"+wx.w.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")), a);
     }
   }
-  h += '</div></section><section class="panel"><h3>Target</h3><div class="pb d-pb">'+
+  h += '</div></details>'+dBlk("tgt", "Target", null, t ? t.label : "")+'<div class="pb d-pb">'+
     '<div class="field"><label>List</label>'+dSel("d-tl", listOpts, DS.tL, "Target's list")+'</div>';
   if(!t) h += '<p class="muted">This list has no units yet.</p>';
   else {
     var ts = t.u.stats, wp = wx ? Dice.parseWeapon(wx.w) : null;
     h += '<div class="field"><label>Unit</label>'+dSel("d-tu", ctx.t.list.units.map(function(c){ return [c.key, c.label]; }), DS.tU, "Target unit")+'</div>'+
       '<div class="d-prof">Armour '+esc(ts.armour)+' · Evade '+esc(ts.evade)+' · HP '+esc(ts.hp)+(ts.shield!=null?' · Shield '+esc(ts.shield):'')+' · '+esc(t.u.combat_tags.join(", "))+'</div>'+
-      '<div class="lbl-s d-sub">Target status</div>'+
+      dSec("tstat", "Target status")+
       dStep("tModels", "Models in the unit", t.live?"From the battle in progress":"")+dStep("visible", "Visible models", "Casualties cannot exceed this")+
       dStep("prior", "Damage already on the unit", "Its Damage Marker");
     if(ts.shield!=null) h += dChk("firstGone", "First model already removed", "No Shield left (5.1)");
     if(wp && wp.lockedIn) h += dChk("stationary", "Target is Stationary", "LOCKED IN: +"+wp.lockedIn+" RoA");
-    h += '<div class="lbl-s d-sub">Evade Roll</div>';
+    h += '</div></details>'+dSec("evade", "Evade Roll");
     if(ts.evade==="-") h += '<p class="faint d-note">No Evade characteristic: this unit never makes Evade Rolls.</p>';
     else {
       if(wp && wp.ranged) h += dChk("evEng", "Target is Engaged", "Ranged Attack against an Engaged unit")+dChk("evHigh", "On HIGH GROUND, attacker lower", "HIGH GROUND Cover (7.1.3)");
       h += dChk("evHid", "HIDDEN or BURROWED", "Evade against every attack")+dChk("evAbil", "An ability or card grants it", "");
     }
-    h += '<div class="lbl-s d-sub">Defence</div>'+dStep("armourMod", "Armour modifier", "+1 is easier (BUFF Armour)");
+    h += '</div></details>'+dSec("def", "Defence")+dStep("armourMod", "Armour modifier", "+1 is easier (BUFF Armour)");
     if(ts.evade!=="-") h += dStep("evadeMod", "Evade modifier", "+1 is easier");
     h += dStep("tough", "TOUGH", "Failed Armour Rolls turned to successes")+dStep("dodge", "DODGE", "Fewer dice moved by Surge / CRITICAL HIT")+
       dStep("reduce", "Total Damage reduced by", "e.g. Transfusion, Life Support");
+    h += '</div></details>';
     h += dHintsHTML("This unit's abilities that may change the defence", dHints(t, /Evade|Armour|TOUGH|DODGE|Total Damage|Hit Points|attack/i), t);
   }
-  h += '</div></section></div>';
+  h += '</div></details></div>';
   h += '<div class="d-act"><button class="btn primary" data-a="d-roll">Roll the attack</button><button class="btn" data-a="d-swap">Swap attacker and target</button><button class="btn ghost" data-a="d-clear">Reset statuses</button></div>';
   h += '<div id="d-out">'+dOutHTML(ctx)+'</div>';
   el.innerHTML = h;
@@ -159,7 +174,7 @@ function dOutHTML(ctx){
   var s = dSpec(ctx); if(!s) return '<div class="empty">Choose an attacker with a weapon and a target.</div>';
   var wx = ctx.wx, t = ctx.t.c, od = Dice.simulate(s, D_TRIALS), warns = dWarns(ctx, s), cap = Math.min(s.visible, s.maxKills), k, h = "";
   var dice = s.groups.reduce(function(n, g){ return n+g.n; }, 0);
-  h += '<section class="panel" id="d-odds"><h3>Odds</h3><div class="pb">'+
+  h += dBlk("odds", "Odds", "d-odds", f1(od.damage)+" Damage, "+f1(od.kills)+" removed on average")+'<div class="pb">'+
     '<p class="d-line"><b>'+dice+'</b> Attack Dice, Hit '+s.groups.map(function(g){ return g.tn+"+"+(s.groups.length>1?" ("+g.n+" "+g.label+")":""); }).join(" and ")+
     ' · Armour '+s.armourTN+'+'+(s.evadeTN!=null?' · Evade '+s.evadeTN+'+':' · no Evade Roll')+' · Damage '+s.dmg+' per die'+
     (s.surge?' · Surge '+(s.surge.fixed!=null?s.surge.fixed:s.surge.die):'')+(s.crit?' · CRITICAL HIT ('+s.crit+')':'')+(s.precision?' · PRECISION ('+s.precision+')':'')+'</p>'+
@@ -171,8 +186,8 @@ function dOutHTML(ctx){
     for(k = 1; k <= Math.min(cap, 6); k++) h += '<div><span>'+(k===cap && k===s.models ? 'Destroy the unit' : 'Remove '+k+'+')+'</span><i style="--p:'+Math.round((od.atLeast[k]||0)*100)+'%"></i><b>'+pct(od.atLeast[k]||0)+'</b></div>';
     h += '<div><span>No damage</span><i style="--p:'+Math.round(od.noDamage*100)+'%"></i><b>'+pct(od.noDamage)+'</b></div></div>';
   }
-  h += '<p class="faint d-note">Averages and chances from '+fmt(od.trials)+' simulated rolls of this attack, so they shift slightly each time. Hits include PRECISION.</p></div></section>';
-  h += '<section class="panel" id="d-roll"><h3>Roll</h3><div class="pb"><button class="btn primary d-go" data-a="d-roll">'+(DS.roll?'Roll again':'Roll the attack')+'</button>';
+  h += '<p class="faint d-note">Averages and chances from '+fmt(od.trials)+' simulated rolls of this attack, so they shift slightly each time. Hits include PRECISION.</p></div></details>';
+  h += dBlk("roll", "Roll", "d-roll", DS.roll ? DS.roll.kills+" removed" : "")+'<div class="pb"><button class="btn primary d-go" data-a="d-roll">'+(DS.roll?'Roll again':'Roll the attack')+'</button>';
   if(DS.roll){
     var r = DS.roll, R = r.rolls;
     h += '<ol class="d-steps"><li><b>Hit.</b> '+R.attack.map(function(g){ return (R.attack.length>1?'<span class="faint">'+esc(g.label)+', '+g.tn+'+:</span> ':'<span class="faint">'+g.tn+'+:</span> ')+dDice(g.dice, g.tn); }).join(" ")+
@@ -186,7 +201,7 @@ function dOutHTML(ctx){
       '<span>'+(r.destroyed?r.kills+' model'+(r.kills===1?'':'s')+' removed.':(r.kills>=cap && r.wounds && cap<s.models?'Limit reached ('+(s.maxKills<=s.visible?'CONCENTRATED FIRE':'Visible models')+'): remaining Damage is discarded.':'Damage Marker on the unit: '+r.leftover+'.'))+'</span></div>'+
       '<p class="faint d-note">The roll only shows the result. Record casualties and Damage on the Battle tab yourself.</p>';
   }
-  h += '</div></section>';
+  h += '</div></details>';
   return h;
 }
 function dRefresh(){ var el = $("d-out"); if(!el){ renderDice(); return; } var y = window.scrollY; renderDice(); window.scrollTo(0, y); }
@@ -198,7 +213,8 @@ function dClick(a, v){
     if(k==="tModels") o.visible = Math.min(o.visible, o.tModels);
     if(k==="visible") o.visible = Math.min(o.visible, o.tModels);
     DS.roll = null; dRefresh(); return; }
-  if(a==="d-roll"){ ctx = dEnsure(); var s = dSpec(ctx); if(s){ DS.roll = Dice.resolve(s, Math.random, true); dRefresh(); var el = $("d-roll"); if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); } return; }
+  if(a==="d-roll"){ ctx = dEnsure(); var s = dSpec(ctx); if(s){ var ri = P.dc.indexOf("roll"); if(ri!==-1){ P.dc.splice(ri, 1); savePrefs(); }   // a roll always shows its result
+      DS.roll = Dice.resolve(s, Math.random, true); dRefresh(); var el = $("d-roll"); if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); } return; }
   if(a==="d-swap"){ var l = DS.aL, u = DS.aU; DS.aL = DS.tL; DS.aU = DS.tU; DS.tL = l; DS.tU = u; DS.aW = 0; o.models = null; o.tModels = null; DS.roll = null; dRefresh(); return; }
   if(a==="d-clear"){ DS.o = null; DS.roll = null; dRefresh(); return; }
 }
