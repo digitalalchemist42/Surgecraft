@@ -47,7 +47,7 @@ jobs:
         working-directory: /home/claude/app
         run: |
           set -e
-          pip install --quiet playwright
+          pip install --quiet playwright pypdf
           python3 -m playwright install --with-deps chromium
           python3 -m http.server 8765 >/dev/null 2>&1 &
           sleep 2
