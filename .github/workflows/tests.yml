@@ -22,7 +22,7 @@ jobs:
         run: |
           sudo mkdir -p /home/claude && sudo chown "$USER" /home/claude
           sh source/restore.sh
-      - name: Build the data file (must report ERRORS: 0)
+      - name: Build the data file, which must report zero errors
         working-directory: /home/claude/sc_data
         run: |
           python3 build.py | tee /tmp/build.out
