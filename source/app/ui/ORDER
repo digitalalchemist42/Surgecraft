@@ -7,8 +7,10 @@
 07-reference.js
 07b-terrain.js
 08-share.js
+08b-backup.js
 09-view.js
 10-battle.js
+10b-draft.js
 11-battle-opponent.js
 11b-dice.js
 12-events.js

@@ -37,15 +37,15 @@ function noticeHTML(){
 /* ------------ list view ------------ */
 function renderList(){
   var list = S.rosters.slice().sort(function(a,b){ return (b.updatedAt||0)-(a.updatedAt||0); });
-  var h = '<div class="listhead"><h1>Your rosters</h1><div class="actions">'+(APP.prompt?'<button class="btn" data-a="install">Install app</button>':'')+'<button class="btn" data-a="toggle-import">Import</button><button class="btn primary" data-a="new">New roster</button></div></div>';
+  var h = '<div class="listhead"><h1>Your rosters</h1><div class="actions">'+(APP.prompt?'<button class="btn" data-a="install">Install app</button>':'')+'<button class="btn" data-a="toggle-import">Import</button>'+(S.rosters.length?'<button class="btn" data-a="backup" title="One file with every roster, battle and past battle">Back up all</button>':'')+'<button class="btn primary" data-a="new">New roster</button></div></div>';
   h += '<div class="examples"><span>Start a blank roster</span><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="new-race" data-v="'+x+'"><img src="'+ART.race(x)+'" alt="">'+x+'</button>'; }).join("")+'</div></div>';
   // The example armies are no longer offered in the app (owner decision, 15 Nov 2026); the test page keeps buttons for them.
   if(TEST_EXAMPLES) h += '<div class="examples"><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="example" data-v="'+x+'">Example '+x+'</button>'; }).join("")+'</div></div>';
   if(APP.iosHint) h += '<div class="notice" style="margin:0 0 14px"><div class="grow">To install SurgeCraft on this iPhone or iPad: tap <b>Share</b>, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</div></div>';
   h += noticeHTML();
   if(S.importOpen){
-    h += '<div class="importbox"><div class="field"><label for="imp-code">Share code or roster file text</label><textarea class="input" id="imp-code" placeholder="Paste a share code (starts with SCM1.) or the contents of a roster .json file"></textarea></div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" data-a="import-code">Import code</button><span class="faint">or</span><label class="btn" for="imp-file">Choose roster file…</label><input type="file" id="imp-file" accept=".json,application/json" hidden><button class="btn ghost" data-a="toggle-import">Cancel</button></div></div>';
+    h += '<div class="importbox"><div class="field"><label for="imp-code">Share code, roster file or backup file</label><textarea class="input" id="imp-code" placeholder="Paste a share code (starts with SCM1.), or the contents of a roster file or a SurgeCraft backup file"></textarea></div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" data-a="import-code">Import code</button><span class="faint">or</span><label class="btn" for="imp-file">Choose roster or backup file…</label><input type="file" id="imp-file" accept=".json,application/json" hidden><button class="btn ghost" data-a="toggle-import">Cancel</button></div></div>';
   }
   if(S.store==="loading") h += '<div class="empty">Loading your rosters…</div>';
   else if(!list.length) h += '<div class="empty">No saved rosters yet. Start a new roster or import one.</div>';

@@ -284,6 +284,10 @@ function syncWake(){
 document.addEventListener("visibilitychange", syncWake);
 function bClick(a, v, eu, t){
   var r = S.cur, b = r && r.battle;
+  if(a==="b-draft" || a.indexOf("b-dr-")===0){ draftClick(a, v); return true; }
+  if(a==="b-tmap"){ var tm = DATA.terrain.maps.filter(function(t){ return t.id===v; })[0]; if(tm) openModal('<div class="kwref tref"><div class="kr-head"><h2>'+esc(trName(tm))+'</h2><p>'+esc(tm.battlefield)+' \u00b7 Full Rules p. '+tm.page+'</p></div><figure class="tr-fig"><img src="'+ART.terrain(tm.id)+'" alt="'+esc(trName(tm))+', terrain layout"></figure><div class="tr-req">'+tm.requires.map(function(q){ return '<span class="chip">'+q[0]+' \u00d7 '+esc(q[1])+'</span>'; }).join("")+'</div></div>'); return true; }
+  if(a==="b-troll"){ var sd = BT.side(C, r), d6 = 1+Math.floor(Math.random()*6), n = sd==="standard" ? d6 : Math.ceil(d6/2); BS.set.terrain = sd+"-"+n; renderBattle(); return true; }
+  if(a==="b-dice" && b){ DS.aL = "me"; DS.aU = eu; DS.aW = 0; if(DS.o) DS.o.models = null; DS.roll = null; S.tab = "dice"; render(); window.scrollTo(0,0); return true; }
   if(bSetupClick(a, v)) return true;
   switch(a){
     case "b-set": var kv = v.split(":"); BS.set[kv[0]] = kv.slice(1).join(":"); renderBattle(); return true;

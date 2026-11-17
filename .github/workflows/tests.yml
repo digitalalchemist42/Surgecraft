@@ -1,0 +1,60 @@
+# Rebuilds the data file and the page from source/ and runs the tests on every push and pull request.
+# The build scripts use fixed /home/claude/... paths, so the workspace is restored there first (see source/restore.sh).
+name: tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Restore the build workspace
+        run: |
+          sudo mkdir -p /home/claude && sudo chown "$USER" /home/claude
+          sh source/restore.sh
+      - name: Build the data file (must report ERRORS: 0)
+        working-directory: /home/claude/sc_data
+        run: |
+          python3 build.py | tee /tmp/build.out
+          grep -q "ERRORS: 0" /tmp/build.out
+      - name: Data file matches the one the page was built from
+        run: cmp /home/claude/sc_data/starcraft_tmg_data.json source/sc_data/starcraft_tmg_data.json
+      - name: Build the page and the test page
+        working-directory: /home/claude/app
+        run: |
+          python3 build_page.py
+          python3 mk_test.py
+      - name: Rules, roster, battle and dice tests
+        working-directory: /home/claude/app
+        run: |
+          set -e
+          for t in test-core.js test-render.js test-battle.js test-dice.js; do
+            node "$t" > "/tmp/$t.out" || { cat "/tmp/$t.out"; exit 1; }
+            tail -1 "/tmp/$t.out"
+            grep -q "ALL PASSED" "/tmp/$t.out"
+          done
+      - name: Browser tests
+        working-directory: /home/claude/app
+        run: |
+          set -e
+          pip install --quiet playwright
+          python3 -m playwright install --with-deps chromium
+          python3 -m http.server 8765 >/dev/null 2>&1 &
+          sleep 2
+          for s in smoke_view smoke_dep smoke_kw smoke_battle smoke_battle2 smoke_shield smoke_pay smoke_cards smoke_terrain smoke_dice smoke_extras smoke_print; do
+            echo "::group::$s"
+            python3 "$s.py" > "/tmp/$s.out" 2>&1 || { cat "/tmp/$s.out"; exit 1; }
+            if grep -E "pageerrors : \[.+\]" "/tmp/$s.out"; then cat "/tmp/$s.out"; exit 1; fi
+            tail -3 "/tmp/$s.out"
+            echo "::endgroup::"
+          done

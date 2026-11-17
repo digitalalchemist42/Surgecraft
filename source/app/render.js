@@ -878,6 +878,7 @@
       '<div><span class="rp-res ' + res[0] + '">' + res[1] + '</span><b style="font-size:16px">' + t.me + " – " + t.opp + "</b>" + (b.over ? ' <span class="faint">' + esc(b.over.reason) + "</span>" : ' <span class="faint">Round ' + b.round + ", " + esc(PH[b.phase] || "") + " Phase</span>") + "</div>" +
       '<div class="rp-grid"><div><span>Date</span><b>' + rpDate(b.startedAt) + "</b></div><div><span>Time</span><b>" + rpTime(b.startedAt) + " – " + (b.over ? rpTime(end) : "now") + "</b></div><div><span>Game length</span><b>" + rpDur(end - (b.startedAt || end)) + "</b></div>" +
       "<div><span>Mission</span><b>" + esc(m ? m.name : b.missionId) + "</b></div><div><span>Deployment</span><b>" + esc(b.deploymentId && C.deployments[b.deploymentId] ? C.deployments[b.deploymentId][b.side] : "—") + "</b></div>" +
+      (function () { var tm = b.terrain && C.data.terrain ? C.data.terrain.maps.filter(function (x) { return x.id === b.terrain; })[0] : null; return tm ? "<div><span>Terrain</span><b>" + esc((tm.scale === "standard" ? "Standard" : "Skirmish") + " map " + tm.number + " (Full Rules p. " + tm.page + ")") + "</b></div>" : ""; })() +
       "<div><span>Engagement</span><b>" + (b.side === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ", you were " + (b.color === "red" ? "Red" : "Blue") + "</b></div></div>";
     // scores
     h += "<h2>Victory Points</h2>" + vpChart(b, rounds) + '<div class="rp-wide"><table><thead><tr><th></th>';

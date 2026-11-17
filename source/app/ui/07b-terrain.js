@@ -9,6 +9,7 @@ var TR_STEPS = [
   "Set terrain. Either pick or roll for one of the pre-made maps below (D6 for Standard Engagement, D3 for Skirmish Engagement), or take turns placing one terrain piece at a time, starting with the Red Player.",
   "Place Mission Markers at the Deployment Card's coordinates. They may sit on MID GROUND or HIGH GROUND, but not on impassable terrain: if a Marker would overlap an impassable piece, move that piece as close to the Marker as possible without overlapping it."
 ];
+function trName(m){ return (m.scale==="standard"?"Standard":"Skirmish")+" map "+m.number; }
 function trMaps(){ return DATA.terrain.maps.filter(function(m){ return m.scale===TR.scale; }); }
 function terrainBody(){
   var maps = trMaps(), m = maps[TR.map-1] || maps[0], die = TR.scale==="standard" ? "D6" : "D3";

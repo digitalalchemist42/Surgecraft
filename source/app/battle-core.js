@@ -68,7 +68,7 @@
   function upgrade(b) {
     if (!b.kills) b.kills = []; if (!b.times) b.times = [{ r: b.round, p: b.phase, at: b.startedAt || Date.now() }];
     if (!b.rounds) b.rounds = {}; if (!b.notes) b.notes = {}; if (!b.spend) b.spend = []; if (!b.acts) b.acts = []; if (!b.uses) b.uses = [];
-    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
+    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.terrain === undefined) b.terrain = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
     return b;
   }
   function sync(C, r, b) {
@@ -94,6 +94,7 @@
       color: opts.color === "blue" ? "blue" : "red", round: 1, phase: 1, fpm: opts.fpm === "opp" ? "opp" : "me",
       units: {}, summoned: [], cards: {}, markers: {}, vp: { me: [], opp: [] },
       si: freshInputs(), over: null, rollOff: false, log: [], startedAt: Date.now(),
+      terrain: opts.terrain && C.data.terrain && C.data.terrain.maps.some(function (t) { return t.id === opts.terrain && t.scale === sd; }) ? opts.terrain : null,
       opp: opts.opp ? oppFrom(C, opts.opp) : null, kills: [], times: [], rounds: {}, notes: {}, summary: "", mvp: null, spend: [], acts: [], uses: []
     };
     var allOn = opts.missionId !== "supply-drop";

@@ -19,6 +19,7 @@ document.addEventListener("click", function(ev){
   switch(a){
     case "home": S.view="list"; S.cur=null; S.notice=null; S.confirmDel=null; render(); window.scrollTo(0,0); break;
     case "new": newRoster(); break;
+    case "backup": backupAll(); break;
     case "new-race": newRoster(v); break;
     case "example": openExample(false, v); break;
     case "mode": P.mode = v; savePrefs(); applyMode(); break;
@@ -81,6 +82,7 @@ document.addEventListener("change", function(ev){
   var t = ev.target, a = t.getAttribute && t.getAttribute("data-a"), r = S.cur;
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
+  if(a && a.indexOf("b-dr")===0 && r && draftChange(a, t)) return;
   if(a && a.indexOf("b-")===0 && r && bChange(a, t)) return;
   if(a && a.indexOf("d-")===0 && r && dChange(a, t)) return;
   if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }

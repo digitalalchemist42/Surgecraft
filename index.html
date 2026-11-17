@@ -445,6 +445,14 @@ button.kw:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .d-final.hit{border-left-color:var(--err);background:var(--err-soft)}
 .d-final b{font-family:var(--display);font-size:19px;text-transform:uppercase;letter-spacing:.03em}
 @media (max-width:900px){.d-grid,#d-out{grid-template-columns:minmax(0,1fr)}}
+.dr-step{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line-2);padding-top:10px}
+.dr-step>b{font-family:var(--display);font-stretch:87.5%;font-size:15px;letter-spacing:.02em}
+.dr-step .field .input{margin-top:4px}
+.dr-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.dr-card{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:8px 10px;text-align:left;display:flex;flex-direction:column;gap:2px;font-weight:700}
+.dr-card small{font-weight:500;font-size:11.5px;color:var(--ink-3)}
+.dr-card.gone{opacity:.5}.dr-card.gone span{text-decoration:line-through}
+.dr-card.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
 .tref ol{margin:0;padding-left:20px;font-size:13.5px;display:flex;flex-direction:column;gap:5px}
 .tref details>summary{cursor:pointer;font-family:var(--display);font-stretch:87.5%;font-weight:600;font-size:15px;letter-spacing:.03em;padding:4px 0}
 .tref details>*:not(summary){margin-top:8px}
@@ -2095,6 +2103,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
       '<div><span class="rp-res ' + res[0] + '">' + res[1] + '</span><b style="font-size:16px">' + t.me + " – " + t.opp + "</b>" + (b.over ? ' <span class="faint">' + esc(b.over.reason) + "</span>" : ' <span class="faint">Round ' + b.round + ", " + esc(PH[b.phase] || "") + " Phase</span>") + "</div>" +
       '<div class="rp-grid"><div><span>Date</span><b>' + rpDate(b.startedAt) + "</b></div><div><span>Time</span><b>" + rpTime(b.startedAt) + " – " + (b.over ? rpTime(end) : "now") + "</b></div><div><span>Game length</span><b>" + rpDur(end - (b.startedAt || end)) + "</b></div>" +
       "<div><span>Mission</span><b>" + esc(m ? m.name : b.missionId) + "</b></div><div><span>Deployment</span><b>" + esc(b.deploymentId && C.deployments[b.deploymentId] ? C.deployments[b.deploymentId][b.side] : "—") + "</b></div>" +
+      (function () { var tm = b.terrain && C.data.terrain ? C.data.terrain.maps.filter(function (x) { return x.id === b.terrain; })[0] : null; return tm ? "<div><span>Terrain</span><b>" + esc((tm.scale === "standard" ? "Standard" : "Skirmish") + " map " + tm.number + " (Full Rules p. " + tm.page + ")") + "</b></div>" : ""; })() +
       "<div><span>Engagement</span><b>" + (b.side === "skirmish" ? "Skirmish Level" : "Standard Engagement") + ", you were " + (b.color === "red" ? "Red" : "Blue") + "</b></div></div>";
     // scores
     h += "<h2>Victory Points</h2>" + vpChart(b, rounds) + '<div class="rp-wide"><table><thead><tr><th></th>';
@@ -2903,7 +2912,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
   function upgrade(b) {
     if (!b.kills) b.kills = []; if (!b.times) b.times = [{ r: b.round, p: b.phase, at: b.startedAt || Date.now() }];
     if (!b.rounds) b.rounds = {}; if (!b.notes) b.notes = {}; if (!b.spend) b.spend = []; if (!b.acts) b.acts = []; if (!b.uses) b.uses = [];
-    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
+    if (b.summary == null) b.summary = ""; if (b.mvp === undefined) b.mvp = null; if (b.opp === undefined) b.opp = null; if (b.terrain === undefined) b.terrain = null; if (b.fpmStart == null) b.fpmStart = b.fpm;
     return b;
   }
   function sync(C, r, b) {
@@ -2929,6 +2938,7 @@ textarea.input{min-height:74px;font-family:ui-monospace,Menlo,monospace;font-siz
       color: opts.color === "blue" ? "blue" : "red", round: 1, phase: 1, fpm: opts.fpm === "opp" ? "opp" : "me",
       units: {}, summoned: [], cards: {}, markers: {}, vp: { me: [], opp: [] },
       si: freshInputs(), over: null, rollOff: false, log: [], startedAt: Date.now(),
+      terrain: opts.terrain && C.data.terrain && C.data.terrain.maps.some(function (t) { return t.id === opts.terrain && t.scale === sd; }) ? opts.terrain : null,
       opp: opts.opp ? oppFrom(C, opts.opp) : null, kills: [], times: [], rounds: {}, notes: {}, summary: "", mvp: null, spend: [], acts: [], uses: []
     };
     var allOn = opts.missionId !== "supply-drop";
@@ -3944,15 +3954,15 @@ function noticeHTML(){
 /* ------------ list view ------------ */
 function renderList(){
   var list = S.rosters.slice().sort(function(a,b){ return (b.updatedAt||0)-(a.updatedAt||0); });
-  var h = '<div class="listhead"><h1>Your rosters</h1><div class="actions">'+(APP.prompt?'<button class="btn" data-a="install">Install app</button>':'')+'<button class="btn" data-a="toggle-import">Import</button><button class="btn primary" data-a="new">New roster</button></div></div>';
+  var h = '<div class="listhead"><h1>Your rosters</h1><div class="actions">'+(APP.prompt?'<button class="btn" data-a="install">Install app</button>':'')+'<button class="btn" data-a="toggle-import">Import</button>'+(S.rosters.length?'<button class="btn" data-a="backup" title="One file with every roster, battle and past battle">Back up all</button>':'')+'<button class="btn primary" data-a="new">New roster</button></div></div>';
   h += '<div class="examples"><span>Start a blank roster</span><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="new-race" data-v="'+x+'"><img src="'+ART.race(x)+'" alt="">'+x+'</button>'; }).join("")+'</div></div>';
   // The example armies are no longer offered in the app (owner decision, 15 Nov 2026); the test page keeps buttons for them.
   if(TEST_EXAMPLES) h += '<div class="examples"><div class="ex-btns">'+RACES.map(function(x){ return '<button class="btn sm" data-a="example" data-v="'+x+'">Example '+x+'</button>'; }).join("")+'</div></div>';
   if(APP.iosHint) h += '<div class="notice" style="margin:0 0 14px"><div class="grow">To install SurgeCraft on this iPhone or iPad: tap <b>Share</b>, then <b>Add to Home Screen</b>. It then opens full screen and works offline.</div></div>';
   h += noticeHTML();
   if(S.importOpen){
-    h += '<div class="importbox"><div class="field"><label for="imp-code">Share code or roster file text</label><textarea class="input" id="imp-code" placeholder="Paste a share code (starts with SCM1.) or the contents of a roster .json file"></textarea></div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" data-a="import-code">Import code</button><span class="faint">or</span><label class="btn" for="imp-file">Choose roster file…</label><input type="file" id="imp-file" accept=".json,application/json" hidden><button class="btn ghost" data-a="toggle-import">Cancel</button></div></div>';
+    h += '<div class="importbox"><div class="field"><label for="imp-code">Share code, roster file or backup file</label><textarea class="input" id="imp-code" placeholder="Paste a share code (starts with SCM1.), or the contents of a roster file or a SurgeCraft backup file"></textarea></div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" data-a="import-code">Import code</button><span class="faint">or</span><label class="btn" for="imp-file">Choose roster or backup file…</label><input type="file" id="imp-file" accept=".json,application/json" hidden><button class="btn ghost" data-a="toggle-import">Cancel</button></div></div>';
   }
   if(S.store==="loading") h += '<div class="empty">Loading your rosters…</div>';
   else if(!list.length) h += '<div class="empty">No saved rosters yet. Start a new roster or import one.</div>';
@@ -4598,6 +4608,7 @@ var TR_STEPS = [
   "Set terrain. Either pick or roll for one of the pre-made maps below (D6 for Standard Engagement, D3 for Skirmish Engagement), or take turns placing one terrain piece at a time, starting with the Red Player.",
   "Place Mission Markers at the Deployment Card's coordinates. They may sit on MID GROUND or HIGH GROUND, but not on impassable terrain: if a Marker would overlap an impassable piece, move that piece as close to the Marker as possible without overlapping it."
 ];
+function trName(m){ return (m.scale==="standard"?"Standard":"Skirmish")+" map "+m.number; }
 function trMaps(){ return DATA.terrain.maps.filter(function(m){ return m.scale===TR.scale; }); }
 function terrainBody(){
   var maps = trMaps(), m = maps[TR.map-1] || maps[0], die = TR.scale==="standard" ? "D6" : "D3";
@@ -4644,6 +4655,7 @@ function importText(txt){
   var obj = null;
   try{ obj = txt.indexOf("SCM1.")===0 ? JSON.parse(unb64u(txt.slice(5))) : JSON.parse(txt); }catch(e){ obj = null; }
   if(!obj){ flash("That isn't a roster share code or roster file. Share codes start with SCM1.", "err"); return; }
+  if(obj.format==="surgecraft-backup"){ restoreBackup(obj); return; }
   var res = C.normalize(obj);
   if(!res.roster){ flash("That file doesn't contain a roster.", "err"); return; }
   var r = res.roster; r.name = r.name || "Imported roster";
@@ -4672,6 +4684,42 @@ function summonedHTML(r){
   return h+'</div>';
 }
 
+/* ------------ full backup and restore ------------
+   One file holding every roster on this device or account, with the battle in progress and Past battles
+   (single-roster exports and share codes leave those out). Restore goes through Import. A roster in the
+   backup replaces the saved one with the same id only when the backup's copy is newer. */
+function backupAll(){
+  var list = S.rosters.map(clone), d = new Date(), pad = function(n){ return (n<10?"0":"")+n; };
+  var name = "surgecraft-backup-"+d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+".json";
+  var text = JSON.stringify({ format:"surgecraft-backup", version:1, exportedAt:Date.now(), rosters:list }, null, 1)+"\n";
+  var what = list.length+" roster"+(list.length===1?"":"s");
+  function fallback(){ openModal('<div class="kwref"><div class="kr-head"><h2>Backup</h2><p>Saving a file is not available in this view. Select all of the text below, copy it and keep it in a file named '+esc(name)+'. Paste it into Import to restore.</p></div><textarea class="input" readonly style="min-height:260px" id="bk-text">'+esc(text)+'</textarea></div>'); var ta = $("bk-text"); if(ta){ ta.focus(); ta.select(); } }
+  if(!S.downloads){ fallback(); return; }
+  S.downloads.save({ filename:name, data:text }).then(function(res){ flash((res && res.status==="delivered" ? name+" sent" : "Saved "+name)+": "+what+", with battles and Past battles."); },
+    function(e){ if(e && e.code==="declined") return; fallback(); });
+}
+function restoreBackup(obj){
+  var list = Array.isArray(obj.rosters) ? obj.rosters : [], added = 0, updated = 0, kept = 0, bad = 0, dropped = [];
+  list.forEach(function(raw){
+    var res = C.normalize(raw); if(!res.roster){ bad++; return; }
+    var r = res.roster, same = Array.isArray(raw.units) && raw.units.length===r.units.length;
+    if(typeof raw.id==="string" && /^r_[a-z0-9]+$/i.test(raw.id)) r.id = raw.id;
+    if(Number(raw.createdAt) > 0) r.createdAt = Number(raw.createdAt);
+    /* The battle refers to units by their ids, so it is restored only when every unit came through. */
+    if(same){ r.units.forEach(function(e, i){ var u = raw.units[i].uid; if(typeof u==="string" && /^u_[a-z0-9]+$/i.test(u)) e.uid = u; });
+      if(raw.battle && typeof raw.battle==="object" && raw.battle.units) r.battle = clone(raw.battle); }
+    if(Array.isArray(raw.history)) r.history = clone(raw.history.slice(0, 10));
+    res.dropped.forEach(function(x){ dropped.push((r.name||"Roster")+": "+x); });
+    var cur = S.rosters.filter(function(x){ return x.id===r.id; })[0];
+    if(cur && (cur.updatedAt||0) >= (Number(raw.updatedAt)||0)){ kept++; return; }
+    if(cur) updated++; else added++;
+    Store.queue(r);
+  });
+  S.importOpen = false;
+  S.notice = { kind: added+updated ? "info" : "err", dropped: dropped.slice(0, 12),
+    text: "Backup read: "+added+" added, "+updated+" replaced with a newer copy, "+kept+" left as they are (your saved copy is the same or newer)"+(bad?", "+bad+" could not be read":"")+"." };
+  render();
+}
 /* ------------ roster view (View tab) ------------
    Read-only view of the finished roster. One line per card or unit; tap to unfold the card in place.
    Unit cards are shown as fielded: purchased upgrades merged in, the rest left out. Keywords stay tappable. */
@@ -4814,9 +4862,11 @@ function bSetupHTML(r){
   var side = BT.side(C, r), st = BS.set || (BS.set = { missionId: r.missions[0] || DATA.missions[0].id, deploymentId: r.deployments[0] || DATA.deployments[0].id, color:"red", fpm:"me" });
   var errs = C.validate(r).filter(function(x){return x.level==="error";});
   var h = '<section class="section"><header><span class="step">BATTLE</span><h2>Start a battle</h2><span class="aside">Part 9.2–9.3</span></header><div class="sbody">';
+  var draftBtn = '<div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" data-a="b-draft">Run the draft</button><span class="faint" style="font-size:12.5px">A guide through the Mission and Deployment draft (9.2). Or choose the cards below.</span></div>';
   if(!r.units.length) return h+'<div class="empty">Add units on the Build tab first. The tracker follows the units, cards and upgrades on this roster.</div></div></section>';
   if(errs.length) h += '<div class="notice err" style="margin-top:0"><div class="grow">This roster has '+errs.length+' rules issue'+(errs.length>1?'s':'')+'. You can still track a battle with it.</div><button class="btn sm" data-a="tab" data-v="build">Fix in Build</button></div>';
-  h += '<div class="subhead" style="margin-top:'+(errs.length?'14px':'0')+'">Mission Card <span class="aside">'+(side==="skirmish"?"Skirmish Level":"Standard Engagement")+' side</span></div><div class="tiles">';
+  h += (errs.length?'<div style="height:14px"></div>':'')+draftBtn;
+  h += '<div class="subhead" style="margin-top:0">Mission Card <span class="aside">'+(side==="skirmish"?"Skirmish Level":"Standard Engagement")+' side</span></div><div class="tiles">';
   DATA.missions.forEach(function(m){
     var s = m[side], on = st.missionId===m.id, mine = r.missions.indexOf(m.id)!==-1;
     h += '<button class="tile" data-a="b-set" data-v="missionId:'+esc(m.id)+'" aria-pressed="'+on+'"><span class="tcol"><span class="t-name">'+esc(m.name)+(mine?' <span class="chip slot">On roster</span>':'')+'</span><span class="t-sub">'+s.deploy_supply+' Supply, +'+s.supply_per_round+' per Round, '+s.game_length+' Rounds</span></span></button>';
@@ -4828,6 +4878,9 @@ function bSetupHTML(r){
     h += '<button class="tile" data-a="b-set" data-v="deploymentId:'+esc(d.id)+'" aria-pressed="'+on+'"><span class="tcol"><span class="t-name">'+esc(d[side])+(mine?' <span class="chip slot">On roster</span>':'')+'</span></span></button>';
   });
   h += '</div><div style="margin-top:8px"><button class="btn sm" data-a="dmap" data-v="'+esc(st.deploymentId)+'">View map</button></div>';
+  var tmaps = DATA.terrain.maps.filter(function(t){ return t.scale===side; }); if(st.terrain && !tmaps.some(function(t){ return t.id===st.terrain; })) st.terrain = "";
+  h += '<div class="subhead">Terrain map <span class="aside">Optional \u00b7 Full Rules pp. 115\u2013124</span></div><div class="tr-ctl"><div class="seg"><button data-a="b-set" data-v="terrain:" aria-pressed="'+(!st.terrain)+'">None</button>'+tmaps.map(function(t){
+      return '<button data-a="b-set" data-v="terrain:'+t.id+'" aria-pressed="'+(st.terrain===t.id)+'">Map '+t.number+'</button>'; }).join("")+'</div><button class="btn sm" data-a="b-troll">Roll '+(side==="standard"?"D6":"D3")+'</button>'+(st.terrain?'<button class="btn sm" data-a="b-tmap" data-v="'+esc(st.terrain)+'">View map</button>':'')+'</div>';
   h += '<div class="grid2" style="margin-top:16px"><div class="field"><span class="lbl-s">Your colour</span><div class="seg"><button data-a="b-set" data-v="color:red" aria-pressed="'+(st.color==="red")+'">Red Player</button><button data-a="b-set" data-v="color:blue" aria-pressed="'+(st.color==="blue")+'">Blue Player</button></div><span class="faint" style="font-size:12px">Sets your Entry Edge and which Markers are your colour (1 and 3 Red, 2 and 4 Blue).</span></div>'+
     '<div class="field"><span class="lbl-s">First Player Marker for Round 1</span><div class="seg"><button data-a="b-set" data-v="fpm:me" aria-pressed="'+(st.fpm==="me")+'">You</button><button data-a="b-set" data-v="fpm:opp" aria-pressed="'+(st.fpm==="opp")+'">Opponent</button></div><span class="faint" style="font-size:12px">The Roll-Off winner gives it to either player (8.2.2).</span></div></div>';
   h += bOppSetupHTML();
@@ -4853,6 +4906,8 @@ function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
 }
+var DICE_ICO = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.4" cy="5.4" r="1.1" fill="currentColor"/><circle cx="8" cy="8" r="1.1" fill="currentColor"/><circle cx="10.6" cy="10.6" r="1.1" fill="currentColor"/></svg>';
+function bDiceBtn(i, b){ return i.state==="fld" && !b.over ? '<button class="bu-kill" data-a="b-dice" data-e="'+esc(i.uid)+'" title="Work out an attack on the Dice tab" aria-label="Dice for '+esc(i.unit.name)+'">'+DICE_ICO+'</button>' : ""; }
 function bKillBtn(i, b){ return hasOpp(b) && i.state==="fld" && !b.over ? '<button class="bu-kill" data-a="b-ks" data-e="'+esc(i.uid)+'" title="Killed a model / lost a model" aria-label="Kills and losses for '+esc(i.unit.name)+'">'+SWORDS+'</button>' : ""; }
 function bEnemyStep(b, label){ var el = BT.enemyLost(C, b); return bStepper(label, el.total, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"', el.tracked ? '<span class="faint" style="font-size:12px">from their tracked losses'+(el.adj ? (el.adj>0?" +":" ")+el.adj+" adjusted" : "")+'</span>' : ""); }
 function bNoteHTML(b){ return '<div class="field" style="margin-top:12px"><label for="b-note">Round '+b.round+' notes <span class="faint" style="text-transform:none;letter-spacing:0;font-weight:500">for the battle report</span></label><textarea class="input" id="b-note" data-a="b-note" data-v="'+b.round+'" rows="2" placeholder="Key moments this Round">'+esc((b.notes||{})[b.round]||"")+'</textarea></div>'; }
@@ -4871,7 +4926,7 @@ function bUnitCompact(i, b, r, sup){
   }
   var h = '<article class="bunit cpt '+i.state+(acted?' acted':'')+(i.casualtyDue?' has-err':'')+'" id="b-'+uid+'"><div class="bu-c">'+
     '<button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+uid+'"')+' aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
-    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button>'+bKillBtn(i, b)+'</div>';
+    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button>'+bDiceBtn(i, b)+bKillBtn(i, b)+'</div>';
   var row = '';
   if(i.state==="res"){
     var fits = sup.unlimited || i.poolSupply<=sup.available;
@@ -4897,7 +4952,7 @@ function bUnitFull(i, b, r, sup){
     if(i.shield) h += '<span class="chip'+(i.shielded?' slot':'')+'">'+(i.shielded?'Shielded':'Shield lost')+'</span>';
     if(st.dis) h += '<span class="pill warn">Disengaged</span>';
   }
-  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+bKillBtn(i, b)+cardBtn+'</span></div>';
+  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+bDiceBtn(i, b)+bKillBtn(i, b)+cardBtn+'</span></div>';
   if(i.state==="dead") return h+'<div class="bu-row"><button class="btn sm" data-a="b-state" data-e="'+uid+'" data-v="fld">Restore</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+uid+'">Remove</button>':'')+'</div></article>';
   if(i.state==="res"){
     var fits = sup.unlimited || i.poolSupply<=sup.available;
@@ -5006,7 +5061,7 @@ function bRailHTML(b, r){
   h += '<div class="panel'+btc("more")+'"><h3>Play options</h3><div class="pb bopts">'+
     '<div class="bopt"><button class="bchip" data-a="b-guides" aria-pressed="'+P.guides+'">Phase guides</button><span class="faint">Rules steps and help text for each Phase.</span></div>'+
     '<div class="bopt"><button class="bchip" data-a="b-wake" aria-pressed="'+P.wake+'">Keep screen awake</button><span class="faint" id="b-wake-st">'+esc(wakeText())+'</span></div></div></div>';
-  h += '<div class="panel'+btc("more")+'"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
+  h += '<div class="panel'+btc("more")+'"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.terrain?'<button class="btn sm" data-a="b-tmap" data-v="'+esc(b.terrain)+'">Terrain map</button>':'')+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
   h += '<div class="panel'+btc("more")+'"><h3>Battle</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="btn sm" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button>'+
     (BS.quit?'<span class="muted">End this battle and clear its tracking?</span><button class="btn danger sm" data-a="b-quit-yes">End battle</button><button class="btn sm" data-a="b-quit-no">Keep</button>':'<button class="btn ghost sm danger" data-a="b-quit">End battle</button>')+'</div></div>';
   if(b.log.length) h += '<details class="panel blog'+btc("more")+'"><summary><h3>Battle log ('+b.log.length+')</h3></summary><div class="pb">'+b.log.slice(-60).reverse().map(function(l){ return '<div class="bl"><span class="faint num">R'+l.r+' P'+l.p+'</span> '+esc(l.t)+'</div>'; }).join("")+'</div></details>';
@@ -5045,6 +5100,67 @@ function bGroupHTML(g, b, r, sup){
   else if(g.empty) h += '<div class="empty">'+g.empty+'</div>';
   if(g.hidden) h += g.hidden;
   return h;
+}
+/* ------------ Mission and Deployment draft (Part 9.2) ------------
+   A guide through the draft from the Start a battle screen: each player's 2 Mission and 2 Deployment Cards, the
+   Roll-Off, the winner's colour and draft control, two removals and one pick per draft. Applying it sets the
+   Mission, Deployment and your colour for the battle. The First Player Marker is a separate Roll-Off (8.2.2). */
+var DR = null;
+function drWho(w){ return w==="me" ? "You" : "Opponent"; }
+function drOther(w){ return w==="me" ? "op" : "me"; }
+function drPool(k){ return [["me",DR.my[k][0]],["me",DR.my[k][1]],["op",DR.op[k][0]],["op",DR.op[k][1]]]; }
+function drName(k, id){ var side = BT.side(C, S.cur); return k==="m" ? (C.missions[id]||{}).name : (C.deployments[id]||{})[side]; }
+function draftOpen(){
+  var r = S.cur, ms = DATA.missions.map(function(m){ return m.id; }), ds = DATA.deployments.map(function(d){ return d.id; });
+  function two(mine, all){ var a = mine.filter(function(id){ return all.indexOf(id)!==-1; }).slice(0, 2); all.forEach(function(id){ if(a.length<2 && a.indexOf(id)===-1) a.push(id); }); return a; }
+  DR = { my:{ m:two(r.missions, ms), d:two(r.deployments, ds) }, op:{ m:ms.slice(0, 2), d:ds.slice(0, 2) }, win:null, color:null, ctl:null, out:{ m:[], d:[] }, pick:{ m:null, d:null }, roll:"" };
+  draftRender();
+}
+function draftBody(){
+  var h = '<div class="kr-head"><h2>Mission and Deployment draft</h2><p>Part 9.2. Each player brings 2 Mission Cards and 2 Deployment Cards, with no duplicates in their own set.</p></div>';
+  function sel(who, k, i){ var all = k==="m" ? DATA.missions : DATA.deployments, cur = DR[who][k][i];
+    return '<select class="input" data-a="b-dr-sel" data-v="'+who+':'+k+':'+i+'" aria-label="'+(who==="my"?"Your":"Opponent\'s")+' '+(k==="m"?"Mission":"Deployment")+' Card '+(i+1)+'">'+all.map(function(x){ return '<option value="'+esc(x.id)+'"'+(x.id===cur?' selected':'')+'>'+esc(drName(k, x.id))+'</option>'; }).join("")+'</select>'; }
+  function set(who, label){ var dup = DR[who].m[0]===DR[who].m[1] || DR[who].d[0]===DR[who].d[1];
+    return '<div class="field"><span class="lbl-s">'+label+'</span>'+sel(who,"m",0)+sel(who,"m",1)+sel(who,"d",0)+sel(who,"d",1)+(dup?'<span class="pill err">A player may not bring the same card twice</span>':'')+'</div>'; }
+  h += '<div class="dr-step"><b>1. The cards</b><div class="grid2">'+set("my","Your cards (2 Missions, 2 Deployments)")+set("op","Opponent\'s cards")+'</div></div>';
+  h += '<div class="dr-step"><b>2. Roll-Off</b><div class="tr-ctl"><div class="seg"><button data-a="b-dr-win" data-v="me" aria-pressed="'+(DR.win==="me")+'">You won</button><button data-a="b-dr-win" data-v="op" aria-pressed="'+(DR.win==="op")+'">Opponent won</button></div><button class="btn sm" data-a="b-dr-roll">Roll 2D6 each</button><span class="tr-roll">'+esc(DR.roll)+'</span></div></div>';
+  if(DR.win){
+    var w = drWho(DR.win);
+    h += '<div class="dr-step"><b>3. '+w+(DR.win==="me"?" choose":" chooses")+' a colour, then a draft to control</b><div class="tr-ctl"><div class="seg"><button data-a="b-dr-col" data-v="red" aria-pressed="'+(DR.color==="red")+'">Red Player</button><button data-a="b-dr-col" data-v="blue" aria-pressed="'+(DR.color==="blue")+'">Blue Player</button></div>'+
+      '<div class="seg"><button data-a="b-dr-ctl" data-v="m" aria-pressed="'+(DR.ctl==="m")+'">Mission Draft</button><button data-a="b-dr-ctl" data-v="d" aria-pressed="'+(DR.ctl==="d")+'">Deployment Draft</button></div></div>'+
+      '<span class="faint" style="font-size:12px">The other player controls the other draft.</span></div>';
+  }
+  if(DR.win && DR.ctl) ["m","d"].forEach(function(k, n){
+    var ctl = DR.ctl===k ? DR.win : drOther(DR.win), rem = drOther(ctl), out = DR.out[k], left = 2-out.length;
+    h += '<div class="dr-step"><b>'+(4+n)+'. '+(k==="m"?"Mission":"Deployment")+' Draft</b><span class="faint" style="font-size:12.5px">'+
+      (left>0 ? drWho(rem)+(rem==="me"?" remove ":" removes ")+left+" more card"+(left>1?"s":"")+"." : DR.pick[k]==null ? drWho(ctl)+(ctl==="me"?" pick":" picks")+" one of the two left." : "Chosen: "+esc(drName(k, drPool(k)[DR.pick[k]][1]))+". The last card is discarded.")+'</span><div class="dr-cards">'+
+      drPool(k).map(function(c, i){ var gone = out.indexOf(i)!==-1, on = DR.pick[k]===i;
+        return '<button class="dr-card'+(gone?' gone':'')+(on?' on':'')+'" data-a="b-dr-card" data-v="'+k+':'+i+'" aria-pressed="'+on+'"><span>'+esc(drName(k, c[1]))+'</span><small>'+(c[0]==="me"?"Yours":"Opponent\'s")+(gone?" · removed":on?" · chosen":"")+'</small></button>'; }).join("")+'</div></div>';
+  });
+  var done = DR.win && DR.color && DR.pick.m!=null && DR.pick.d!=null, mine = DR.win==="me" ? DR.color : (DR.color==="red"?"blue":"red");
+  h += '<div class="tr-ctl"><button class="btn primary" data-a="b-dr-apply"'+(done?'':' disabled')+'>Use this for the battle</button>'+(done?'<span class="tr-roll">You are the '+(mine==="red"?"Red":"Blue")+' Player.</span>':'<span class="faint">Finish each step to apply the result.</span>')+'</div>';
+  return h;
+}
+function draftRender(){ var el = $("draft"); if(el) el.innerHTML = draftBody(); else openModal('<div class="kwref" id="draft">'+draftBody()+'</div>'); }
+function draftClick(a, v){
+  if(a==="b-draft"){ draftOpen(); return; }
+  if(!DR) return;
+  if(a==="b-dr-win"){ DR.win = v; DR.roll = ""; }
+  else if(a==="b-dr-roll"){ var d = function(){ return 2+Math.floor(Math.random()*6)+Math.floor(Math.random()*6); }, x, y, n = 0; do { x = d(); y = d(); n++; } while(x===y);   // ties are re-rolled (3.2)
+    DR.win = x>y ? "me" : "op"; DR.roll = "You "+x+", opponent "+y+(n>1?" (after "+(n-1)+" tied roll"+(n>2?"s":"")+")":"")+"."; }
+  else if(a==="b-dr-col"){ DR.color = v; }
+  else if(a==="b-dr-ctl"){ DR.ctl = v; }
+  else if(a==="b-dr-card"){ var p = v.split(":"), k = p[0], i = Number(p[1]), out = DR.out[k], at = out.indexOf(i);
+    if(at!==-1){ out.splice(at, 1); DR.pick[k] = null; }
+    else if(out.length<2){ out.push(i); DR.pick[k] = null; }
+    else DR.pick[k] = DR.pick[k]===i ? null : i; }
+  else if(a==="b-dr-apply"){ var st = BS.set; st.missionId = drPool("m")[DR.pick.m][1]; st.deploymentId = drPool("d")[DR.pick.d][1]; st.color = DR.win==="me" ? DR.color : (DR.color==="red"?"blue":"red");
+    closeModal(); renderBattle(); return; }
+  draftRender();
+}
+function draftChange(a, t){
+  if(a!=="b-dr-sel" || !DR) return false;
+  var p = t.getAttribute("data-v").split(":"); DR[p[0]][p[1]][Number(p[2])] = t.value; DR.out[p[1]] = []; DR.pick[p[1]] = null; draftRender(); return true;
 }
 /* ------------ opponent's list, kills, battle report, past battles ------------ */
 var SWORDS = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l6.2 6.2M2 2h3M2 2v3M14 2L7.8 8.2M14 2h-3M14 2v3M5.2 9.2l1.6 1.6M10.8 9.2l-1.6 1.6M4.5 11.5l-2 2M11.5 11.5l2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
@@ -5332,6 +5448,10 @@ function syncWake(){
 document.addEventListener("visibilitychange", syncWake);
 function bClick(a, v, eu, t){
   var r = S.cur, b = r && r.battle;
+  if(a==="b-draft" || a.indexOf("b-dr-")===0){ draftClick(a, v); return true; }
+  if(a==="b-tmap"){ var tm = DATA.terrain.maps.filter(function(t){ return t.id===v; })[0]; if(tm) openModal('<div class="kwref tref"><div class="kr-head"><h2>'+esc(trName(tm))+'</h2><p>'+esc(tm.battlefield)+' \u00b7 Full Rules p. '+tm.page+'</p></div><figure class="tr-fig"><img src="'+ART.terrain(tm.id)+'" alt="'+esc(trName(tm))+', terrain layout"></figure><div class="tr-req">'+tm.requires.map(function(q){ return '<span class="chip">'+q[0]+' \u00d7 '+esc(q[1])+'</span>'; }).join("")+'</div></div>'); return true; }
+  if(a==="b-troll"){ var sd = BT.side(C, r), d6 = 1+Math.floor(Math.random()*6), n = sd==="standard" ? d6 : Math.ceil(d6/2); BS.set.terrain = sd+"-"+n; renderBattle(); return true; }
+  if(a==="b-dice" && b){ DS.aL = "me"; DS.aU = eu; DS.aW = 0; if(DS.o) DS.o.models = null; DS.roll = null; S.tab = "dice"; render(); window.scrollTo(0,0); return true; }
   if(bSetupClick(a, v)) return true;
   switch(a){
     case "b-set": var kv = v.split(":"); BS.set[kv[0]] = kv.slice(1).join(":"); renderBattle(); return true;
@@ -5396,7 +5516,8 @@ function bClick(a, v, eu, t){
    the engine is dice-core.js (Part 8.7.4). The attacker and target come from the active lists: this roster, the
    opponent's list of the battle in progress, another saved roster, or any unit.
    What the app cannot know (range, Line of Sight, statuses, abilities and cards in effect) is set by hand before the roll. */
-var DS = { aL:"me", aU:null, aW:0, tL:null, tU:null, o:null, roll:null };
+var DS = { aL:"me", aU:null, aW:0, tL:null, tU:null, o:null, roll:null, all:false };
+var D_TRIALS_ALL = 5000;
 var D_TRIALS = 20000;
 var D_LIM = { models:[0,30], longModels:[0,30], templ:[0,12], hitMod:[-3,3], roaMod:[-4,6], precision:[0,9], crit:[0,9], antiEvade:[0,4],
   tModels:[0,30], visible:[0,30], prior:[0,40], armourMod:[-3,3], evadeMod:[-3,3], tough:[0,9], dodge:[0,9], reduce:[0,12] };
@@ -5466,13 +5587,62 @@ function dEnsure(){
   else if(DS.o.tModels == null) dResetTgt(t.c);
   return { lists:lists, a:a, t:t, ws:ws, wx:ws[DS.aW] || null };
 }
-function dSpec(ctx){
-  var o = DS.o, wx = ctx.wx, t = ctx.t.c; if(!wx || !t) return null;
+/* sel: the weapon chosen in the Weapon box, which takes the weapon-specific statuses (models attacking, LONG RANGE, BURST FIRE,
+   template). ts: the target's state, so that a second Batch meets the unit as the first one left it. */
+function dSpecFor(ctx, wx, sel, ts){
+  var o = DS.o, t = ctx.t.c; if(!wx || !t) return null;
   var w = Dice.parseWeapon(wx.w), ev = (w.ranged && (o.evEng || o.evHigh)) || o.evHid || o.evAbil;
-  return Dice.buildSpec({ weapon:wx.w, models:o.models, longModels:o.longModels, burst:o.burst, stationary:o.stationary, templateModels:o.templ,
+  return Dice.buildSpec({ weapon:wx.w, models: sel ? o.models : wx.n, longModels: sel ? o.longModels : 0, burst: sel && o.burst, stationary:o.stationary, templateModels: sel ? o.templ : 1,
     hitMod:o.hitMod, roaMod:o.roaMod, precision:o.precision, crit:o.crit, antiEvade:o.antiEvade,
-    target:{ tags:t.u.combat_tags, armour:t.u.stats.armour, evade:t.u.stats.evade, hp:t.u.stats.hp, shield:t.u.stats.shield, models:o.tModels, visible:o.visible, prior:o.prior, firstGone:o.firstGone },
+    target:{ tags:t.u.combat_tags, armour:t.u.stats.armour, evade:t.u.stats.evade, hp:t.u.stats.hp, shield:t.u.stats.shield, models:ts.models, visible:ts.visible, prior:ts.prior, firstGone:ts.firstGone },
     evade:ev, armourMod:o.armourMod, evadeMod:o.evadeMod, tough:o.tough, dodge:o.dodge, reduce:o.reduce });
+}
+function dTs(){ var o = DS.o; return { models:o.tModels, visible:o.visible, prior:o.prior, firstGone:o.firstGone }; }
+function dSpec(ctx){ return dSpecFor(ctx, ctx.wx, true, dTs()); }
+/* The weapons one activation uses in the chosen weapon's Phase (8.7.3): each model fires one weapon, a model with a
+   SPECIALIST weapon fires that instead, and every SIDEARM fires as well. Each is its own Batch, here all at one target. */
+function dPlan(ctx){
+  var wx = ctx.wx; if(!wx || wx.w.impact) return wx ? [wx] : [];
+  var same = ctx.ws.filter(function(x){ return !x.w.impact && x.w.phase===wx.w.phase; });
+  var side = function(x){ return (x.w.keywords||[]).indexOf("SIDEARM")!==-1; }, spec = function(x){ return x.tag==="1 model"; };
+  var main = !side(wx) && !spec(wx) ? wx : same.filter(function(x){ return !side(x) && !spec(x); })[0];
+  return same.filter(function(x){ return x===main || x===wx || side(x) || spec(x); });
+}
+function dRunAll(ctx, plan, rnd, keep){
+  var ts = dTs(), start = ts.models, parts = [], kills = 0, damage = 0, i, s, r;
+  for(i = 0; i < plan.length && (ts.models > 0 || !start); i++){
+    s = dSpecFor(ctx, plan[i], plan[i]===ctx.wx, ts); r = Dice.resolve(s, rnd, keep); parts.push({ wx:plan[i], s:s, r:r });
+    kills += r.kills; damage += r.damage; ts.models -= r.kills; ts.visible = Math.max(0, ts.visible - r.kills); ts.prior = r.leftover; if(r.kills) ts.firstGone = true;
+  }
+  return { all:true, parts:parts, kills:kills, damage:damage, leftover:ts.prior, destroyed: start > 0 && ts.models <= 0 };
+}
+function dSimAll(ctx, plan, n){
+  var sum = { damage:0, kills:0 }, dist = [], destroyed = 0, none = 0, i, o, k, acc = 0, atLeast = [];
+  for(i = 0; i < n; i++){ o = dRunAll(ctx, plan, Math.random, false); sum.damage += o.damage; sum.kills += o.kills; dist[o.kills] = (dist[o.kills]||0)+1; if(o.destroyed) destroyed++; if(!o.damage) none++; }
+  for(k = dist.length-1; k >= 0; k--){ acc += dist[k]||0; atLeast[k] = acc/n; }
+  return { trials:n, damage:sum.damage/n, kills:sum.kills/n, atLeast:atLeast, destroyed:destroyed/n, noDamage:none/n };
+}
+/* Can this roll be written to the battle in progress? Only when the target is a tracked unit: yours or the opponent's. */
+function dCanRecord(){ var b = S.cur && S.cur.battle; return !!(b && !b.over && DS.roll && !DS.roll.recorded && (DS.tL==="me" || DS.tL==="opp")); }
+function dRecordHTML(){
+  if(DS.roll && DS.roll.recorded) return '<p class="d-note"><b>Recorded on the Battle tab.</b> Undo there takes it back.</p>';
+  if(!dCanRecord()) return '<p class="faint d-note">The roll only shows the result'+(S.cur && S.cur.battle && !S.cur.battle.over ? '; this target is not a unit the battle tracks.' : '. With a battle in progress it can be recorded on the Battle tab.')+'</p>';
+  return '<div class="d-act" style="margin-bottom:0"><button class="btn" data-a="d-rec">Record on the Battle tab</button><span class="faint d-note">Removes the models and sets the Damage Marker. Undo on the Battle tab takes it back.</span></div>';
+}
+function dRecord(){
+  if(!dCanRecord()) return;
+  var r = S.cur, b = r.battle, roll = DS.roll, ctx = dEnsure(), a = ctx.a.c, t = ctx.t.c, i; if(!t) return;
+  BS.undo.push(JSON.stringify(b)); if(BS.undo.length>40) BS.undo.shift();
+  var wname = roll.all ? roll.parts.map(function(p){ return p.wx.w.name; }).join(", ") : ctx.wx.w.name;
+  for(i = 0; i < roll.kills; i++){
+    if(DS.tL==="opp"){ if(DS.aL==="me" && b.units[a.key]) BT.kill(C, r, b, a.key, t.key, "dealt"); else BT.oppChange(C, b, t.key, -1); }
+    else if(DS.aL==="opp") BT.kill(C, r, b, t.key, a.key, "lost"); else BT.changeModels(C, r, b, t.key, -1);
+  }
+  if(DS.tL==="me"){ var st = b.units[t.key]; if(st && st.st!=="dead") BT.changeDamage(C, r, b, t.key, roll.leftover - (st.d||0)); }
+  b.log.push({ r:b.round, p:b.phase, at:Date.now(), t:"Dice: "+(a?a.u.name:"Attacker")+" ("+wname+") against "+(DS.tL==="opp"?"the opponent's ":"")+t.u.name+": "+roll.kills+" model"+(roll.kills===1?"":"s")+" removed"+(DS.tL==="me" && !roll.destroyed?", Damage Marker "+roll.leftover:"")+"." });
+  roll.recorded = true; Store.queue(r);
+  var c = dEnsure().t.c, o = DS.o; if(c){ o.tModels = c.models; o.visible = c.models; o.prior = c.prior; o.firstGone = c.firstGone; }
+  dRefresh();
 }
 /* Abilities worth a look before rolling: the engine does not read ability text. */
 function dHints(c, re){
@@ -5510,6 +5680,8 @@ function renderDice(){
     if(wx){
       var w = Dice.parseWeapon(wx.w);
       h += '<div class="d-prof">'+(wx.w.impact ? 'IMPACT: '+esc(wx.w.roa)+' dice per model · Hit '+esc(wx.w.hit)+' · Dmg 1 · no Surge' : weaponLine(wx.w))+'</div>';
+      var plan0 = dPlan(ctx);
+      if(plan0.length > 1) h += '<label class="d-opt d-chk"><span class="d-ol">Roll the whole activation<small>'+esc(plan0.map(function(x){ return x.w.name; }).join(", "))+', each as its own Batch at this target</small></span><input type="checkbox" data-a="d-all"'+(DS.all?' checked':'')+'></label>';
       h += dSec("astat", "Attacker status");
       if(w.template) h += dStep("templ", "Models under the template", "Dice = affected models + "+w.roa);
       else h += dStep("models", w.impact ? "Models in the Fighting or Supporting Rank" : "Models attacking", w.ranged ? "In Range of a Visible model" : "");
@@ -5565,6 +5737,8 @@ function dWarns(ctx, s){
 }
 function dOutHTML(ctx){
   var s = dSpec(ctx); if(!s) return '<div class="empty">Choose an attacker with a weapon and a target.</div>';
+  var plan = DS.all ? dPlan(ctx) : [];
+  if(plan.length > 1) return dOutAllHTML(ctx, plan);
   var wx = ctx.wx, t = ctx.t.c, od = Dice.simulate(s, D_TRIALS), warns = dWarns(ctx, s), cap = Math.min(s.visible, s.maxKills), k, h = "";
   var dice = s.groups.reduce(function(n, g){ return n+g.n; }, 0);
   h += dBlk("odds", "Odds", "d-odds", f1(od.damage)+" Damage, "+f1(od.kills)+" removed on average")+'<div class="pb">'+
@@ -5592,10 +5766,29 @@ function dOutHTML(ctx){
     h += '<li><b>Damage.</b> <span class="d-res">'+r.wounds+' × '+s.dmg+' = '+r.damage+(r.wounds && (s.prior||s.reduce)?(s.prior?' + '+s.prior+' already on the unit':'')+(s.reduce?' − '+s.reduce+' reduced':'')+' = '+r.total:'')+'</span></li></ol>'+
       '<div class="d-final'+(r.kills?' hit':'')+'"><b>'+(r.destroyed?esc(t.u.name)+' destroyed':r.kills+' model'+(r.kills===1?'':'s')+' removed')+'</b>'+
       '<span>'+(r.destroyed?r.kills+' model'+(r.kills===1?'':'s')+' removed.':(r.kills>=cap && r.wounds && cap<s.models?'Limit reached ('+(s.maxKills<=s.visible?'CONCENTRATED FIRE':'Visible models')+'): remaining Damage is discarded.':'Damage Marker on the unit: '+r.leftover+'.'))+'</span></div>'+
-      '<p class="faint d-note">The roll only shows the result. Record casualties and Damage on the Battle tab yourself.</p>';
+      dRecordHTML();
   }
   h += '</div></details>';
   return h;
+}
+function dOutAllHTML(ctx, plan){
+  var t = ctx.t.c, o = DS.o, od = dSimAll(ctx, plan, D_TRIALS_ALL), cap = o.visible, k, h = "", ts = dTs();
+  h += dBlk("odds", "Odds", "d-odds", f1(od.damage)+" Damage, "+f1(od.kills)+" removed on average")+'<div class="pb"><p class="d-line">Whole activation, resolved in this order, each Batch meeting the unit as the one before left it:</p><ol class="d-steps" style="margin-top:0">'+
+    plan.map(function(x){ var s = dSpecFor(ctx, x, x===ctx.wx, ts), n = s.groups.reduce(function(a, g){ return a+g.n; }, 0);
+      return '<li><b>'+esc(x.w.name)+'.</b> <span class="d-res">'+n+' Attack Dice, Hit '+s.groups.map(function(g){ return g.tn+"+"; }).join(" / ")+', Damage '+s.dmg+(s.surge?', Surge '+(s.surge.fixed!=null?s.surge.fixed:s.surge.die):'')+(x===ctx.wx?'':' \u00b7 '+x.n+' model'+(x.n===1?'':'s')+', no range or BURST FIRE switches')+'</span></li>'; }).join("")+'</ol>'+
+    '<div class="d-stats"><div><span>Damage</span><b>'+f1(od.damage)+'</b></div><div><span>Models removed</span><b>'+f1(od.kills)+'</b></div></div>';
+  if(cap > 0){ h += '<div class="d-chances">';
+    for(k = 1; k <= Math.min(cap, 6); k++) h += '<div><span>'+(k===cap && k===o.tModels ? 'Destroy the unit' : 'Remove '+k+'+')+'</span><i style="--p:'+Math.round((od.atLeast[k]||0)*100)+'%"></i><b>'+pct(od.atLeast[k]||0)+'</b></div>';
+    h += '<div><span>No damage</span><i style="--p:'+Math.round(od.noDamage*100)+'%"></i><b>'+pct(od.noDamage)+'</b></div></div>'; }
+  h += '<p class="faint d-note">From '+fmt(od.trials)+' simulated activations. The modifiers, PRECISION, CRITICAL HIT and the target\u2019s statuses apply to every Batch; set a weapon on its own to give it different ones.</p></div></details>';
+  var R = DS.roll && DS.roll.all ? DS.roll : null;
+  h += dBlk("roll", "Roll", "d-roll", R ? R.kills+" removed" : "")+'<div class="pb"><button class="btn primary d-go" data-a="d-roll">'+(R?'Roll again':'Roll the activation')+'</button>';
+  if(R){
+    h += '<ol class="d-steps">'+R.parts.map(function(p){ var r = p.r, s = p.s;
+      return '<li><b>'+esc(p.wx.w.name)+'.</b> '+r.rolls.attack.map(function(g){ return dDice(g.dice, g.tn); }).join(" ")+'<span class="d-res">'+r.armourPool+' hit'+(r.armourPool===1?'':'s')+(r.precision?' (PRECISION '+r.precision+')':'')+(r.bypass?', '+r.bypass+' skip Armour':'')+', '+r.pool+' past Armour'+(s.evadeTN!=null?', '+r.wounds+' after Evade':'')+': '+r.damage+' Damage, '+r.kills+' removed</span></li>'; }).join("")+'</ol>'+
+      '<div class="d-final'+(R.kills?' hit':'')+'"><b>'+(R.destroyed?esc(t.u.name)+' destroyed':R.kills+' model'+(R.kills===1?'':'s')+' removed')+'</b><span>'+(R.destroyed?R.kills+' model'+(R.kills===1?'':'s')+' removed.':'Damage Marker on the unit: '+R.leftover+'.')+'</span></div>'+dRecordHTML();
+  }
+  return h+'</div></details>';
 }
 function dRefresh(){ var el = $("d-out"); if(!el){ renderDice(); return; } var y = window.scrollY; renderDice(); window.scrollTo(0, y); }
 function dClick(a, v){
@@ -5607,13 +5800,16 @@ function dClick(a, v){
     if(k==="visible") o.visible = Math.min(o.visible, o.tModels);
     DS.roll = null; dRefresh(); return; }
   if(a==="d-roll"){ ctx = dEnsure(); var s = dSpec(ctx); if(s){ var ri = P.dc.indexOf("roll"); if(ri!==-1){ P.dc.splice(ri, 1); savePrefs(); }   // a roll always shows its result
-      DS.roll = Dice.resolve(s, Math.random, true); dRefresh(); var el = $("d-roll"); if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); } return; }
+      var pl = DS.all ? dPlan(ctx) : [];
+      DS.roll = pl.length > 1 ? dRunAll(ctx, pl, Math.random, true) : Dice.resolve(s, Math.random, true); dRefresh(); var el = $("d-roll"); if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); } return; }
   if(a==="d-swap"){ var l = DS.aL, u = DS.aU; DS.aL = DS.tL; DS.aU = DS.tU; DS.tL = l; DS.tU = u; DS.aW = 0; o.models = null; o.tModels = null; DS.roll = null; dRefresh(); return; }
+  if(a==="d-rec"){ dRecord(); return; }
   if(a==="d-clear"){ DS.o = null; DS.roll = null; dRefresh(); return; }
 }
 function dChange(a, t){
   var o = DS.o;
   if(a==="d-chk"){ o[t.getAttribute("data-v")] = t.checked; DS.roll = null; dRefresh(); return true; }
+  if(a==="d-all"){ DS.all = t.checked; DS.roll = null; dRefresh(); return true; }
   if(a==="d-al"){ DS.aL = t.value; DS.aU = null; DS.aW = 0; o.models = null; }
   else if(a==="d-au"){ DS.aU = t.value; DS.aW = 0; o.models = null; }
   else if(a==="d-aw"){ DS.aW = Number(t.value); o.models = null; }
@@ -5643,6 +5839,7 @@ document.addEventListener("click", function(ev){
   switch(a){
     case "home": S.view="list"; S.cur=null; S.notice=null; S.confirmDel=null; render(); window.scrollTo(0,0); break;
     case "new": newRoster(); break;
+    case "backup": backupAll(); break;
     case "new-race": newRoster(v); break;
     case "example": openExample(false, v); break;
     case "mode": P.mode = v; savePrefs(); applyMode(); break;
@@ -5705,6 +5902,7 @@ document.addEventListener("change", function(ev){
   var t = ev.target, a = t.getAttribute && t.getAttribute("data-a"), r = S.cur;
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
+  if(a && a.indexOf("b-dr")===0 && r && draftChange(a, t)) return;
   if(a && a.indexOf("b-")===0 && r && bChange(a, t)) return;
   if(a && a.indexOf("d-")===0 && r && dChange(a, t)) return;
   if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }

@@ -55,9 +55,11 @@ function bSetupHTML(r){
   var side = BT.side(C, r), st = BS.set || (BS.set = { missionId: r.missions[0] || DATA.missions[0].id, deploymentId: r.deployments[0] || DATA.deployments[0].id, color:"red", fpm:"me" });
   var errs = C.validate(r).filter(function(x){return x.level==="error";});
   var h = '<section class="section"><header><span class="step">BATTLE</span><h2>Start a battle</h2><span class="aside">Part 9.2–9.3</span></header><div class="sbody">';
+  var draftBtn = '<div style="margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn" data-a="b-draft">Run the draft</button><span class="faint" style="font-size:12.5px">A guide through the Mission and Deployment draft (9.2). Or choose the cards below.</span></div>';
   if(!r.units.length) return h+'<div class="empty">Add units on the Build tab first. The tracker follows the units, cards and upgrades on this roster.</div></div></section>';
   if(errs.length) h += '<div class="notice err" style="margin-top:0"><div class="grow">This roster has '+errs.length+' rules issue'+(errs.length>1?'s':'')+'. You can still track a battle with it.</div><button class="btn sm" data-a="tab" data-v="build">Fix in Build</button></div>';
-  h += '<div class="subhead" style="margin-top:'+(errs.length?'14px':'0')+'">Mission Card <span class="aside">'+(side==="skirmish"?"Skirmish Level":"Standard Engagement")+' side</span></div><div class="tiles">';
+  h += (errs.length?'<div style="height:14px"></div>':'')+draftBtn;
+  h += '<div class="subhead" style="margin-top:0">Mission Card <span class="aside">'+(side==="skirmish"?"Skirmish Level":"Standard Engagement")+' side</span></div><div class="tiles">';
   DATA.missions.forEach(function(m){
     var s = m[side], on = st.missionId===m.id, mine = r.missions.indexOf(m.id)!==-1;
     h += '<button class="tile" data-a="b-set" data-v="missionId:'+esc(m.id)+'" aria-pressed="'+on+'"><span class="tcol"><span class="t-name">'+esc(m.name)+(mine?' <span class="chip slot">On roster</span>':'')+'</span><span class="t-sub">'+s.deploy_supply+' Supply, +'+s.supply_per_round+' per Round, '+s.game_length+' Rounds</span></span></button>';
@@ -69,6 +71,9 @@ function bSetupHTML(r){
     h += '<button class="tile" data-a="b-set" data-v="deploymentId:'+esc(d.id)+'" aria-pressed="'+on+'"><span class="tcol"><span class="t-name">'+esc(d[side])+(mine?' <span class="chip slot">On roster</span>':'')+'</span></span></button>';
   });
   h += '</div><div style="margin-top:8px"><button class="btn sm" data-a="dmap" data-v="'+esc(st.deploymentId)+'">View map</button></div>';
+  var tmaps = DATA.terrain.maps.filter(function(t){ return t.scale===side; }); if(st.terrain && !tmaps.some(function(t){ return t.id===st.terrain; })) st.terrain = "";
+  h += '<div class="subhead">Terrain map <span class="aside">Optional \u00b7 Full Rules pp. 115\u2013124</span></div><div class="tr-ctl"><div class="seg"><button data-a="b-set" data-v="terrain:" aria-pressed="'+(!st.terrain)+'">None</button>'+tmaps.map(function(t){
+      return '<button data-a="b-set" data-v="terrain:'+t.id+'" aria-pressed="'+(st.terrain===t.id)+'">Map '+t.number+'</button>'; }).join("")+'</div><button class="btn sm" data-a="b-troll">Roll '+(side==="standard"?"D6":"D3")+'</button>'+(st.terrain?'<button class="btn sm" data-a="b-tmap" data-v="'+esc(st.terrain)+'">View map</button>':'')+'</div>';
   h += '<div class="grid2" style="margin-top:16px"><div class="field"><span class="lbl-s">Your colour</span><div class="seg"><button data-a="b-set" data-v="color:red" aria-pressed="'+(st.color==="red")+'">Red Player</button><button data-a="b-set" data-v="color:blue" aria-pressed="'+(st.color==="blue")+'">Blue Player</button></div><span class="faint" style="font-size:12px">Sets your Entry Edge and which Markers are your colour (1 and 3 Red, 2 and 4 Blue).</span></div>'+
     '<div class="field"><span class="lbl-s">First Player Marker for Round 1</span><div class="seg"><button data-a="b-set" data-v="fpm:me" aria-pressed="'+(st.fpm==="me")+'">You</button><button data-a="b-set" data-v="fpm:opp" aria-pressed="'+(st.fpm==="opp")+'">Opponent</button></div><span class="faint" style="font-size:12px">The Roll-Off winner gives it to either player (8.2.2).</span></div></div>';
   h += bOppSetupHTML();
@@ -94,6 +99,8 @@ function bCasHTML(i){
   var st = i.st;
   return '<div class="check error"><span class="mk"></span><span>Damage '+st.d+' has reached this model\'s '+i.threshold+' Hit Points'+(i.shield && !st.first?' (HP '+i.hp+' + Shield '+i.shield+')':'')+'. Remove a casualty unless this was Non-Lethal Damage. <button class="btn sm" data-a="b-cas" data-e="'+esc(i.uid)+'">Remove casualty</button></span></div>';
 }
+var DICE_ICO = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.4" cy="5.4" r="1.1" fill="currentColor"/><circle cx="8" cy="8" r="1.1" fill="currentColor"/><circle cx="10.6" cy="10.6" r="1.1" fill="currentColor"/></svg>';
+function bDiceBtn(i, b){ return i.state==="fld" && !b.over ? '<button class="bu-kill" data-a="b-dice" data-e="'+esc(i.uid)+'" title="Work out an attack on the Dice tab" aria-label="Dice for '+esc(i.unit.name)+'">'+DICE_ICO+'</button>' : ""; }
 function bKillBtn(i, b){ return hasOpp(b) && i.state==="fld" && !b.over ? '<button class="bu-kill" data-a="b-ks" data-e="'+esc(i.uid)+'" title="Killed a model / lost a model" aria-label="Kills and losses for '+esc(i.unit.name)+'">'+SWORDS+'</button>' : ""; }
 function bEnemyStep(b, label){ var el = BT.enemyLost(C, b); return bStepper(label, el.total, 'data-a="b-inp" data-v="enemyLost:-1"', 'data-a="b-inp" data-v="enemyLost:1"', el.tracked ? '<span class="faint" style="font-size:12px">from their tracked losses'+(el.adj ? (el.adj>0?" +":" ")+el.adj+" adjusted" : "")+'</span>' : ""); }
 function bNoteHTML(b){ return '<div class="field" style="margin-top:12px"><label for="b-note">Round '+b.round+' notes <span class="faint" style="text-transform:none;letter-spacing:0;font-weight:500">for the battle report</span></label><textarea class="input" id="b-note" data-a="b-note" data-v="'+b.round+'" rows="2" placeholder="Key moments this Round">'+esc((b.notes||{})[b.round]||"")+'</textarea></div>'; }
@@ -112,7 +119,7 @@ function bUnitCompact(i, b, r, sup){
   }
   var h = '<article class="bunit cpt '+i.state+(acted?' acted':'')+(i.casualtyDue?' has-err':'')+'" id="b-'+uid+'"><div class="bu-c">'+
     '<button class="thumb mini" data-a="card" data-v="'+esc(u.id)+'"'+(i.summoned?'':' data-e="'+uid+'"')+' aria-label="View '+esc(u.name)+' card">'+miniImg(u.id)+'</button>'+
-    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button>'+bKillBtn(i, b)+'</div>';
+    '<button class="bu-tap" data-a="b-open" data-e="'+uid+'" aria-expanded="false"><span class="bu-tt"><span class="e-name">'+esc(u.name)+(i.summoned?' <span class="chip">Summoned</span>':'')+'</span><span class="bu-sum">'+esc(sum.join(" · "))+'</span></span><span class="v-chev" aria-hidden="true"></span></button>'+bDiceBtn(i, b)+bKillBtn(i, b)+'</div>';
   var row = '';
   if(i.state==="res"){
     var fits = sup.unlimited || i.poolSupply<=sup.available;
@@ -138,7 +145,7 @@ function bUnitFull(i, b, r, sup){
     if(i.shield) h += '<span class="chip'+(i.shielded?' slot':'')+'">'+(i.shielded?'Shielded':'Shield lost')+'</span>';
     if(st.dis) h += '<span class="pill warn">Disengaged</span>';
   }
-  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+bKillBtn(i, b)+cardBtn+'</span></div>';
+  h += '</span></span><span class="v-chev" aria-hidden="true"></span></button><span class="bu-r">'+bDiceBtn(i, b)+bKillBtn(i, b)+cardBtn+'</span></div>';
   if(i.state==="dead") return h+'<div class="bu-row"><button class="btn sm" data-a="b-state" data-e="'+uid+'" data-v="fld">Restore</button>'+(i.summoned?'<button class="btn ghost sm danger" data-a="b-unsummon" data-e="'+uid+'">Remove</button>':'')+'</div></article>';
   if(i.state==="res"){
     var fits = sup.unlimited || i.poolSupply<=sup.available;
@@ -247,7 +254,7 @@ function bRailHTML(b, r){
   h += '<div class="panel'+btc("more")+'"><h3>Play options</h3><div class="pb bopts">'+
     '<div class="bopt"><button class="bchip" data-a="b-guides" aria-pressed="'+P.guides+'">Phase guides</button><span class="faint">Rules steps and help text for each Phase.</span></div>'+
     '<div class="bopt"><button class="bchip" data-a="b-wake" aria-pressed="'+P.wake+'">Keep screen awake</button><span class="faint" id="b-wake-st">'+esc(wakeText())+'</span></div></div></div>';
-  h += '<div class="panel'+btc("more")+'"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
+  h += '<div class="panel'+btc("more")+'"><h3>Reference</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-a="b-mcard" data-v="'+esc(b.missionId)+'">Mission Card</button>'+(b.terrain?'<button class="btn sm" data-a="b-tmap" data-v="'+esc(b.terrain)+'">Terrain map</button>':'')+(b.deploymentId?'<button class="btn sm" data-a="dmap" data-v="'+esc(b.deploymentId)+'">Deployment map</button>':'')+'<button class="btn sm" data-a="kw-all">Keywords</button></div></div>';
   h += '<div class="panel'+btc("more")+'"><h3>Battle</h3><div class="pb" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="btn sm" data-a="b-undo"'+(BS.undo.length?'':' disabled')+'>Undo last step</button>'+
     (BS.quit?'<span class="muted">End this battle and clear its tracking?</span><button class="btn danger sm" data-a="b-quit-yes">End battle</button><button class="btn sm" data-a="b-quit-no">Keep</button>':'<button class="btn ghost sm danger" data-a="b-quit">End battle</button>')+'</div></div>';
   if(b.log.length) h += '<details class="panel blog'+btc("more")+'"><summary><h3>Battle log ('+b.log.length+')</h3></summary><div class="pb">'+b.log.slice(-60).reverse().map(function(l){ return '<div class="bl"><span class="faint num">R'+l.r+' P'+l.p+'</span> '+esc(l.t)+'</div>'; }).join("")+'</div></details>';

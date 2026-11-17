@@ -3,7 +3,8 @@
    the engine is dice-core.js (Part 8.7.4). The attacker and target come from the active lists: this roster, the
    opponent's list of the battle in progress, another saved roster, or any unit.
    What the app cannot know (range, Line of Sight, statuses, abilities and cards in effect) is set by hand before the roll. */
-var DS = { aL:"me", aU:null, aW:0, tL:null, tU:null, o:null, roll:null };
+var DS = { aL:"me", aU:null, aW:0, tL:null, tU:null, o:null, roll:null, all:false };
+var D_TRIALS_ALL = 5000;
 var D_TRIALS = 20000;
 var D_LIM = { models:[0,30], longModels:[0,30], templ:[0,12], hitMod:[-3,3], roaMod:[-4,6], precision:[0,9], crit:[0,9], antiEvade:[0,4],
   tModels:[0,30], visible:[0,30], prior:[0,40], armourMod:[-3,3], evadeMod:[-3,3], tough:[0,9], dodge:[0,9], reduce:[0,12] };
@@ -73,13 +74,62 @@ function dEnsure(){
   else if(DS.o.tModels == null) dResetTgt(t.c);
   return { lists:lists, a:a, t:t, ws:ws, wx:ws[DS.aW] || null };
 }
-function dSpec(ctx){
-  var o = DS.o, wx = ctx.wx, t = ctx.t.c; if(!wx || !t) return null;
+/* sel: the weapon chosen in the Weapon box, which takes the weapon-specific statuses (models attacking, LONG RANGE, BURST FIRE,
+   template). ts: the target's state, so that a second Batch meets the unit as the first one left it. */
+function dSpecFor(ctx, wx, sel, ts){
+  var o = DS.o, t = ctx.t.c; if(!wx || !t) return null;
   var w = Dice.parseWeapon(wx.w), ev = (w.ranged && (o.evEng || o.evHigh)) || o.evHid || o.evAbil;
-  return Dice.buildSpec({ weapon:wx.w, models:o.models, longModels:o.longModels, burst:o.burst, stationary:o.stationary, templateModels:o.templ,
+  return Dice.buildSpec({ weapon:wx.w, models: sel ? o.models : wx.n, longModels: sel ? o.longModels : 0, burst: sel && o.burst, stationary:o.stationary, templateModels: sel ? o.templ : 1,
     hitMod:o.hitMod, roaMod:o.roaMod, precision:o.precision, crit:o.crit, antiEvade:o.antiEvade,
-    target:{ tags:t.u.combat_tags, armour:t.u.stats.armour, evade:t.u.stats.evade, hp:t.u.stats.hp, shield:t.u.stats.shield, models:o.tModels, visible:o.visible, prior:o.prior, firstGone:o.firstGone },
+    target:{ tags:t.u.combat_tags, armour:t.u.stats.armour, evade:t.u.stats.evade, hp:t.u.stats.hp, shield:t.u.stats.shield, models:ts.models, visible:ts.visible, prior:ts.prior, firstGone:ts.firstGone },
     evade:ev, armourMod:o.armourMod, evadeMod:o.evadeMod, tough:o.tough, dodge:o.dodge, reduce:o.reduce });
+}
+function dTs(){ var o = DS.o; return { models:o.tModels, visible:o.visible, prior:o.prior, firstGone:o.firstGone }; }
+function dSpec(ctx){ return dSpecFor(ctx, ctx.wx, true, dTs()); }
+/* The weapons one activation uses in the chosen weapon's Phase (8.7.3): each model fires one weapon, a model with a
+   SPECIALIST weapon fires that instead, and every SIDEARM fires as well. Each is its own Batch, here all at one target. */
+function dPlan(ctx){
+  var wx = ctx.wx; if(!wx || wx.w.impact) return wx ? [wx] : [];
+  var same = ctx.ws.filter(function(x){ return !x.w.impact && x.w.phase===wx.w.phase; });
+  var side = function(x){ return (x.w.keywords||[]).indexOf("SIDEARM")!==-1; }, spec = function(x){ return x.tag==="1 model"; };
+  var main = !side(wx) && !spec(wx) ? wx : same.filter(function(x){ return !side(x) && !spec(x); })[0];
+  return same.filter(function(x){ return x===main || x===wx || side(x) || spec(x); });
+}
+function dRunAll(ctx, plan, rnd, keep){
+  var ts = dTs(), start = ts.models, parts = [], kills = 0, damage = 0, i, s, r;
+  for(i = 0; i < plan.length && (ts.models > 0 || !start); i++){
+    s = dSpecFor(ctx, plan[i], plan[i]===ctx.wx, ts); r = Dice.resolve(s, rnd, keep); parts.push({ wx:plan[i], s:s, r:r });
+    kills += r.kills; damage += r.damage; ts.models -= r.kills; ts.visible = Math.max(0, ts.visible - r.kills); ts.prior = r.leftover; if(r.kills) ts.firstGone = true;
+  }
+  return { all:true, parts:parts, kills:kills, damage:damage, leftover:ts.prior, destroyed: start > 0 && ts.models <= 0 };
+}
+function dSimAll(ctx, plan, n){
+  var sum = { damage:0, kills:0 }, dist = [], destroyed = 0, none = 0, i, o, k, acc = 0, atLeast = [];
+  for(i = 0; i < n; i++){ o = dRunAll(ctx, plan, Math.random, false); sum.damage += o.damage; sum.kills += o.kills; dist[o.kills] = (dist[o.kills]||0)+1; if(o.destroyed) destroyed++; if(!o.damage) none++; }
+  for(k = dist.length-1; k >= 0; k--){ acc += dist[k]||0; atLeast[k] = acc/n; }
+  return { trials:n, damage:sum.damage/n, kills:sum.kills/n, atLeast:atLeast, destroyed:destroyed/n, noDamage:none/n };
+}
+/* Can this roll be written to the battle in progress? Only when the target is a tracked unit: yours or the opponent's. */
+function dCanRecord(){ var b = S.cur && S.cur.battle; return !!(b && !b.over && DS.roll && !DS.roll.recorded && (DS.tL==="me" || DS.tL==="opp")); }
+function dRecordHTML(){
+  if(DS.roll && DS.roll.recorded) return '<p class="d-note"><b>Recorded on the Battle tab.</b> Undo there takes it back.</p>';
+  if(!dCanRecord()) return '<p class="faint d-note">The roll only shows the result'+(S.cur && S.cur.battle && !S.cur.battle.over ? '; this target is not a unit the battle tracks.' : '. With a battle in progress it can be recorded on the Battle tab.')+'</p>';
+  return '<div class="d-act" style="margin-bottom:0"><button class="btn" data-a="d-rec">Record on the Battle tab</button><span class="faint d-note">Removes the models and sets the Damage Marker. Undo on the Battle tab takes it back.</span></div>';
+}
+function dRecord(){
+  if(!dCanRecord()) return;
+  var r = S.cur, b = r.battle, roll = DS.roll, ctx = dEnsure(), a = ctx.a.c, t = ctx.t.c, i; if(!t) return;
+  BS.undo.push(JSON.stringify(b)); if(BS.undo.length>40) BS.undo.shift();
+  var wname = roll.all ? roll.parts.map(function(p){ return p.wx.w.name; }).join(", ") : ctx.wx.w.name;
+  for(i = 0; i < roll.kills; i++){
+    if(DS.tL==="opp"){ if(DS.aL==="me" && b.units[a.key]) BT.kill(C, r, b, a.key, t.key, "dealt"); else BT.oppChange(C, b, t.key, -1); }
+    else if(DS.aL==="opp") BT.kill(C, r, b, t.key, a.key, "lost"); else BT.changeModels(C, r, b, t.key, -1);
+  }
+  if(DS.tL==="me"){ var st = b.units[t.key]; if(st && st.st!=="dead") BT.changeDamage(C, r, b, t.key, roll.leftover - (st.d||0)); }
+  b.log.push({ r:b.round, p:b.phase, at:Date.now(), t:"Dice: "+(a?a.u.name:"Attacker")+" ("+wname+") against "+(DS.tL==="opp"?"the opponent's ":"")+t.u.name+": "+roll.kills+" model"+(roll.kills===1?"":"s")+" removed"+(DS.tL==="me" && !roll.destroyed?", Damage Marker "+roll.leftover:"")+"." });
+  roll.recorded = true; Store.queue(r);
+  var c = dEnsure().t.c, o = DS.o; if(c){ o.tModels = c.models; o.visible = c.models; o.prior = c.prior; o.firstGone = c.firstGone; }
+  dRefresh();
 }
 /* Abilities worth a look before rolling: the engine does not read ability text. */
 function dHints(c, re){
@@ -117,6 +167,8 @@ function renderDice(){
     if(wx){
       var w = Dice.parseWeapon(wx.w);
       h += '<div class="d-prof">'+(wx.w.impact ? 'IMPACT: '+esc(wx.w.roa)+' dice per model · Hit '+esc(wx.w.hit)+' · Dmg 1 · no Surge' : weaponLine(wx.w))+'</div>';
+      var plan0 = dPlan(ctx);
+      if(plan0.length > 1) h += '<label class="d-opt d-chk"><span class="d-ol">Roll the whole activation<small>'+esc(plan0.map(function(x){ return x.w.name; }).join(", "))+', each as its own Batch at this target</small></span><input type="checkbox" data-a="d-all"'+(DS.all?' checked':'')+'></label>';
       h += dSec("astat", "Attacker status");
       if(w.template) h += dStep("templ", "Models under the template", "Dice = affected models + "+w.roa);
       else h += dStep("models", w.impact ? "Models in the Fighting or Supporting Rank" : "Models attacking", w.ranged ? "In Range of a Visible model" : "");
@@ -172,6 +224,8 @@ function dWarns(ctx, s){
 }
 function dOutHTML(ctx){
   var s = dSpec(ctx); if(!s) return '<div class="empty">Choose an attacker with a weapon and a target.</div>';
+  var plan = DS.all ? dPlan(ctx) : [];
+  if(plan.length > 1) return dOutAllHTML(ctx, plan);
   var wx = ctx.wx, t = ctx.t.c, od = Dice.simulate(s, D_TRIALS), warns = dWarns(ctx, s), cap = Math.min(s.visible, s.maxKills), k, h = "";
   var dice = s.groups.reduce(function(n, g){ return n+g.n; }, 0);
   h += dBlk("odds", "Odds", "d-odds", f1(od.damage)+" Damage, "+f1(od.kills)+" removed on average")+'<div class="pb">'+
@@ -199,10 +253,29 @@ function dOutHTML(ctx){
     h += '<li><b>Damage.</b> <span class="d-res">'+r.wounds+' × '+s.dmg+' = '+r.damage+(r.wounds && (s.prior||s.reduce)?(s.prior?' + '+s.prior+' already on the unit':'')+(s.reduce?' − '+s.reduce+' reduced':'')+' = '+r.total:'')+'</span></li></ol>'+
       '<div class="d-final'+(r.kills?' hit':'')+'"><b>'+(r.destroyed?esc(t.u.name)+' destroyed':r.kills+' model'+(r.kills===1?'':'s')+' removed')+'</b>'+
       '<span>'+(r.destroyed?r.kills+' model'+(r.kills===1?'':'s')+' removed.':(r.kills>=cap && r.wounds && cap<s.models?'Limit reached ('+(s.maxKills<=s.visible?'CONCENTRATED FIRE':'Visible models')+'): remaining Damage is discarded.':'Damage Marker on the unit: '+r.leftover+'.'))+'</span></div>'+
-      '<p class="faint d-note">The roll only shows the result. Record casualties and Damage on the Battle tab yourself.</p>';
+      dRecordHTML();
   }
   h += '</div></details>';
   return h;
+}
+function dOutAllHTML(ctx, plan){
+  var t = ctx.t.c, o = DS.o, od = dSimAll(ctx, plan, D_TRIALS_ALL), cap = o.visible, k, h = "", ts = dTs();
+  h += dBlk("odds", "Odds", "d-odds", f1(od.damage)+" Damage, "+f1(od.kills)+" removed on average")+'<div class="pb"><p class="d-line">Whole activation, resolved in this order, each Batch meeting the unit as the one before left it:</p><ol class="d-steps" style="margin-top:0">'+
+    plan.map(function(x){ var s = dSpecFor(ctx, x, x===ctx.wx, ts), n = s.groups.reduce(function(a, g){ return a+g.n; }, 0);
+      return '<li><b>'+esc(x.w.name)+'.</b> <span class="d-res">'+n+' Attack Dice, Hit '+s.groups.map(function(g){ return g.tn+"+"; }).join(" / ")+', Damage '+s.dmg+(s.surge?', Surge '+(s.surge.fixed!=null?s.surge.fixed:s.surge.die):'')+(x===ctx.wx?'':' \u00b7 '+x.n+' model'+(x.n===1?'':'s')+', no range or BURST FIRE switches')+'</span></li>'; }).join("")+'</ol>'+
+    '<div class="d-stats"><div><span>Damage</span><b>'+f1(od.damage)+'</b></div><div><span>Models removed</span><b>'+f1(od.kills)+'</b></div></div>';
+  if(cap > 0){ h += '<div class="d-chances">';
+    for(k = 1; k <= Math.min(cap, 6); k++) h += '<div><span>'+(k===cap && k===o.tModels ? 'Destroy the unit' : 'Remove '+k+'+')+'</span><i style="--p:'+Math.round((od.atLeast[k]||0)*100)+'%"></i><b>'+pct(od.atLeast[k]||0)+'</b></div>';
+    h += '<div><span>No damage</span><i style="--p:'+Math.round(od.noDamage*100)+'%"></i><b>'+pct(od.noDamage)+'</b></div></div>'; }
+  h += '<p class="faint d-note">From '+fmt(od.trials)+' simulated activations. The modifiers, PRECISION, CRITICAL HIT and the target\u2019s statuses apply to every Batch; set a weapon on its own to give it different ones.</p></div></details>';
+  var R = DS.roll && DS.roll.all ? DS.roll : null;
+  h += dBlk("roll", "Roll", "d-roll", R ? R.kills+" removed" : "")+'<div class="pb"><button class="btn primary d-go" data-a="d-roll">'+(R?'Roll again':'Roll the activation')+'</button>';
+  if(R){
+    h += '<ol class="d-steps">'+R.parts.map(function(p){ var r = p.r, s = p.s;
+      return '<li><b>'+esc(p.wx.w.name)+'.</b> '+r.rolls.attack.map(function(g){ return dDice(g.dice, g.tn); }).join(" ")+'<span class="d-res">'+r.armourPool+' hit'+(r.armourPool===1?'':'s')+(r.precision?' (PRECISION '+r.precision+')':'')+(r.bypass?', '+r.bypass+' skip Armour':'')+', '+r.pool+' past Armour'+(s.evadeTN!=null?', '+r.wounds+' after Evade':'')+': '+r.damage+' Damage, '+r.kills+' removed</span></li>'; }).join("")+'</ol>'+
+      '<div class="d-final'+(R.kills?' hit':'')+'"><b>'+(R.destroyed?esc(t.u.name)+' destroyed':R.kills+' model'+(R.kills===1?'':'s')+' removed')+'</b><span>'+(R.destroyed?R.kills+' model'+(R.kills===1?'':'s')+' removed.':'Damage Marker on the unit: '+R.leftover+'.')+'</span></div>'+dRecordHTML();
+  }
+  return h+'</div></details>';
 }
 function dRefresh(){ var el = $("d-out"); if(!el){ renderDice(); return; } var y = window.scrollY; renderDice(); window.scrollTo(0, y); }
 function dClick(a, v){
@@ -214,13 +287,16 @@ function dClick(a, v){
     if(k==="visible") o.visible = Math.min(o.visible, o.tModels);
     DS.roll = null; dRefresh(); return; }
   if(a==="d-roll"){ ctx = dEnsure(); var s = dSpec(ctx); if(s){ var ri = P.dc.indexOf("roll"); if(ri!==-1){ P.dc.splice(ri, 1); savePrefs(); }   // a roll always shows its result
-      DS.roll = Dice.resolve(s, Math.random, true); dRefresh(); var el = $("d-roll"); if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); } return; }
+      var pl = DS.all ? dPlan(ctx) : [];
+      DS.roll = pl.length > 1 ? dRunAll(ctx, pl, Math.random, true) : Dice.resolve(s, Math.random, true); dRefresh(); var el = $("d-roll"); if(el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); } return; }
   if(a==="d-swap"){ var l = DS.aL, u = DS.aU; DS.aL = DS.tL; DS.aU = DS.tU; DS.tL = l; DS.tU = u; DS.aW = 0; o.models = null; o.tModels = null; DS.roll = null; dRefresh(); return; }
+  if(a==="d-rec"){ dRecord(); return; }
   if(a==="d-clear"){ DS.o = null; DS.roll = null; dRefresh(); return; }
 }
 function dChange(a, t){
   var o = DS.o;
   if(a==="d-chk"){ o[t.getAttribute("data-v")] = t.checked; DS.roll = null; dRefresh(); return true; }
+  if(a==="d-all"){ DS.all = t.checked; DS.roll = null; dRefresh(); return true; }
   if(a==="d-al"){ DS.aL = t.value; DS.aU = null; DS.aW = 0; o.models = null; }
   else if(a==="d-au"){ DS.aU = t.value; DS.aW = 0; o.models = null; }
   else if(a==="d-aw"){ DS.aW = Number(t.value); o.models = null; }

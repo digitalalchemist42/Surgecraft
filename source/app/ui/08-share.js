@@ -7,6 +7,7 @@ function importText(txt){
   var obj = null;
   try{ obj = txt.indexOf("SCM1.")===0 ? JSON.parse(unb64u(txt.slice(5))) : JSON.parse(txt); }catch(e){ obj = null; }
   if(!obj){ flash("That isn't a roster share code or roster file. Share codes start with SCM1.", "err"); return; }
+  if(obj.format==="surgecraft-backup"){ restoreBackup(obj); return; }
   var res = C.normalize(obj);
   if(!res.roster){ flash("That file doesn't contain a roster.", "err"); return; }
   var r = res.roster; r.name = r.name || "Imported roster";
