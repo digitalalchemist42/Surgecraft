@@ -18,7 +18,7 @@ Requirements: Python 3 with Pillow, Node.js, and Playwright with Chromium (for t
 | Folder | What it is |
 |---|---|
 | `sc_data/` | Card dataset in Python. `common.py` (W/A/U constructors), `terran_units.py`, `protoss_units.py`, `zerg_units.py`, `cards.py` (Faction/Tactical/Creep), `costs.py` (Unit Cost Table 10.6), `scenarios.py` (missions, deployments), `cards_1009.py` (official v1.09.26 cards for the units and cards added in 10.6, with their costs from the reissued table), `cards_1010.py` (v1.10.26 cards transcribed from photographs, all marked PREVIEW, no costs). `build.py` validates cards against the cost table and writes `starcraft_tmg_data.json` only when there are 0 errors. `verify_*.py` were the original PDF cross-checks (they need the card PDFs). `DATA_NOTES.md` records every correction, assumption and open question. |
-| `app/` | The web app. `roster-core.js` (army rules and validation), `render.js` (card rendering, exports), `keywords.js` (keyword reference), `battle-core.js` (battle tracker engine), `examples.js` (example armies, used by the tests only; the app no longer offers them), `ui/` (the interface, in parts; see below), `page.template.html`. `app_src.py` joins the `ui/` parts for `build_page.py` and `mk_test.py`. |
+| `app/` | The web app. `roster-core.js` (army rules and validation), `render.js` (card rendering, exports), `keywords.js` (keyword reference), `battle-core.js` (battle tracker engine), `dice-core.js` (dice engine: one attack through the three pools of Part 8.7.4; used by both the odds and the roller), `examples.js` (example armies, used by the tests only; the app no longer offers them), `ui/` (the interface, in parts; see below), `page.template.html`. `app_src.py` joins the `ui/` parts for `build_page.py` and `mk_test.py`. |
 | `app/pwa/` | Icons, font and service-worker template for the installable site. |
 | `app/kw/` | Scripts that built the keyword reference (`keyword_reference.json`). The rulebook text they read is not included. |
 | `terrain/` | `extract_terrain.py`: crops the terrain key and the nine pre-made maps from the Full Rules PDF (Map Layouts, pp. 115-124) into `img/terrain/` and writes `sc_data/terrain.json` (piece names and each map's printed Assembly requires list). The PDF is not included. `python3 -I source/terrain/extract_terrain.py <Full Rules.pdf> <out dir>`, then copy `<out>/img/terrain` to `app/img/terrain` and `<out>/terrain.json` to `sc_data/`. |
@@ -45,6 +45,7 @@ The files in `app/ui/` are parts of one script. `ui/ORDER` lists them; the build
 | `09-view.js` | View tab |
 | `10-battle.js` | Battle tab |
 | `11-battle-opponent.js` | Opponent's list, kills, battle report, past battles |
+| `11b-dice.js` | Dice tab: attacker and target from the active lists, statuses, simulated odds, roll |
 | `12-events.js` | Click and input handling, start-up |
 
 ## Build and test
@@ -55,9 +56,9 @@ cd /home/claude/app
 python3 build_page.py                                # -> starcraft-muster.html (the artifact page)
 python3 mk_test.py                                   # -> test.html (adds the test hook)
 python3 build_standalone.py                          # -> out/surgecraft.html and out/surgecraft-site/ (this repo's root)
-node test-core.js && node test-render.js && node test-battle.js
+node test-core.js && node test-render.js && node test-battle.js && node test-dice.js
 python3 -m http.server 8765 &                        # smoke tests load http://localhost:8765/test.html
-python3 smoke_view.py; python3 smoke_dep.py; python3 smoke_kw.py; python3 smoke_battle.py; python3 smoke_battle2.py; python3 smoke_shield.py; python3 smoke_pay.py; python3 smoke_cards.py; python3 smoke_terrain.py; python3 smoke_print.py   # Print / PDF: renders each export through Chromium's print pipeline and checks Letter pages (needs pypdf)
+python3 smoke_view.py; python3 smoke_dep.py; python3 smoke_kw.py; python3 smoke_battle.py; python3 smoke_battle2.py; python3 smoke_shield.py; python3 smoke_pay.py; python3 smoke_cards.py; python3 smoke_terrain.py; python3 smoke_dice.py; python3 smoke_print.py   # Print / PDF: renders each export through Chromium's print pipeline and checks Letter pages (needs pypdf)
 rm -rf /tmp/pwa-site && cp -r out/surgecraft-site /tmp/pwa-site && (cd /tmp/pwa-site && python3 -m http.server 8767 &) ; python3 smoke_pwa.py   # the test edits sw.js, so it serves a copy
 ```
 

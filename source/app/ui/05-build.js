@@ -1,7 +1,7 @@
 /* ------------ build view ------------ */
 function renderBuild(){
   var h = '<div class="strip" id="strip"><div class="wrap" id="meters"></div></div>';
-  h += '<div class="tabbar"><div class="tabs" role="tablist">'+[["build","Build"],["view","View"],["battle","Battle"],["sheet","Roster sheet"],["export","Export"]].map(function(t){
+  h += '<div class="tabbar"><div class="tabs" role="tablist">'+[["build","Build"],["view","View"],["battle","Battle"],["dice","Dice"],["sheet","Roster sheet"],["export","Export"]].map(function(t){
     return '<button class="tab" role="tab" aria-selected="'+(S.tab===t[0])+'" data-a="tab" data-v="'+t[0]+'">'+t[1]+'</button>'; }).join("")+'</div>';
   if(S.tab==="build") h += '<div class="viewsw"><span>Layout</span><div class="seg" role="group" aria-label="Layout">'+
     '<button data-a="layout" data-v="list" aria-pressed="'+(P.layout==="list")+'"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12M2 8h12M2 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>List</button>'+
@@ -11,6 +11,7 @@ function renderBuild(){
   if(S.tab==="sheet"){ h += '<div class="sheetwrap">'+Render.sheetHTML(C, S.cur, null, {art:true, checks:true})+'</div>'; $("app").innerHTML = h; renderMeters(); return; }
   if(S.tab==="view"){ h += '<div id="view"></div>'; $("app").innerHTML = h; renderMeters(); renderView(); return; }
   if(S.tab==="battle"){ h += '<div id="battle"></div>'; $("app").innerHTML = h; renderBattle(); return; }
+  if(S.tab==="dice"){ h += '<div id="dice"></div>'; $("app").innerHTML = h; renderDice(); return; }
   if(S.tab==="export"){ h += '<div id="export"></div>'; $("app").innerHTML = h; renderMeters(); renderExport(); return; }
   h += '<div class="layout"><div class="main"><section class="section" id="sec-setup"></section><section class="section" id="sec-cards"></section><section class="section" id="sec-units"></section><section class="section" id="sec-scenario"></section></div><aside class="rail" id="rail"></aside></div>';
   $("app").innerHTML = h;

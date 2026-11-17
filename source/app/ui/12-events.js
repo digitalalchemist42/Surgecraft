@@ -12,6 +12,7 @@ document.addEventListener("click", function(ev){
   if(a.indexOf("v-")===0){ vClick(a, v); return; }
   if(a==="cards"){ openCardRef(); return; }
   if(a==="terrain"){ openTerrain(); return; }
+  if(a.indexOf("d-")===0){ dClick(a, v); return; }
   if(a.indexOf("tr-")===0){ trClick(a, v); return; }
   if(a.indexOf("cr-")===0){ crClick(a, v); return; }
   if(a.indexOf("b-")===0){ if(t.tagName==="INPUT") return; bClick(a, v, eu, t); return; }
@@ -81,6 +82,7 @@ document.addEventListener("change", function(ev){
   if(t.id==="imp-file" && t.files && t.files[0]){ var fr = new FileReader(); fr.onload = function(){ importText(String(fr.result)); }; fr.readAsText(t.files[0]); return; }
   if(a==="b-wipe" && r && r.battle){ bMut(function(b){ b.si.oppWiped = t.checked; }); return; }
   if(a && a.indexOf("b-")===0 && r && bChange(a, t)) return;
+  if(a && a.indexOf("d-")===0 && r && dChange(a, t)) return;
   if(a==="exp-gloss"){ S.exp.gloss = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-cardsize"){ S.exp.cardSize = t.checked; S.exp.preview=null; renderExport(); return; }
   if(a==="exp-art"){ S.exp.art = t.checked; S.exp.preview=null; renderExport(); return; }
