@@ -73,18 +73,33 @@
     var f = this.faction(r); if (!f) return [];
     return this.data.cards.filter(function (c) { return c.kind === "Tactical" && tagsFit(c.faction_tags, f.faction_tags); });
   };
+  /* The one extra card some Faction Cards make you take during Army Building: a Creep Card (Zerg Creep) or a
+     Virus Card (Stukov's Forces: Infestation). The roster keeps it in r.creepId whatever its kind. */
+  Core.prototype.requiredCard = function (r) {
+    var f = this.faction(r); if (!f) return null;
+    if (f.required_card) return { kind: f.required_card.kind, ability: f.required_card.ability };
+    if (f.abilities.some(function (a) { return a.name === "Zerg Creep"; })) return { kind: "Creep", ability: "Zerg Creep" };
+    return null;
+  };
   Core.prototype.eligibleCreep = function (r) {
     var f = this.faction(r); if (!f) return [];
-    return this.data.cards.filter(function (c) { return c.kind === "Creep" && tagsFit(c.faction_tags, f.faction_tags); });
+    var rq = this.requiredCard(r), kind = rq ? rq.kind : "Creep";
+    return this.data.cards.filter(function (c) { return c.kind === kind && tagsFit(c.faction_tags, f.faction_tags); });
   };
+  /* Faction Card rules that let a roster include units of another faction (Stukov's Forces: Ashes of the UED). */
+  Core.prototype.allyRule = function (f, u) {
+    var ab = f && f.army_building; if (!ab || !u || u.summoned) return null;
+    var inc = ab.include;
+    if (u.faction_tags.indexOf(inc.faction_tag) === -1) return null;
+    if (!inc.combat_tags.every(function (t) { return u.combat_tags.indexOf(t) !== -1; })) return null;
+    return ab;
+  };
+  Core.prototype.unitFits = function (u, f) { return tagsFit(u.faction_tags, f.faction_tags) || !!this.allyRule(f, u); };
   Core.prototype.eligibleUnits = function (r) {
-    var f = this.faction(r); if (!f) return [];
-    return this.data.units.filter(function (u) { return !u.summoned && tagsFit(u.faction_tags, f.faction_tags); });
+    var f = this.faction(r), self = this; if (!f) return [];
+    return this.data.units.filter(function (u) { return !u.summoned && self.unitFits(u, f); });
   };
-  Core.prototype.requiresCreep = function (r) {
-    var f = this.faction(r);
-    return !!f && f.abilities.some(function (a) { return a.name === "Zerg Creep"; });
-  };
+  Core.prototype.requiresCreep = function (r) { return !!this.requiredCard(r); };
 
   /* ---------- a unit entry on the roster ---------- */
   Core.prototype.newEntry = function (unitId) {
@@ -195,11 +210,12 @@
       if (c.unique && n > 1) add("error", c.name + " is Unique: only one copy allowed (" + n + " taken).", "9.1.5", "cards");
     });
 
-    // Creep
-    if (this.requiresCreep(r)) {
-      if (!r.creepId) add("error", f.name + " requires exactly one Creep Card (Zerg Creep).", f.name + " card", "cards");
+    // Creep Card (Zerg Creep) or Virus Card (Infestation)
+    var rq = this.requiredCard(r);
+    if (rq) {
+      if (!r.creepId) add("error", f.name + " requires exactly one " + rq.kind + " Card (" + rq.ability + ").", f.name + " card", "cards");
       else if (!this.eligibleCreep(r).some(function (c) { return c.id === r.creepId; })) add("error", (self.cards[r.creepId] ? self.cards[r.creepId].name : r.creepId) + " is not allowed with " + f.name + ".", "9.1.2", "cards");
-    } else if (r.creepId) add("error", "Creep Cards can only be taken by a Faction Card with Zerg Creep.", "9.1.2", "cards");
+    } else if (r.creepId) { var xk = self.cards[r.creepId] ? self.cards[r.creepId].kind : "Creep"; add("error", xk + " Cards can only be taken by a Faction Card that asks for one" + (xk === "Creep" ? " (Zerg Creep)." : xk === "Virus" ? " (Infestation)." : "."), "9.1.2", "cards"); }
 
     // Slots
     var sl = this.slots(r);
@@ -213,7 +229,9 @@
       var u = self.units[e.unitId], label = (u ? u.name : e.unitId) + " (#" + (i + 1) + ")";
       if (!u) { add("error", "Unknown unit " + e.unitId + ".", "9.1.6", e.uid); return; }
       if (u.summoned) add("error", u.name + " is a Summoned Unit and cannot be recruited.", "9.1.9", e.uid);
-      if (f && !tagsFit(u.faction_tags, f.faction_tags)) add("error", label + " has tags (" + u.faction_tags.join(", ") + ") not on " + f.name + ".", "9.1.2", e.uid);
+      if (f && !self.unitFits(u, f)) add("error", label + " has tags (" + u.faction_tags.join(", ") + ") not on " + f.name + ".", "9.1.2", e.uid);
+      var ally = f && !tagsFit(u.faction_tags, f.faction_tags) ? self.allyRule(f, u) : null;
+      if (ally) add("info", label + " joins through " + ally.ability + ": it gains the " + ally.grants_combat_tag + " Combat Tag, its CP costs count as " + ally.resource_as + ", and it cannot gain the " + ally.cannot_gain + " Status.", f.name + " card", e.uid);
       if (!self.composition(e)) add("error", label + ": " + e.models + " models is not a Composition Option.", "9.1.6", e.uid);
       if (u.unique) { uniqueSeen[u.id] = (uniqueSeen[u.id] || 0) + 1; if (uniqueSeen[u.id] === 2) add("error", u.name + " is Unique: only one allowed.", "Unique", e.uid); }
       // Card-printed army-building exclusions, e.g. Nova's Battle Preparation: "your army cannot include both ..."
@@ -289,7 +307,7 @@
       var n = Math.max(0, Math.min(9, Math.floor(Number(raw.tactical[id]) || 0)));
       if (self.cards[id] && self.cards[id].kind === "Tactical") { if (n) r.tactical[id] = n; } else dropped.push("Tactical Card " + id);
     });
-    if (raw.creepId) { if (this.cards[raw.creepId] && this.cards[raw.creepId].kind === "Creep") r.creepId = raw.creepId; else dropped.push("Creep Card " + raw.creepId); }
+    if (raw.creepId) { if (this.cards[raw.creepId] && (this.cards[raw.creepId].kind === "Creep" || this.cards[raw.creepId].kind === "Virus")) r.creepId = raw.creepId; else dropped.push("Creep Card " + raw.creepId); }
     (Array.isArray(raw.units) ? raw.units : []).forEach(function (e) {
       var u = e && self.units[e.unitId];
       if (!u || u.summoned) { dropped.push("Unit " + (e && e.unitId)); return; }
@@ -370,7 +388,7 @@
       var c = self.cards[id], n = r.tactical[id]; if (!c || !n) return;
       L.push("- " + c.name + (n > 1 ? " ×" + n : "") + " — " + (c.gas_cost * n) + " Vespene Gas");
     });
-    if (r.creepId && self.cards[r.creepId]) L.push("- " + self.cards[r.creepId].name + " (Creep Card) — " + self.cards[r.creepId].gas_cost + " Vespene Gas");
+    if (r.creepId && self.cards[r.creepId]) L.push("- " + self.cards[r.creepId].name + " (" + self.cards[r.creepId].kind + " Card) — " + self.cards[r.creepId].gas_cost + " Vespene Gas");
     L.push("Total Vespene Gas: " + t.gas + " / " + lim.gas);
     L.push("");
     L.push("MISSION CARDS: " + ((r.missions || []).map(function (id) { return self.missions[id] ? self.missions[id].name : id; }).join(", ") || "—"));

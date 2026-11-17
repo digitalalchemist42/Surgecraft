@@ -643,7 +643,7 @@
       if ((h = /^(Terran|Protoss|Zerg)\s*-\s*(.*?)\s*\(\s*[\d,]+\s*Minerals/i.exec(line))) { out.race = h[1][0].toUpperCase() + h[1].slice(1).toLowerCase(); out.name = h[2]; return; }
       if (/^\d+\s*Supply\b/i.test(line) || /^Deployment Maps?\s*:/i.test(line) || /^Mission Cards?\s*:/i.test(line)) return;
       if ((h = /^#\s*([^:]+?)\s*(?::\s*(.*))?$/.exec(line))) {
-        var k = h[1].toLowerCase(); h[2] = h[2] || ""; sec = /faction/.test(k) ? "faction" : /tactic/.test(k) ? "tactical" : /creep/.test(k) ? "creep" : /unit/.test(k) ? "units" : null;
+        var k = h[1].toLowerCase(); h[2] = h[2] || ""; sec = /faction/.test(k) ? "faction" : /tactic/.test(k) ? "tactical" : /creep|virus/.test(k) ? "creep" : /unit/.test(k) ? "units" : null;
         line = h[2]; if (!line) return;
       }
       var um = /^(\d+)\s*x\s+(.+)$/i.exec(line);
@@ -664,8 +664,8 @@
       if (sec === "faction") { var f = matchCard(C, line, "Faction"); if (f) { out.factionId = f.id; if (!out.race) out.race = f.race; } else out.unmatched.push({ line: line, card: "Faction" }); return; }
       if (sec === "tactical" || sec === "creep") {
         var cn = line.replace(/\s*[x×]\s*(\d+)$/i, ""), cnt = Number((/[x×]\s*(\d+)$/i.exec(line) || [0, 1])[1]);
-        var c = matchCard(C, cn, sec === "creep" ? "Creep" : null);
-        if (c && c.kind === "Creep") out.creepId = c.id; else if (c) out.tactical[c.id] = (out.tactical[c.id] || 0) + cnt; else out.unmatched.push({ line: line, card: sec === "creep" ? "Creep" : "Tactical" });
+        var c = sec === "creep" ? (matchCard(C, cn, "Creep") || matchCard(C, cn, "Virus")) : matchCard(C, cn, null);
+        if (c && (c.kind === "Creep" || c.kind === "Virus")) out.creepId = c.id; else if (c) out.tactical[c.id] = (out.tactical[c.id] || 0) + cnt; else out.unmatched.push({ line: line, card: sec === "creep" ? "Creep" : "Tactical" });
         return;
       }
     });

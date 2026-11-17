@@ -130,6 +130,13 @@ for c in CARDS:
             E(f"card {c['id']}: invalid slot {s}")
     if c["race"] not in c["faction_tags"]:
         E(f"card {c['id']}: race missing from tags")
+for c in CARDS:
+    rq = c.get("required_card")
+    if rq and not any(x["kind"] == rq["kind"] and set(x["faction_tags"]) <= set(c["faction_tags"]) for x in CARDS):
+        E(f"card {c['id']}: requires a {rq['kind']} Card but none fits its tags")
+    ab = c.get("army_building")
+    if ab and not any(a["name"] == ab["ability"] for a in c["abilities"]):
+        E(f"card {c['id']}: army_building rule names a missing ability {ab['ability']}")
 for gid in GAS_COSTS:
     if gid not in card_ids:
         E(f"gas cost {gid} has no card")
@@ -142,7 +149,7 @@ for u in UNITS:
     if not ok:
         (Wn if u.get("provisional") else E)(f"{u['id']}: no Faction Card can field it")
         continue
-    slot_sources = [c["id"] for c in CARDS if c["kind"] != "Creep" and u["army_slot"] in c["slots"]
+    slot_sources = [c["id"] for c in CARDS if c["kind"] not in ("Creep", "Virus") and u["army_slot"] in c["slots"]
                     and set(c["faction_tags"]) <= set(max((card_ids[f]["faction_tags"] for f in ok), key=len))]
     if not slot_sources:
         Wn(f"{u['id']}: no card provides a {u['army_slot']} slot for it")
@@ -212,7 +219,7 @@ else:
     print("JSON NOT WRITTEN: errors present")
 
 print(f"units={len(UNITS)} (fieldable={sum(not u['summoned'] for u in UNITS)}, summoned={sum(u['summoned'] for u in UNITS)}) "
-      f"cards={len(CARDS)} (faction={sum(c['kind']=='Faction' for c in CARDS)}, tactical={sum(c['kind']=='Tactical' for c in CARDS)}, creep={sum(c['kind']=='Creep' for c in CARDS)}) "
+      f"cards={len(CARDS)} (faction={sum(c['kind']=='Faction' for c in CARDS)}, tactical={sum(c['kind']=='Tactical' for c in CARDS)}, creep={sum(c['kind']=='Creep' for c in CARDS)}, virus={sum(c['kind']=='Virus' for c in CARDS)}) "
       f"missions={len(MISSIONS)} deployments={len(DEPLOYMENTS)}")
 print("ERRORS:", len(errors)); [print("  -", e) for e in errors]
 print("WARNINGS:", len(warnings)); [print("  -", w) for w in warnings]

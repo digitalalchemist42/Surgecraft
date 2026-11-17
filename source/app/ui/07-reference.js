@@ -105,7 +105,7 @@ function filterKw(q){
    dataset unchanged through the same renderers as the roster views: a unit is shown as its full printed card
    (every weapon, ability and upgrade, nothing marked as taken). */
 var CR = { race:null, type:"all", q:"", open:{} };
-var CR_TYPES = [["all","All"],["units","Units"],["Faction","Faction"],["Tactical","Tactical"],["Creep","Creep"]];
+var CR_TYPES = [["all","All"],["units","Units"],["Faction","Faction"],["Tactical","Tactical"],["Creep","Creep"],["Virus","Virus"]];
 function crText(o){ var out = []; (function walk(x, k){ if(k==="id"||k==="corrections"||k==="notes"||k==="card_version") return;
   if(typeof x==="string") out.push(x); else if(x && typeof x==="object") Object.keys(x).forEach(function(kk){ walk(x[kk], kk); }); })(o, ""); return out.join(" ").toLowerCase(); }
 var crIndex = null;
@@ -145,7 +145,7 @@ function crListHTML(){
       h += '</div>';
     });
   }
-  ["Faction","Tactical","Creep"].forEach(function(kind){
+  ["Faction","Tactical","Creep","Virus"].forEach(function(kind){
     if(!show(kind)) return;
     var cs = it.cards.filter(function(c){ return c.kind===kind; }); if(!cs.length) return; n += cs.length;
     h += '<div class="subhead">'+esc(kind)+' Cards <span class="aside">'+cs.length+'</span></div><div class="vlist">';
@@ -167,19 +167,19 @@ function renderCrList(){
 function crControlsHTML(){
   return '<div class="seg race" role="group" aria-label="Faction">'+["Terran","Protoss","Zerg"].map(function(rc){
       return '<button data-a="cr-race" data-v="'+rc+'" aria-pressed="'+(CR.race===rc)+'"><img src="'+ART.race(rc)+'" alt="">'+rc+'</button>'; }).join("")+'</div>'+
-    '<div class="seg" role="group" aria-label="Card type">'+CR_TYPES.filter(function(t){ return t[0]!=="Creep" || CR.race==="Zerg"; }).map(function(t){
+    '<div class="seg" role="group" aria-label="Card type">'+CR_TYPES.filter(function(t){ return (t[0]!=="Creep" && t[0]!=="Virus") || CR.race==="Zerg"; }).map(function(t){
       return '<button data-a="cr-type" data-v="'+t[0]+'" aria-pressed="'+(CR.type===t[0])+'">'+t[1]+'</button>'; }).join("")+'</div>';
 }
 function openCardRef(){
   if(!CR.race) CR.race = (S.cur && S.cur.race) || "Terran";
-  var h = '<div class="kwref cref" id="cref" data-skin="'+esc(CR.race)+'"><div class="kr-head"><h2>Card reference</h2><p>Every unit and every Faction, Tactical and Creep Card, with the values printed on the official cards. Units show the whole card, upgrades included. Tap a line to open its card. Tap an underlined keyword for its definition.</p></div>'+
+  var h = '<div class="kwref cref" id="cref" data-skin="'+esc(CR.race)+'"><div class="kr-head"><h2>Card reference</h2><p>Every unit and every Faction, Tactical, Creep and Virus Card, with the values printed on the official cards. Units show the whole card, upgrades included. Tap a line to open its card. Tap an underlined keyword for its definition.</p></div>'+
     '<div class="cr-ctl" id="cr-ctl">'+crControlsHTML()+'</div>'+
     '<div class="kr-tools"><input class="input" id="cr-q" type="search" placeholder="Search names and card text" aria-label="Search cards" autocomplete="off" value="'+esc(CR.q)+'"><span class="faint" id="cr-count"></span></div>'+
     '<div id="cr-list"></div></div>';
   openModal(h); renderCrList();
 }
 function crClick(a, v){
-  if(a==="cr-race"){ if(CR.race===v) return; CR.race = v; CR.open = {}; if(CR.type==="Creep" && v!=="Zerg") CR.type = "all";
+  if(a==="cr-race"){ if(CR.race===v) return; CR.race = v; CR.open = {}; if((CR.type==="Creep" || CR.type==="Virus") && v!=="Zerg") CR.type = "all";
     var box = $("cref"); if(box) box.setAttribute("data-skin", v); var ctl = $("cr-ctl"); if(ctl) ctl.innerHTML = crControlsHTML(); renderCrList(); return; }
   if(a==="cr-type"){ CR.type = v; var ctl2 = $("cr-ctl"); if(ctl2) ctl2.innerHTML = crControlsHTML(); renderCrList(); return; }
   if(a==="cr-open"){

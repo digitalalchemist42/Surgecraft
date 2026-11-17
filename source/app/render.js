@@ -268,7 +268,7 @@
       var sl = {}; Object.keys(c.slots).forEach(function (s) { sl[s] = c.slots[s] * n; });
       h += "<tr><td>" + esc(c.name) + (n > 1 ? " ×" + n : "") + "</td><td>" + esc(slotsText(sl)) + '</td><td class="n">' + c.gas_cost * n + "</td></tr>";
     });
-    if (r.creepId && C.cards[r.creepId]) h += "<tr><td>" + esc(C.cards[r.creepId].name) + ' <span class="rs-f">Creep Card</span></td><td>—</td><td class="n">' + C.cards[r.creepId].gas_cost + "</td></tr>";
+    if (r.creepId && C.cards[r.creepId]) h += "<tr><td>" + esc(C.cards[r.creepId].name) + ' <span class="rs-f">' + esc(C.cards[r.creepId].kind) + ' Card</span></td><td>—</td><td class="n">' + C.cards[r.creepId].gas_cost + "</td></tr>";
     h += '</tbody><tfoot><tr><td colspan="2">Total</td><td class="n">' + t.gas + " / " + lim.gas + "</td></tr></tfoot></table></div>";
     h += '<h4 class="rs-sh">MISSION &amp; DEPLOYMENT CARDS</h4><div class="rs-tw"><table class="rs-t"><tbody><tr><td class="rs-f" style="width:170px">Mission Cards</td><td>' +
       ((r.missions || []).map(function (id) { return esc(C.missions[id] ? C.missions[id].name : id); }).join(", ") || "—") + '</td></tr><tr><td class="rs-f">Deployment Cards</td><td>' +
@@ -423,7 +423,7 @@
       "Mission Card: " + (r.missions || []).filter(function (id) { return C.missions[id]; }).map(function (id) { return C.missions[id].name; }).join(", ")]);
     blocks.push(["# Faction:"].concat(f ? [f.name] : []));
     blocks.push(["# Tactical:"].concat(tac));
-    if (creep) blocks.push(["# Creep:", creep.name]);
+    if (creep) blocks.push(["# " + creep.kind + ":", creep.name]);
     var units = ["# Units:"];
     r.units.forEach(function (e) {
       var u = C.units[e.unitId]; if (!u) return; var c = C.entryCost(e);
@@ -451,7 +451,7 @@
     Object.keys(r.tactical || {}).forEach(function (id) { var c = C.cards[id], n = r.tactical[id]; if (!c || !n) return;
       var sl = {}; Object.keys(c.slots).forEach(function (s) { sl[s] = c.slots[s] * n; });
       L.push("| " + mdCell(c.name) + (n > 1 ? " ×" + n : "") + " | " + slotsText(sl) + " | " + c.gas_cost * n + " |"); });
-    if (r.creepId && C.cards[r.creepId]) L.push("| " + mdCell(C.cards[r.creepId].name) + " (Creep Card) | — | " + C.cards[r.creepId].gas_cost + " |");
+    if (r.creepId && C.cards[r.creepId]) L.push("| " + mdCell(C.cards[r.creepId].name) + " (" + C.cards[r.creepId].kind + " Card) | — | " + C.cards[r.creepId].gas_cost + " |");
     L.push("| **Total** | | **" + t.gas + "** |", "");
     L.push("## Mission & Deployment Cards", "");
     L.push("- **Mission Cards:** " + ((r.missions || []).map(function (id) { return C.missions[id].name; }).join(", ") || "—"));
@@ -469,7 +469,7 @@
     Object.keys(r.tactical || {}).forEach(function (id) { var c = C.cards[id], n = r.tactical[id]; if (!c || !n) return;
       var sl = {}; Object.keys(c.slots).forEach(function (s) { sl[s] = c.slots[s] * n; });
       rows.push(["Tactical Card", c.name + (n > 1 ? " x" + n : ""), "", "", "", "", "", "", c.gas_cost * n, slotsText(sl), ""]); });
-    if (r.creepId && C.cards[r.creepId]) rows.push(["Creep Card", C.cards[r.creepId].name, "", "", "", "", "", "", C.cards[r.creepId].gas_cost, "", ""]);
+    if (r.creepId && C.cards[r.creepId]) rows.push([C.cards[r.creepId].kind + " Card", C.cards[r.creepId].name, "", "", "", "", "", "", C.cards[r.creepId].gas_cost, "", ""]);
     var t = C.totals(r); rows.push(["Total", "", "", "", t.supply, "", "", t.minerals, t.gas, "", ""]);
     return "﻿" + rows.map(function (row) { return row.map(csvCell).join(","); }).join("\r\n") + "\r\n";
   }
@@ -743,7 +743,7 @@
     var cards = [];
     if (f) cards.push("<b>" + esc(f.name) + "</b>" + esc(resTxt(f)));
     Object.keys(r.tactical || {}).forEach(function (id) { var c = C.cards[id], n = r.tactical[id]; if (c && n) cards.push(esc(c.name + (n > 1 ? " ×" + n : "") + resTxt(c))); });
-    if (r.creepId && C.cards[r.creepId]) cards.push(esc(C.cards[r.creepId].name) + ' <span class="rf-note">Creep</span>');
+    if (r.creepId && C.cards[r.creepId]) cards.push(esc(C.cards[r.creepId].name) + ' <span class="rf-note">' + esc(C.cards[r.creepId].kind) + '</span>');
     h += '<p class="rf-line"><i>Cards</i>' + (cards.join(" · ") || "—") + "</p>";
     var ms = (r.missions || []).map(function (id) { return C.missions[id] ? C.missions[id].name : id; }), ds = (r.deployments || []).map(function (id) { return C.deployments[id] ? C.deployments[id][side] : id; });
     h += '<p class="rf-line"><i>Missions</i>' + esc(ms.join(", ") || "—") + '<span class="rf-sep"></span><i>Deployments</i>' + esc(ds.join(", ") || "—") + "</p></header>";

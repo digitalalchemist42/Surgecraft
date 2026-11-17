@@ -67,8 +67,9 @@ function renderCards(){
   var t = C.totals(r), lim = C.limits(r);
   var h = secHead(2, "Tactical Cards", '<b>'+fmt(t.gas)+'</b> / '+fmt(lim.gas)+' Vespene Gas · Part 9.1.4–9.1.5') + '<div class="sbody">';
   if(!C.faction(r)){ el.innerHTML = h+'<p class="muted" style="margin:0">Choose a Faction Card first. It decides which Tactical Cards you can buy.</p></div>'; return; }
-  if(C.requiresCreep(r)){
-    h += '<div class="subhead" style="margin-top:0">Creep Card<span class="aside faint">Choose exactly one (Zerg Creep)</span></div><div class="tiles" role="radiogroup" aria-label="Creep Card">';
+  var rq = C.requiredCard(r);
+  if(rq){
+    h += '<div class="subhead" style="margin-top:0">'+esc(rq.kind)+' Card<span class="aside faint">Choose exactly one ('+esc(rq.ability)+')</span></div><div class="tiles" role="radiogroup" aria-label="'+esc(rq.kind)+' Card">';
     C.eligibleCreep(r).forEach(function(c){
       h += '<div class="tile" role="radio" tabindex="0" data-a="creep" data-v="'+esc(c.id)+'" aria-checked="'+(r.creepId===c.id)+'"><span class="t-art"><img src="'+ART.card(c.id)+'" alt=""></span><span class="tcol">'+
         '<span class="t-name">'+esc(c.name)+'</span><span class="t-meta"><span class="gascost">'+c.gas_cost+' gas</span>'+(c.unique?'<span class="chip uniq">Unique</span>':'')+pvChip(c)+'</span>'+

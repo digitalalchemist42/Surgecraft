@@ -47,7 +47,7 @@ eq("Zerg Swarm creep options: Accelerating only (Malignant is Kerrigan's Swarm, 
 eq("Zerg Swarm requires creep", C.validate(zs).some(v=>/requires exactly one Creep/.test(v.msg)), true);
 const ks = C.newRoster(); ks.race="Zerg"; ks.factionId="kerrigans-swarm";
 eq("Kerrigan's Swarm creep options", C.eligibleCreep(ks).filter(c=>!c.provisional).map(c=>c.id).sort(), ["accelerating-creep","malignant-creep"]);
-eq("v1.10.26 Creep Cards (tags not photographed, recorded as Zerg) are offered as PREVIEW", C.eligibleCreep(zs).filter(c=>c.provisional).map(c=>c.id).sort(), ["healing-pathogen","hungering-infestation","weighted-pustule"]);
+eq("Virus Cards are not offered as Creep Cards", C.eligibleCreep(zs).filter(c=>c.kind!=="Creep").length, 0);
 eq("summoned units never eligible", C.eligibleUnits(ks).some(u=>u.summoned), false);
 
 // Rulebook 9.1.6 example: Kerrigan's Swarm 2 Elite -> small Hydralisk fits, full-strength needs 3
@@ -111,14 +111,32 @@ console.log("\n" + C.rosterText(r));
   eq("Templar Archives 40 gas, 2 Support, Unique", [C.cards["templar-archives"].gas_cost, C.cards["templar-archives"].slots.Support, C.cards["templar-archives"].unique], [40, 2, true]);
   eq("Vanadium Plating 25 gas", C.cards["vanadium-plating"].gas_cost, 25);
   eq("only the v1.10.26 photographed cards are PREVIEW", data.units.concat(data.cards).filter(x => x.provisional).map(x => x.card_version).filter(v => v !== "v1.10.26"), []);
-  eq("v1.10.26 preview set", data.units.concat(data.cards).filter(x => x.provisional).length, 20);
+  eq("v1.10.26 preview set", data.units.concat(data.cards).filter(x => x.provisional).length, 21);
   const fb = C.newEntry("firebat"); eq("Firebat preview: 4 models, Supply 1, 0 Minerals", [fb.models, C.entryCost(fb).supply, C.entryCost(fb).total], [4, 1, 0]);
   const pr = C.newRoster(); pr.race = "Terran"; pr.factionId = "terran-armed-forces"; pr.units.push(fb);
   eq("a roster with a PREVIEW card warns about its 0 cost", C.validate(pr).some(v => v.level === "warn" && /PREVIEW/.test(v.msg) && /Firebat/.test(v.msg)), true);
   eq("Reaver as printed", [C.units["reaver"].stats.shield, C.units["reaver"].stats.size, C.units["reaver"].army_slot, C.units["reaver"].base_mm], [6, 4, "Elite", 150]);
   const td = C.newRoster(); td.race = "Protoss"; td.factionId = "taldarim";
   eq("Slayer is Tal'darim only", [C.eligibleUnits(td).some(u => u.id === "slayer"), C.eligibleUnits(kh).some(u => u.id === "slayer")], [true, false]);
-  eq("Infested Trooper needs the Stukov's Forces card (not transcribed)", C.factionCards("Zerg").some(c => C.eligibleUnits({factionId: c.id}).some(u => u.id === "infested-trooper")), false);
+  // Stukov's Forces (v1.10.26, PREVIEW): Virus Card instead of Creep Card; Ashes of the UED brings Terran Ground Mechanical units
+  const sf = C.newRoster(); sf.race = "Zerg"; sf.factionId = "stukovs-forces";
+  eq("Stukov's Forces asks for a Virus Card (Infestation)", C.requiredCard(sf), {kind: "Virus", ability: "Infestation"});
+  eq("Stukov's Forces Virus Card options", C.eligibleCreep(sf).map(c => c.id).sort(), ["healing-pathogen","hungering-infestation","weighted-pustule"]);
+  eq("Stukov's Forces without a Virus Card is an error", C.validate(sf).some(v => v.level === "error" && /exactly one Virus Card \(Infestation\)/.test(v.msg)), true);
+  sf.creepId = "accelerating-creep"; eq("a Creep Card is not allowed with Stukov's Forces", C.validate(sf).some(v => v.level === "error" && /Accelerating Creep is not allowed/.test(v.msg)), true);
+  sf.creepId = "weighted-pustule"; eq("a Virus Card satisfies Stukov's Forces", C.validate(sf).some(v => /Virus Card/.test(v.msg) && v.level === "error"), false);
+  eq("Zerg Swarm still asks for a Creep Card, not a Virus Card", [C.requiredCard(zs).kind, C.eligibleCreep(zs).some(c => c.kind === "Virus")], ["Creep", false]);
+  const zsv = C.newRoster(); zsv.race = "Zerg"; zsv.factionId = "zerg-swarm"; zsv.creepId = "weighted-pustule";
+  eq("a Virus Card is not allowed with Zerg Swarm", C.validate(zsv).some(v => v.level === "error" && /Weighted Pustule is not allowed/.test(v.msg)), true);
+  const sfu = C.eligibleUnits(sf).map(u => u.id);
+  eq("Ashes of the UED: Goliath and Siege Tank join; Marine, Raven, Marauder do not", [sfu.includes("goliath"), sfu.includes("siege-tank"), sfu.includes("marine"), sfu.includes("raven"), sfu.includes("marauder")], [true, true, false, false, false]);
+  eq("Stukov's Forces fields Infested Trooper, Infested Marine, Stukov and other Zerg units", ["infested-trooper","infested-marine","stukov","zergling"].every(id => sfu.includes(id)), true);
+  eq("other Zerg factions do not get the Terran units or the Infested Trooper", [C.eligibleUnits(zs).some(u => u.race === "Terran"), C.eligibleUnits(zs).some(u => u.id === "infested-trooper")], [false, false]);
+  sf.units.push(C.newEntry("goliath"));
+  const gv = C.validate(sf);
+  eq("a Goliath in Stukov's Forces is legal by tags and gets the Infested note", [gv.some(v => v.level === "error" && /Goliath.*has tags/.test(v.msg)), gv.some(v => v.level === "info" && /Goliath.*Ashes of the UED.*Infested.*BM.*BURROWED/.test(v.msg))], [false, true]);
+  eq("the Infested Missile Turret is summonable by Stukov's Forces", require("./battle-core.js").summonable(C, sf).some(u => u.id === "infested-missile-turret"), true);
+  const im = C.newEntry("infested-marine"); eq("Infested Marine: 3 models Supply 1, 6 models Supply 2 (sharp photo)", [im.models, C.entryCost(im).supply, (im.models = 6, C.entryCost(im).supply)], [3, 1, 2]);
   eq("new units carry card version, role and base", [C.units["tassadar"].card_version, C.units["defiler"].combat_role, C.units["zagara"].base_mm], ["v1.09.26", "Lifesaver", 100]);
   eq("Holo Decoy combat tags as printed", C.units["holo-decoy"].combat_tags, ["Psionic", "Ground"]);
   eq("Zagara's Broodmother kept as a built-in ability (no table price)", [C.units["zagara"].abilities.some(a => a.name === "Broodmother"), C.units["zagara"].upgrades.length], [true, 0]);

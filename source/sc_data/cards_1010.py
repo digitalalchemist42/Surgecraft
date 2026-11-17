@@ -132,7 +132,6 @@ PROTOSS = [
 ]
 
 # ---------------------------------------------------------------- ZERG
-LOWRES = "Read from a low-resolution photograph (1078 px wide for four cards); "
 Z_BURROW_AMBUSH = A("Movement", "Burrow Ambush", "Passive", None,
                     "When this Unit is nominated to deploy from the Reserves, it may resolve the PLACE (18) effect from the controlling player's Entry Edge. No model may be set Within 10\" of any Enemy model. This Unit's Activation ends.")
 LIVE_FOR_THE_SWARM = A("Any", "Live for the Swarm!", "Passive", None,
@@ -150,7 +149,7 @@ def DETONATION(n):
 
 ZERG = [
     O(id="infested-marine", name="Infested Marine", race="Zerg", tags=["Zerg"], slot="Core", role="Damage Dealer", base_mm=40,
-      stats=dict(speed="3/6", armour="4+", evade="6+", hp=2, size=2), supply=[("1-3", 0), ("4-6", 1)],
+      stats=dict(speed="3/6", armour="4+", evade="6+", hp=2, size=2), supply=[("1-3", 1), ("4-6", 2)],
       combat_tags=["Biological", "Infested", "Light", "Ground"],
       abilities=[LIVE_FOR_THE_SWARM, DETONATION(1), DEV_CHARGE(2, "4+")],
       weapons=[W("Assault", "Infested C-14 Rifle", "12", "All", "2", "4+", "Light", "D3", "1", ["BURST FIRE 6\" (2)"]),
@@ -163,8 +162,7 @@ ZERG = [
                 PLAGUED_MUNITIONS,
                 W("Combat", "Wild Mutation", "E", "Ground", "2", "3+", "Armoured", "D3+1", "1", [], replaces="Infested C-14 Rifle")],
       corrections=["Plagued Munitions printed 'NON-LETHAL Damage (1)'; shown as NON-LETHAL DAMAGE (1)."],
-      notes=[LOWRES + "the front's stat line, abilities and weapon rows are best readings. The Supply numbers under the 1-3 and 4-6 brackets are NOT legible: 0 and 1 are assumed (as the Marine) and need checking against the card.",
-             "Wild Mutation is a Close Combat weapon printed 'FOR Infested C-14 Rifle' (a ranged weapon). Reproduced as printed."]),
+      notes=["Wild Mutation is a Close Combat weapon printed 'FOR Infested C-14 Rifle' (a ranged weapon). Reproduced as printed."]),
     O(id="infested-trooper", name="Infested Trooper (Infested Marine)", race="Zerg", tags=["Zerg", "Stukov's Forces"], slot="Core", role=None, base_mm=None,
       stats=dict(speed="3/6", armour="4+", evade="6+", hp=4, size=2), supply=[("1-1", 0), ("2-3", 1)],
       combat_tags=["Biological", "Infested", "Light", "Ground"],
@@ -172,9 +170,7 @@ ZERG = [
       weapons=[W("Assault", "Infested C-14 Rifle", "12", "All", "3", "3+", "Light", "D3", "1", ["BURST FIRE 6\" (2)"]),
                W("Combat", "Bayonet", "E", "Ground", "2", "5+", "-", "-", "1", [])],
       upgrades=[],
-      notes=[LOWRES + "best readings; the Bayonet's Hit value (5+) is the least certain.",
-             "The upgrade side of this card was not photographed: Army Slot is assumed to be Core (as the Infested Marine); combat role, base size and any upgrades are unknown.",
-             "Carries the Stukov's Forces tag. No Stukov's Forces Faction Card has been transcribed yet, so no roster can field this Unit until that card is added."]),
+      notes=["The upgrade side of this card was not photographed: Army Slot is assumed to be Core (as the Infested Marine); combat role, base size and any upgrades are unknown."]),
     O(id="stukov", name="Stukov", race="Zerg", tags=["Zerg"], slot="Hero", role="Tactician", unique=True, base_mm=40,
       stats=dict(speed="7", armour="4+", evade="6+", hp=10, size=2), supply=[("1-1", 1)],
       combat_tags=["Biological", "Infested", "Ground"],
@@ -190,7 +186,7 @@ ZERG = [
                   "Treat the Supply characteristic of any Enemy Unit that has the INFESTATION Status and is Within 6\" as reduced by 1 (to a minimum of 0) for Controlling and Contesting Mission Markers, and completing objectives."),
                 A("Assault", "Bio-Kill Switch", "Active", "0 BM",
                   "Each Enemy Unit with the INFESTATION Status on the Battlefield suffers Damage (2). Immediately after this Special Ability is resolved, Remove the INFESTATION Status from Units that suffered Damage.")],
-      notes=[LOWRES + "the front's stat line, abilities and weapon rows are best readings (the upgrade side is from a sharp photograph)."]),
+      notes=[]),
     O(id="infested-missile-turret", name="Infested Missile Turret", race="Zerg", tags=["Zerg", "Stukov's Forces"], slot=None, role=None, unique=True,
       summoned=True, base_mm=None,
       stats=dict(speed="-", armour="5+", evade="-", hp=8, size=3), supply=[("1-1", 0)],
@@ -204,8 +200,8 @@ ZERG = [
                    "When an Enemy Flying Unit ends its Activation Within 14\". This Unit immediately performs a Ranged Attack against that Enemy Unit.")],
       weapons=[W("Assault", "Firefly Missiles", "14", "Flying", "8", "4+", "Light, Armoured", "D3", "1", ["ANTI-EVADE (1)"])],
       upgrades=[],
-      notes=[LOWRES + "best readings; least certain are the Detection range (read as 8\"; other cards print 6\") and the Firefly Missiles RoA (read as 8).",
-             "Combat role and base size are not on the photographed side. Which card sets this Unit on the battlefield is not shown on any photographed card."]),
+      notes=["Combat role and base size are not on the photographed side. Set on the battlefield by the Stukov's Forces Faction Card (Hostile Incubation).",
+             "Detection is printed Within 8\" on this card (6\" on other cards). Reproduced as printed."]),
 ]
 
 # ---------------------------------------------------------------- CARDS
@@ -213,7 +209,9 @@ T, P_, Z = "Terran", "Protoss", "Zerg"
 SLOT_NOTE = "Only the rules side of this card was photographed: its army slots, Unique marking and faction tags are on the other side and are unknown, so it adds no slots yet."
 STUKOVS_CREEP = ("Any", "Stukov's Creep", "Passive",
                  "If an Enemy Unit ends a Move, Deploy, Run, Charge or Disengage action Within 1\" of a Friendly Creep Tumor token, remove that token from the battlefield. Creep Tumor tokens have STAY IN PLAY and DISPLACEMENT.")
-CREEP_NOTE = "Only the rules side of this card was photographed: its faction tags and Unique marking are unknown (recorded as Zerg only)."
+CREEP_NOTE = ("Only the rules side of this card was photographed, so its card type, faction tags and Unique marking are not printed there. "
+              "Recorded as a Virus Card (the card type the Stukov's Forces Faction Card requires; these three cards carry Stukov's Creep and INFESTATION effects). "
+              "Tags recorded as Zerg only; as a Virus Card it is offered only to Faction Cards that require one (Stukov's Forces).")
 
 
 def CARD(id, name, kind, race, tags, slots, res_val, abilities, unique=False, notes=None):
@@ -229,6 +227,12 @@ CARDS = [
         ("Any", "Chain of Ascension", "Passive", "Calculate the total lost Supply of all Friendly Units. While this total is: 4 or more: All your Units' first used weapons gain PRECISION (1). 6 or more: All your Units' first used weapons gain CRITICAL HIT (1)."),
         ("Movement", "Proxy Pylon", "Active", "If there is no Friendly Tal'darim Pylon on the battlefield, set a Friendly Tal'darim Pylon Unit anywhere on the GROUND LEVEL of the battlefield more than 10\" away from any Enemy model. This Round, the Tal'darim Pylon is not eligible to use its Special Abilities (excluding Structure)."),
     ], unique=True, notes=["Only the rules side of this card was photographed: its army slots and PE value are on the other side and are unknown, so it provides no slots yet (slots come only from Tactical Cards)."]),
+    CARD("stukovs-forces", "Stukov's Forces", "Faction", Z, ["Zerg", "Stukov's Forces"], {}, 1, [
+        ("Any", "Ashes of the UED", "Passive", "During Army Building, you may include Units with the Terran Faction Tag and both Ground and Mechanical Combat Tags in your army. Those Units gain the Infested Combat Tag. Treat any CP cost for those Units' Special Abilities as BM. These Units cannot gain the BURROWED Status."),
+        ("Any", "Infestation", "Passive", "During Army Building, select exactly one Virus Card and add it to their Army List, paying its listed cost (if any)."),
+        ("Movement", "Hostile Incubation", "Active", "If there is no Friendly Infested Missile Turret on the battlefield, set a Friendly Infested Missile Turret Unit anywhere on the GROUND LEVEL of the battlefield more than 10\" away from any Enemy model. This Round, the Infested Missile Turret is not eligible to use its Special Abilities (excluding Structure)."),
+    ], unique=True, notes=["Only the rules side of this card was photographed: its army slots are on the other side and are unknown, so it provides no slots yet. Faction tags (Zerg, Stukov's Forces) and UNIQUE are assumed, as printed on every other Faction Card.",
+                           "Ashes of the UED is applied by the builder: Units with the Terran Faction Tag and both Ground and Mechanical Combat Tags (currently Goliath and Siege Tank) may be added. The tracker pays their CP costs with BM cards."]),
     CARD("robotics-support-bay", "Robotics Support Bay", "Tactical", P_, ["Protoss"], {}, 1, [
         ("Movement", "Master of Robotics", "Active", "The active Mechanical Unit resolves the HEAL (2) effect."),
     ], notes=[SLOT_NOTE]),
@@ -243,19 +247,25 @@ CARDS = [
         ("Movement", "Brutal Instinct", "Reaction", "Immediately after an Enemy Unit ends its Activation Within 12\" of a Friendly Ground Unit. That Friendly Unit gains or loses the BURROWED Status."),
         ("Movement", "Creep Spread", "Active", "Set a Creep Tumor token on the battlefield Within 6\" (Line of Sight is not required) of either a Friendly Entry Edge or an existing Friendly Creep Tumor token."),
     ], notes=[SLOT_NOTE]),
-    CARD("weighted-pustule", "Weighted Pustule", "Creep", Z, ["Zerg"], {}, None, [
+    CARD("weighted-pustule", "Weighted Pustule", "Virus", Z, ["Zerg"], {}, None, [
         ("Any", "Fetid Touch", "Passive", "While an Enemy Unit has the INFESTATION Status, it cannot resolve the PLACE and set effects and cannot be returned to Reserves."),
         STUKOVS_CREEP,
     ], notes=[CREEP_NOTE]),
-    CARD("hungering-infestation", "Hungering Infestation", "Creep", Z, ["Zerg"], {}, None, [
+    CARD("hungering-infestation", "Hungering Infestation", "Virus", Z, ["Zerg"], {}, None, [
         ("Any", "Growing Infestation", "Passive", "While an Enemy Unit has the INFESTATION Status, it is not eligible to use or to be targeted by any Enemy Reaction Special Ability, except Restoration."),
         STUKOVS_CREEP,
     ], notes=[CREEP_NOTE]),
-    CARD("healing-pathogen", "Healing Pathogen", "Creep", Z, ["Zerg"], {}, None, [
+    CARD("healing-pathogen", "Healing Pathogen", "Virus", Z, ["Zerg"], {}, None, [
         ("Any", "Universal Carrier", "Passive", "While an Enemy Unit has the INFESTATION Status, immediately after its supply is reduced or it is destroyed, target any Friendly Biological Unit Within 12\". This Friendly Unit resolves the HEAL (2) effect."),
         STUKOVS_CREEP,
     ], notes=[CREEP_NOTE]),
 ]
+
+for _c in CARDS:
+    if _c["id"] == "stukovs-forces":
+        _c["army_building"] = {"ability": "Ashes of the UED", "include": {"faction_tag": "Terran", "combat_tags": ["Ground", "Mechanical"]},
+                               "grants_combat_tag": "Infested", "resource_as": "BM", "cannot_gain": "BURROWED"}
+        _c["required_card"] = {"ability": "Infestation", "kind": "Virus"}
 
 # PLACEHOLDER costs: 0 Minerals / 0 Gas until a cost table lists these cards. Compositions are an assumption too
 # (the largest model count of each Supply bracket of 1 or more, as most cost-table entries do).
@@ -264,12 +274,12 @@ COSTS = {
     "reaver": {"compositions": [(1, 0, 2)], "upgrades": {"Solarite Scarab": ("-", [0]), "Phasing Scarab": ("-", [0]), "Shuttle": ("-", [0])}},
     "alarak": {"compositions": [(1, 0, 1)], "upgrades": {}},
     "slayer": {"compositions": [(1, 0, 1), (2, 0, 2)], "upgrades": {}},
-    "infested-marine": {"compositions": [(6, 0, 1)], "upgrades": {
-        "Burrow Ambush": ("-", [0]),
-        "Infested Missile Launcher - Acid Blast": ("SPECIALIST, FOR Infested C-14 Rifle", [0]),
-        "Infested Missile Launcher - Scourgeshot": ("SPECIALIST, FOR Infested C-14 Rifle", [0]),
-        "Plagued Munitions": ("-", [0]),
-        "Wild Mutation": ("FOR Infested C-14 Rifle", [0])}},
+    "infested-marine": {"compositions": [(3, 0, 1), (6, 0, 2)], "upgrades": {
+        "Burrow Ambush": ("-", [0, 0]),
+        "Infested Missile Launcher - Acid Blast": ("SPECIALIST, FOR Infested C-14 Rifle", [0, 0]),
+        "Infested Missile Launcher - Scourgeshot": ("SPECIALIST, FOR Infested C-14 Rifle", [0, 0]),
+        "Plagued Munitions": ("-", [0, 0]),
+        "Wild Mutation": ("FOR Infested C-14 Rifle", [0, 0])}},
     "infested-trooper": {"compositions": [(3, 0, 1)], "upgrades": {}},
     "stukov": {"compositions": [(1, 0, 1)], "upgrades": {"Plague Warden": ("-", [0]), "Bio-Kill Switch": ("-", [0])}},
 }
