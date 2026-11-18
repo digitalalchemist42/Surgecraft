@@ -223,19 +223,20 @@ def CARD(id, name, kind, race, tags, slots, res_val, abilities, unique=False, no
 
 
 CARDS = [
-    CARD("taldarim", "Tal'darim", "Faction", P_, ["Protoss", "Tal'darim"], {}, None, [
+    CARD("taldarim", "Tal'darim", "Faction", P_, ["Protoss", "Tal'darim"], {"Core": 4, "Elite": 1, "Hero": 1}, None, [
         ("Any", "Chain of Ascension", "Passive", "Calculate the total lost Supply of all Friendly Units. While this total is: 4 or more: All your Units' first used weapons gain PRECISION (1). 6 or more: All your Units' first used weapons gain CRITICAL HIT (1)."),
         ("Movement", "Proxy Pylon", "Active", "If there is no Friendly Tal'darim Pylon on the battlefield, set a Friendly Tal'darim Pylon Unit anywhere on the GROUND LEVEL of the battlefield more than 10\" away from any Enemy model. This Round, the Tal'darim Pylon is not eligible to use its Special Abilities (excluding Structure)."),
-    ], unique=True, notes=["Only the rules side of this card was photographed: its army slots and PE value are on the other side and are unknown, so it provides no slots yet (slots come only from Tactical Cards)."]),
+    ], unique=True, notes=["Both sides photographed (17 Nov 2026): Faction Card, UNIQUE, tags Protoss and Tal'darim, Supply 4x Core, 1x Elite, 1x Hero.",
+                           "No PE value is printed on either side (other Faction Cards print one), so this card generates no PE when Exhausted, as printed."]),
     CARD("stukovs-forces", "Stukov's Forces", "Faction", Z, ["Zerg", "Stukov's Forces"], {}, 1, [
         ("Any", "Ashes of the UED", "Passive", "During Army Building, you may include Units with the Terran Faction Tag and both Ground and Mechanical Combat Tags in your army. Those Units gain the Infested Combat Tag. Treat any CP cost for those Units' Special Abilities as BM. These Units cannot gain the BURROWED Status."),
         ("Any", "Infestation", "Passive", "During Army Building, select exactly one Virus Card and add it to their Army List, paying its listed cost (if any)."),
         ("Movement", "Hostile Incubation", "Active", "If there is no Friendly Infested Missile Turret on the battlefield, set a Friendly Infested Missile Turret Unit anywhere on the GROUND LEVEL of the battlefield more than 10\" away from any Enemy model. This Round, the Infested Missile Turret is not eligible to use its Special Abilities (excluding Structure)."),
     ], unique=True, notes=["Only the rules side of this card was photographed: its army slots are on the other side and are unknown, so it provides no slots yet. Faction tags (Zerg, Stukov's Forces) and UNIQUE are assumed, as printed on every other Faction Card.",
                            "Ashes of the UED is applied by the builder: Units with the Terran Faction Tag and both Ground and Mechanical Combat Tags (currently Goliath and Siege Tank) may be added. The tracker pays their CP costs with BM cards."]),
-    CARD("robotics-support-bay", "Robotics Support Bay", "Tactical", P_, ["Protoss"], {}, 1, [
+    CARD("robotics-support-bay", "Robotics Support Bay", "Tactical", P_, ["Protoss"], {"Elite": 2}, 1, [
         ("Movement", "Master of Robotics", "Active", "The active Mechanical Unit resolves the HEAL (2) effect."),
-    ], notes=[SLOT_NOTE]),
+    ], unique=True, notes=["Both sides photographed (17 Nov 2026): Tactical Card, UNIQUE, tag Protoss, Supply 2x Elite, PE 1."]),
     CARD("infested-command-center", "Infested Command Center", "Tactical", Z, ["Zerg"], {}, 1, [
         ("Movement", "Parasitic Bio-Toxins", "Reaction", "Immediately after a Friendly Infested Unit ends their action Within 8\" of an Enemy Unit. That Enemy Unit gains the INFESTATION Status, this effect is treated as a DEBUFF."),
         ("Movement", "Scanner Sweep", "Active", "Set a Faction Indicator anywhere on the battlefield. While Enemy Units are Within 6\" of this Faction Indicator, they lose the HIDDEN Status."),

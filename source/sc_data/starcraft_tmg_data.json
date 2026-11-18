@@ -9122,7 +9122,11 @@
     "Tal'darim"
    ],
    "unique": true,
-   "slots": {},
+   "slots": {
+    "Core": 4,
+    "Elite": 1,
+    "Hero": 1
+   },
    "resource": {
     "type": "PE",
     "value": null
@@ -9144,7 +9148,8 @@
    "card_version": "v1.10.26",
    "corrections": [],
    "notes": [
-    "Only the rules side of this card was photographed: its army slots and PE value are on the other side and are unknown, so it provides no slots yet (slots come only from Tactical Cards)."
+    "Both sides photographed (17 Nov 2026): Faction Card, UNIQUE, tags Protoss and Tal'darim, Supply 4x Core, 1x Elite, 1x Hero.",
+    "No PE value is printed on either side (other Faction Cards print one), so this card generates no PE when Exhausted, as printed."
    ],
    "provisional": true,
    "gas_cost": 0
@@ -9218,8 +9223,10 @@
    "faction_tags": [
     "Protoss"
    ],
-   "unique": false,
-   "slots": {},
+   "unique": true,
+   "slots": {
+    "Elite": 2
+   },
    "resource": {
     "type": "PE",
     "value": 1
@@ -9235,7 +9242,7 @@
    "card_version": "v1.10.26",
    "corrections": [],
    "notes": [
-    "Only the rules side of this card was photographed: its army slots, Unique marking and faction tags are on the other side and are unknown, so it adds no slots yet.",
+    "Both sides photographed (17 Nov 2026): Tactical Card, UNIQUE, tag Protoss, Supply 2x Elite, PE 1.",
     "No cost is published for this card yet; it counts as 0 until a cost table lists it."
    ],
    "provisional": true,

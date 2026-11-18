@@ -136,6 +136,13 @@ console.log("\n" + C.rosterText(r));
   const gv = C.validate(sf);
   eq("a Goliath in Stukov's Forces is legal by tags and gets the Infested note", [gv.some(v => v.level === "error" && /Goliath.*has tags/.test(v.msg)), gv.some(v => v.level === "info" && /Goliath.*Ashes of the UED.*Infested.*BM.*BURROWED/.test(v.msg))], [false, true]);
   eq("the Infested Missile Turret is summonable by Stukov's Forces", require("./battle-core.js").summonable(C, sf).some(u => u.id === "infested-missile-turret"), true);
+  // Tal'darim and Robotics Support Bay: slot sides photographed 17 Nov 2026
+  const tdr = C.newRoster(); tdr.race = "Protoss"; tdr.factionId = "taldarim";
+  eq("Tal'darim gives 4 Core, 1 Elite, 1 Hero", [C.slots(tdr).available.Core, C.slots(tdr).available.Elite, C.slots(tdr).available.Hero, C.slots(tdr).available.Support], [4, 1, 1, 0]);
+  tdr.tactical["robotics-support-bay"] = 1;
+  eq("Robotics Support Bay adds 2 Elite and is Unique", [C.slots(tdr).available.Elite, C.cards["robotics-support-bay"].unique], [3, true]);
+  tdr.units.push(C.newEntry("alarak"), C.newEntry("slayer"));
+  eq("a Tal'darim roster with Alarak and a Slayer has no slot or tag errors", C.validate(tdr).filter(v => v.level === "error" && /slots|has tags/.test(v.msg)).map(v => v.msg), []);
   const im = C.newEntry("infested-marine"); eq("Infested Marine: 3 models Supply 1, 6 models Supply 2 (sharp photo)", [im.models, C.entryCost(im).supply, (im.models = 6, C.entryCost(im).supply)], [3, 1, 2]);
   eq("new units carry card version, role and base", [C.units["tassadar"].card_version, C.units["defiler"].combat_role, C.units["zagara"].base_mm], ["v1.09.26", "Lifesaver", 100]);
   eq("Holo Decoy combat tags as printed", C.units["holo-decoy"].combat_tags, ["Psionic", "Ground"]);

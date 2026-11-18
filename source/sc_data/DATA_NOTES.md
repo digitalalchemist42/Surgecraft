@@ -17,7 +17,7 @@ Source: Full Rules, Map Layouts (printed pages 115-124), and Part 9.3 Battlefiel
 - Images are the printed maps cropped at 150 dpi (the placed image is larger than the part that shows on the page, so the crop keeps only the visible map). Piece positions are not transcribed as data.
 - The Battlefield Setup order in the app is a short restatement of Part 9.3, not the printed wording. The Terrain Density Guidelines are not in the app (owner chose maps, roll and setup steps only).
 
-## v1.10.26 cards from photographs (2026-11-15, updated 2026-11-17) — PREVIEW, no costs
+## v1.10.26 cards from photographs (2026-11-15, updated 2026-11-17 twice) — PREVIEW, no costs
 Source: the owner's photographs of printed v1.10.26 cards. Archon has published no card sheets and no cost table for these (downloads page checked 15 Nov 2026: cost table still 10.2026). Every entry is `provisional` (shown as PREVIEW) in `cards_1010.py`.
 
 **Owner decision:** usable in the builder at **0 Minerals / 0 Gas** until a cost table lists them; a roster holding any of them gets a warning. Compositions are an assumption (largest model count of each Supply bracket of 1 or more).
@@ -31,6 +31,11 @@ Source: the owner's photographs of printed v1.10.26 cards. Archon has published 
 - Confirmed as transcribed: Infested Trooper Bayonet Hit 5+; Infested Missile Turret Detection Within 8" (other cards print 6"; reproduced as printed) and Firefly Missiles RoA 8; every other stat, ability and weapon on these four cards.
 - Portraits re-cropped from these photographs (`upd1110/art2.py`).
 
+**17 Nov 2026, second set** (sharp; both sides of Tal'darim and Robotics Support Bay, the Reaver's upgrade side, fronts of Alarak, Slayer, Tal'darim Pylon, Solarite and Phasing Scarab):
+- **Tal'darim** (Faction Card): UNIQUE, tags Protoss and Tal'darim, **Supply 4x Core, 1x Elite, 1x Hero**. No PE value is printed on either side (other Faction Cards print one); recorded as no value, so it generates no PE when Exhausted.
+- **Robotics Support Bay** (Tactical Card): **UNIQUE**, tag Protoss, **Supply 2x Elite**, PE 1.
+- Every other card in this set matches the earlier transcription. Card art for both cards is now cut from their art faces (`upd1110/art3.py`).
+
 **Stukov's Forces (Faction Card, BM 1):**
 - **Ashes of the UED** is applied by the builder: Units with the Terran Faction Tag and both Ground and Mechanical Combat Tags may be added (currently Goliath and Siege Tank). The roster check notes for each that it gains the Infested Combat Tag, its CP costs count as BM and it cannot gain the BURROWED Status. The battle tracker already pays every cost with the army's own resource cards, so these costs are paid with BM cards; the cards themselves still print "CP". Stored on the card as `army_building`.
 - **Infestation** asks for exactly one **Virus Card** (a new card type). Stored on the card as `required_card`; the roster keeps the Virus Card in the same field as a Creep Card (`creepId`).
@@ -41,14 +46,14 @@ Source: the owner's photographs of printed v1.10.26 cards. Archon has published 
 
 **Not photographed, so unknown or assumed:**
 - Upgrade sides of Alarak, Slayer and Infested Trooper: army slot assumed (Hero, Elite, Core); role, base and any upgrades unknown.
-- Slot side of Tal'darim, Stukov's Forces, Robotics Support Bay, Infested Command Center, Infested Barracks, Hive: slots `{}`, Unique and tags unknown (Tal'darim's PE value also unknown). These cards provide no slots yet.
+- Slot side of Stukov's Forces, Infested Command Center, Infested Barracks, Hive: slots `{}`, Unique and tags unknown These cards provide no slots yet.
 - Card type, tags and Unique of the three Virus Cards (see above).
 - Role and base of the summoned units; the Scarab's Combat Tags line (cut off; taken from the other two Scarabs).
 
 **Card typos normalized:** Reaver Large "Impassible"; Scarabs' Nimble "againts"; Slayer "BUFF ROA (1)"; Infested Marine "NON-LETHAL Damage (1)".
 **Reproduced as printed:** Firebat Stimpack wording; Infested Marine's Wild Mutation (Close Combat weapon printed FOR Infested C-14 Rifle); Stukov's "Corrode Armor" (ability name) with "DEBUFF Armour (1)".
 
-Art: portraits and card art are crops of the photographs (`upd1110/art.py`, `upd1110/art2.py`); minis are the same crops, not cut-outs. Tal'darim and Stukov's Forces use their race emblem.
+Art: portraits and card art are crops of the photographs (`upd1110/art.py`, `upd1110/art2.py`); minis are the same crops, not cut-outs. Stukov's Forces uses the Zerg emblem; Tal'darim and Robotics Support Bay art is cut from their art faces.
 
 ## v1.09.26 card update (2026-10-22)
 Sources: Terran Update 3, Protoss Update 2, Zerg Update 3 (10-2026), cards v1.09.26, sheets dated September 2026 v.1.0. Transcribed visually and cross-checked against the PDF text layer: every ability name, type, cost and text, and every weapon row, matches (differences were typography only: `''` for `"`, bullet glyphs, a space before a colon in "PSI LIGHTNING :").
